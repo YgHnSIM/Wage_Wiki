@@ -32,8 +32,8 @@ related_fact_patterns:
   - "[[fact-regular-bonus-prorated-2013]]"
   - "[[fact-workday-condition-bonus-2024]]"
 related_raw:
-  - "[[대법원 2013. 12. 18. 선고 2012다89399 전원합의체판결.pdf]]"
-  - "[[대법원 2024. 12. 19. 선고 2023다302838 전원합의체 판결.pdf]]"
+  - "[[raw/cases/대법원 2013. 12. 18. 선고 2012다89399 전원합의체판결.pdf]]"
+  - "[[raw/cases/대법원 2024. 12. 19. 선고 2023다302838 전원합의체 판결.pdf]]"
 source_locator:
   - "2013 판결 이유 1.나.3. 고정성"
   - "2024 판결 이유 1.나. 판례의 변경"
