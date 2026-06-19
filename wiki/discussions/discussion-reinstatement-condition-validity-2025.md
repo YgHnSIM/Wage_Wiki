@@ -1,0 +1,60 @@
+---
+id: "discussion-reinstatement-condition-validity-2025"
+entity_type: discussion
+title: "재직조건 유효성 논쟁"
+status: draft
+ingestion_status: linked
+primary_authority: "대법원 2025. 1. 23. 선고 2019다204876 판결"
+authority_level: 7
+enforcement_weight: low
+conflict_status: none
+conflict_type: none
+conflict_resolution: ""
+conflict_resolution_note: ""
+conflict_resolved_date: ""
+effective_from: 2025-01-23
+effective_to: 9999-12-31
+superseded_by: ""
+superseded_date: ""
+review_cycle: annual
+review_trigger:
+  - "재직조건 유효성 후속 판례"
+related_concepts:
+  - "[[concept-ordinary-wage]]"
+related_rules:
+  - "[[rule-wage-reinstatement-condition-validity-2025]]"
+  - "[[rule-reinstatement-condition-ordinary-wage-2024]]"
+related_cases:
+  - "[[case-2019다204876]]"
+  - "[[case-2020다247190]]"
+related_laws: []
+related_fact_patterns:
+  - "[[fact-reinstatement-condition-regular-bonus-2024]]"
+related_raw:
+  - "[[raw/research_press/임금에 부가된 재직조건의 유효성에 관한 비판적 고찰 - 대법원 2025. 1. 23. 선고 2019다204876 판결.pdf]]"
+  - "[[raw/research_press/재직조건부 상여금의 통상임금 인정, 그 의의와 남은 과제 - 대법원 2024. 12. 19. 선고 2020다247190 및 2023다302838 .pdf]]"
+source_locator:
+  - "IV.3. 재직조건의 유효요건"
+  - "V. 결론"
+source_excerpt:
+  - "재직조건의 유효요건은 명확히 정립될 필요가 있음"
+  - "재직조건부 임금이라는 표현은 형용모순이라는 비판"
+last_verified: ""
+last_updated: "2026-06-19"
+---
+
+# 재직조건 유효성 논쟁
+
+## Issue
+
+2024년 전원합의체 판결은 재직조건부 임금의 통상임금성을 인정했지만, 재직조건 자체가 유효한지까지 명시적으로 정리한 것은 아니었다. 2025년 대법원 판결은 재직조건의 유효성을 인정하는 방향으로 보이지만, 학설상으로는 이미 제공한 근로의 대가를 지급하지 않는 결과가 임금의 본질과 충돌한다는 비판이 계속된다.
+
+## Positions
+
+- 판례 기준: [[rule-wage-reinstatement-condition-validity-2025]]에 따라 재직조건은 원칙적으로 지급 기준 또는 지급대상 설정으로 평가될 수 있다.
+- 비판적 견해: 재직조건이 실제로는 이미 제공된 근로의 대가를 박탈하거나 사전 포기하게 하는 효과를 낳을 수 있으므로, 강행규정 잠탈이나 현저한 불합리성을 더 엄격히 심사해야 한다.
+- 절충적 접근: 통상임금성 판단은 [[rule-reinstatement-condition-ordinary-wage-2024]]로 처리하고, 임금 자체의 지급청구 가능성은 재직조건 유효성 법리로 분리한다.
+
+## Practical Notes
+
+계약서, 취업규칙, 단체협약에 재직조건이 있는 경우에는 통상임금 산입 여부와 해당 임금 자체의 지급 여부를 같은 결론으로 처리하면 안 된다. 두 판단은 서로 다른 권리와 정책 목적을 가진다.

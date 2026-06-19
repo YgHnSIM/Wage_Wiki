@@ -1,0 +1,54 @@
+---
+id: "fact-public-institution-performance-salary-minimum-guarantee-2025"
+entity_type: fact_pattern
+title: "공공기관 성과연봉 최소보장분 사실유형"
+status: draft
+ingestion_status: linked
+primary_authority: "대법원 2025. 1. 23. 선고 2019다244942 판결"
+authority_level: 3
+enforcement_weight: medium
+conflict_status: none
+conflict_type: none
+conflict_resolution: ""
+conflict_resolution_note: ""
+conflict_resolved_date: ""
+effective_from: 2025-01-23
+effective_to: 9999-12-31
+superseded_by: ""
+superseded_date: ""
+review_cycle: annual
+review_trigger:
+  - "공공기관 성과급 제도 또는 예산운영지침 변경"
+related_concepts:
+  - "[[concept-ordinary-wage]]"
+related_rules:
+  - "[[rule-performance-pay-minimum-guarantee-ordinary-wage-2025]]"
+  - "[[rule-reinstatement-condition-ordinary-wage-2024]]"
+related_cases:
+  - "[[case-2019다244942]]"
+related_laws: []
+related_fact_patterns: []
+related_raw:
+  - "[[raw/research_press/공공기관 성과급의 통상임금 해당 여부와 총인건비 문제 - 대법원 2025. 1. 23. 선고 2019다244942 판결.pdf]]"
+source_locator:
+  - "노동판례리뷰 461-462쪽"
+source_excerpt:
+  - "최소 보장 부분은 기본급처럼 보장"
+  - "총인건비 통제 하에서 대응이 달라질 수 있음"
+last_verified: ""
+last_updated: "2026-06-19"
+---
+
+# 공공기관 성과연봉 최소보장분 사실유형
+
+## Facts
+
+공공기관이 성과연봉 또는 내부평가성과연봉이라는 명칭으로 임금을 운영하면서, 근무실적이나 평가등급과 무관하게 일정한 최소 지급분을 보장하는 유형이다. 재직조건이 함께 붙어 있을 수 있고, 공공기관 예산운영지침상 총인건비 통제를 받는다는 실무적 특성이 있다.
+
+## Rule Application
+
+성과급의 명칭이 붙어 있더라도 최소보장분이 근무실적과 무관하게 정기적으로 지급되면 [[rule-performance-pay-minimum-guarantee-ordinary-wage-2025]]에 따라 통상임금성이 인정될 수 있다. 재직조건이 붙어 있다는 사정은 [[rule-reinstatement-condition-ordinary-wage-2024]]에 따라 별도로 통상임금성을 부정하지 않는다.
+
+## Conclusion
+
+성과급 중 순수 성과연동 부분과 최소보장분을 분리하여 판단해야 한다. 최소보장분은 공공기관의 총인건비 제도상 부담을 만들 수 있으나, 그 부담만으로 통상임금성 판단이 달라지지는 않는다.
