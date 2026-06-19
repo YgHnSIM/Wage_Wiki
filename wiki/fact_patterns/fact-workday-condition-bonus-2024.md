@@ -1,0 +1,57 @@
+---
+id: "fact-workday-condition-bonus-2024"
+entity_type: fact_pattern
+title: "15일 근무 조건부 상여금"
+status: draft
+ingestion_status: linked
+primary_authority: "대법원 2024. 12. 19. 선고 2023다302838 전원합의체 판결"
+authority_level: 2
+enforcement_weight: high
+conflict_status: none
+conflict_type: none
+conflict_resolution: ""
+conflict_resolution_note: ""
+conflict_resolved_date: ""
+effective_from: 2024-12-19
+effective_to: 9999-12-31
+superseded_by: ""
+superseded_date: ""
+review_cycle: annual
+review_trigger:
+  - "근무일수 조건부 상여금 후속 판례"
+related_concepts:
+  - "[[concept-ordinary-wage]]"
+  - "[[concept-fixedness]]"
+related_rules:
+  - "[[rule-workday-condition-ordinary-wage-2024]]"
+  - "[[rule-ordinary-wage-fixedness-excluded-2024]]"
+related_cases:
+  - "[[case-2023다302838]]"
+related_laws: []
+related_fact_patterns:
+  - "[[fact-regular-bonus-prorated-2013]]"
+related_raw:
+  - "[[대법원 2024. 12. 19. 선고 2023다302838 전원합의체 판결.pdf]]"
+source_locator:
+  - "이유 1.다. 이 사건에 대한 판단"
+source_excerpt:
+  - "기준기간 내 15일 미만 근무자를 지급대상에서 제외"
+  - "15일은 소정근로일수에 미치지 않음"
+last_verified: ""
+last_updated: "2026-06-19"
+---
+
+# 15일 근무 조건부 상여금
+
+## Facts
+
+피고의 단체협약 및 상여금 세칙은 통상임금의 750%를 격월, 설, 추석, 하기휴가에 나누어 지급하도록 정하였다. 다만 기준기간 내 입사하여 15일 미만 근무한 자 또는 기준기간 내 실근무일수가 15일 미만인 자를 지급대상에서 제외하였다.
+
+## Rule Application
+
+대법원은 주 5일제 사업장에서 15일 근무 조건이 각 기준기간의 소정근로일수에 미치지 않으므로, 소정근로를 온전하게 제공하는 근로자라면 충족할 조건이라고 보았다. 따라서 해당 상여금은 근무일수 조건에도 불구하고 정기적, 일률적으로 지급하기로 정한 통상임금에 해당한다.
+
+## Conclusion
+
+소정근로일수 이내의 근무일수 조건이 붙은 상여금은 그 조건만으로 통상임금에서 제외되지 않는다.
+
