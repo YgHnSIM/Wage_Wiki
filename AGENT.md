@@ -37,6 +37,33 @@ LLM은 다음 행위를 절대 금지한다.
 
 ---
 
+### 2.1.1 Raw Auto Routing
+
+`/raw/` 루트에 새 파일이 직접 추가된 경우, LLM은 추출 작업을 시작하기 전에 해당 파일을 적절한 raw 하위 폴더로 자동 이동한다.
+
+이동은 **파일 내용 변경이 아니라 보존 경로 정리**로 본다. 단, 다음 조건을 반드시 지킨다.
+
+- 파일 바이트를 수정하지 않는다.
+- 기존 파일을 덮어쓰지 않는다.
+- 동일 파일명이 이미 있으면 파일명 끝에 `__YYYYMMDD-HHMMSS`를 붙여 충돌을 피한다.
+- 이동 전후 경로를 Log에 `ROUTE_RAW` 액션으로 기록한다.
+- 이후 `related_raw`, `Source`, `Target`에는 이동 후 최종 raw 경로를 사용한다.
+
+자동 분류 기준은 다음 순서를 따른다.
+
+| 대상 폴더 | 분류 기준 |
+|----------|----------|
+| `/raw/laws/` | 법률, 시행령, 시행규칙, 조문, 법령 개정문 |
+| `/raw/cases/` | 판결문, 결정문, 사건번호, 법원명, 선고일이 확인되는 자료 |
+| `/raw/interpretations/` | 고용노동부 행정해석, 질의회시, 예규, 지침 |
+| `/raw/company_norms/` | 취업규칙, 단체협약, 임금규정, 사규, 근로계약 양식 |
+| `/raw/research_press/` | 논문, 연구보고서, 보도자료, 기사, 해설 자료 |
+| `/raw/_triage/` | 위 기준으로 확정 분류할 수 없는 자료 |
+
+`/raw/_triage/`로 이동한 자료는 entity 생성을 보류하고, 필요한 경우 사용자에게 분류 판단을 요청한다.
+
+---
+
 ### 2.2 Atomic Editing
 
 하나의 파일은 하나의 역할만 수행한다.
@@ -107,7 +134,8 @@ Conclusion
 ├── cases
 ├── interpretations
 ├── company_norms
-└── research_press
+├── research_press
+└── _triage
 
 /wiki
 ├── concepts
@@ -202,6 +230,8 @@ Conclusion
 ```
 RAW 추가
     ↓
+Raw Auto Routing (raw 루트 파일을 하위 폴더로 이동)
+    ↓
 Metadata 등록 (ingestion_status: imported)
     ↓
 Extract (ingestion_status: extracted)
@@ -224,6 +254,22 @@ Knowledge Graph 편입
 | `linked` → `verified` | `primary_authority` 검증 완료, conflict 검사 수행, `authority_level` 정합성 확인 |
 
 조건을 충족하지 않은 상태 전진은 금지한다.
+
+---
+
+### 7.2 Raw Auto Routing 절차
+
+새 source 처리 요청을 받으면 LLM은 먼저 `/raw/` 루트에 직접 놓인 파일을 검사한다. 루트 파일이 있으면 다음 순서로 처리한다.
+
+1. 파일명과 접근 가능한 텍스트의 첫 부분을 기준으로 source 유형을 분류한다.
+2. Section 2.1.1의 분류 기준에 따라 대상 raw 하위 폴더를 정한다.
+3. 대상 폴더가 없으면 생성한다.
+4. 같은 이름의 파일이 이미 있으면 덮어쓰지 않고 충돌 회피 파일명을 만든다.
+5. 파일을 대상 폴더로 이동한다.
+6. 이동 전 경로와 이동 후 경로를 `ROUTE_RAW` 로그로 기록한다.
+7. 그 다음에만 entity 추출, 링크, 검증을 진행한다.
+
+분류가 불확실한 파일은 `/raw/_triage/`로 이동하고, entity 생성은 하지 않는다.
 
 ---
 
@@ -543,6 +589,7 @@ source_excerpt:
 | `LINT_RUN` | Lint 점검 실행 |
 | `VERIFY` | 엔티티 verified 상태 확정 |
 | `INGEST` | raw 문서 신규 추가 |
+| `ROUTE_RAW` | raw 루트 파일을 적절한 raw 하위 폴더로 이동 |
 
 ---
 
@@ -629,4 +676,4 @@ Concept 문서에 `related_rules`가 없는 경우.
 
 ---
 
-*본 규약은 v1.0이며, 변경 시 Log에 `UPDATE` 액션으로 기록하고 버전을 갱신한다.*
+*본 규약은 v1.1이며, 변경 시 Log에 `UPDATE` 액션으로 기록하고 버전을 갱신한다.*

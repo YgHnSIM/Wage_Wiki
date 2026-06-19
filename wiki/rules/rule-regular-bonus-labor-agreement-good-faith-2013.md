@@ -29,7 +29,7 @@ related_laws: []
 related_fact_patterns:
   - "[[fact-regular-bonus-prorated-2013]]"
 related_raw:
-  - "[[대법원 2013. 12. 18. 선고 2012다89399 전원합의체판결.pdf]]"
+  - "[[raw/cases/대법원 2013. 12. 18. 선고 2012다89399 전원합의체판결.pdf]]"
 source_locator:
   - "이유 1.라. 통상임금에 관한 노사합의의 효력"
   - "이유 2.나. 신의성실의 원칙"

@@ -29,7 +29,7 @@ related_cases:
 related_laws: []
 related_fact_patterns: []
 related_raw:
-  - "[[대법원 2013. 12. 18. 선고 2012다89399 전원합의체판결.pdf]]"
+  - "[[raw/cases/대법원 2013. 12. 18. 선고 2012다89399 전원합의체판결.pdf]]"
 source_locator:
   - "이유 2.가. 이 사건 상여금"
 source_excerpt:

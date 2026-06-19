@@ -31,7 +31,7 @@ related_laws: []
 related_fact_patterns:
   - "[[fact-regular-bonus-prorated-2013]]"
 related_raw:
-  - "[[대법원 2024. 12. 19. 선고 2023다302838 전원합의체 판결.pdf]]"
+  - "[[raw/cases/대법원 2024. 12. 19. 선고 2023다302838 전원합의체 판결.pdf]]"
 source_locator:
   - "이유 1.다. 이 사건에 대한 판단"
 source_excerpt:
