@@ -593,6 +593,55 @@ source_excerpt:
 
 ---
 
+### 13.2 Git Commit Message Protocol
+
+커밋 메시지는 지식 그래프 변경 이력을 검색하고 감사할 수 있도록 다음 형식을 따른다.
+
+```text
+<type>(<scope>): <한국어 요약>
+```
+
+**필수 규칙:**
+
+- 제목은 한 줄로 작성한다.
+- 제목은 한국어로 작성하되, `type`과 `scope`는 아래 허용 어휘를 사용한다.
+- 제목 끝에 마침표를 붙이지 않는다.
+- 하나의 커밋은 하나의 작업 단위를 표현한다.
+- raw 소스 추가, wiki 엔티티 생성, 링크 보강, 규약 변경이 한 커밋에 함께 들어가면 가장 상위 작업 의도를 `type`으로 선택한다.
+- 커밋 본문은 큰 변경에만 사용한다. 본문을 쓸 때는 `Source`, `Changes`, `Verify` 항목을 우선 사용한다.
+
+**허용 type:**
+
+| type | 의미 |
+|------|------|
+| `init` | 저장소, 폴더, 템플릿 등 기본 구조 초기화 |
+| `ingest` | raw 소스와 해당 지식 그래프 엔티티 편입 |
+| `route` | raw 파일의 보존 경로 정리 |
+| `create` | 새 wiki 엔티티 생성 |
+| `link` | 기존 엔티티 간 링크 추가 또는 보강 |
+| `update` | 기존 엔티티 내용 수정 |
+| `deprecate` | legacy 또는 superseded 처리 |
+| `verify` | lint, 링크 검증, 무결성 점검 |
+| `docs` | 운영 규약, 템플릿, 설명 문서 변경 |
+| `fix` | 잘못된 링크, 메타데이터, 오탈자 등 오류 수정 |
+| `chore` | 의미 있는 지식 변화가 없는 관리 작업 |
+
+**권장 scope:**
+
+`repo`, `raw`, `ordinary-wage`, `case`, `rule`, `concept`, `fact-pattern`, `history`, `discussion`, `logs`, `templates`, `agent`
+
+**예시:**
+
+```text
+init(repo): 법률 지식그래프 기본 구조 생성
+ingest(ordinary-wage): 2013·2024 전합 판례 그래프 편입
+route(raw): 판결 원문을 cases 폴더로 이동
+link(ordinary-wage): 재직조건부 임금 Rule 연결 보강
+docs(agent): 커밋 메시지 규칙 추가
+```
+
+---
+
 ## 14. Lint Protocol
 
 사용자가 `Lint` 또는 `위키 점검`을 요청하면 다음 검사를 수행한다.
@@ -676,4 +725,4 @@ Concept 문서에 `related_rules`가 없는 경우.
 
 ---
 
-*본 규약은 v1.1이며, 변경 시 Log에 `UPDATE` 액션으로 기록하고 버전을 갱신한다.*
+*본 규약은 v1.2이며, 변경 시 Log에 `UPDATE` 액션으로 기록하고 버전을 갱신한다.*
