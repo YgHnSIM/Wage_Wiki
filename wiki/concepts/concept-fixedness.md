@@ -24,16 +24,22 @@ related_concepts:
 related_rules:
   - "[[rule-ordinary-wage-fixedness-2013-legacy]]"
   - "[[rule-ordinary-wage-fixedness-excluded-2024]]"
+  - "[[rule-reinstatement-condition-ordinary-wage-2024]]"
   - "[[rule-workday-condition-ordinary-wage-2024]]"
 related_cases:
   - "[[case-2012다89399]]"
+  - "[[case-2020다247190]]"
   - "[[case-2023다302838]]"
 related_laws: []
 related_fact_patterns:
+  - "[[fact-reinstatement-condition-regular-bonus-2024]]"
   - "[[fact-workday-condition-bonus-2024]]"
 related_raw:
   - "[[raw/cases/대법원 2013. 12. 18. 선고 2012다89399 전원합의체판결.pdf]]"
   - "[[raw/cases/대법원 2024. 12. 19. 선고 2023다302838 전원합의체 판결.pdf]]"
+  - "[[raw/research_press/통상임금 판결의 고정성 요건 삭제의 향후 영향 - 대법원 2024. 12. 19. 선고 2020다247190 및 2023다302838.pdf]]"
+  - "[[raw/research_press/통상임금의 개념 및 판단 기준 - 고정성 폐기를 통한 통상임금 법리의 변경.pdf]]"
+  - "[[raw/research_press/재직조건부 상여금의 통상임금 인정, 그 의의와 남은 과제 - 대법원 2024. 12. 19. 선고 2020다247190 및 2023다302838 .pdf]]"
 source_locator:
   - "2013 판결 이유 1.나.3. 고정성"
   - "2024 판결 이유 1.가. 통상임금에 관한 법리"
@@ -54,9 +60,9 @@ last_updated: "2026-06-19"
 
 - legacy 법리: [[rule-ordinary-wage-fixedness-2013-legacy]]
 - 현재 법리: [[rule-ordinary-wage-fixedness-excluded-2024]]
+- 재직조건부 임금 판단: [[rule-reinstatement-condition-ordinary-wage-2024]]
 - 근무일수 조건부 임금 판단: [[rule-workday-condition-ordinary-wage-2024]]
 
 ## Notes
 
-2024년 전원합의체 판례는 고정성 개념이 통상임금 범위를 법령상 근거 없이 축소한다고 보아, 이를 통상임금의 독립적 개념 징표로 보지 않았다.
-
+2024년 전원합의체 판례는 고정성 개념이 통상임금 범위를 법령상 근거 없이 축소한다고 보아, 이를 통상임금의 독립적 개념 징표로 보지 않았다. 고정성 폐기 이후에는 조건의 존부보다 소정근로 대가성, 정기성, 일률성 및 사전적 산정 가능성의 의미가 핵심 해석 쟁점이 된다.

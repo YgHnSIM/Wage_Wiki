@@ -24,6 +24,7 @@ related_concepts:
   - "[[concept-fixedness]]"
 related_rules:
   - "[[rule-ordinary-wage-fixedness-excluded-2024]]"
+  - "[[rule-reinstatement-condition-ordinary-wage-2024]]"
   - "[[rule-ordinary-wage-fixedness-2013-legacy]]"
 related_cases:
   - "[[case-2023다302838]]"
@@ -32,6 +33,8 @@ related_fact_patterns:
   - "[[fact-workday-condition-bonus-2024]]"
 related_raw:
   - "[[raw/cases/대법원 2024. 12. 19. 선고 2023다302838 전원합의체 판결.pdf]]"
+  - "[[raw/research_press/통상임금 판결의 고정성 요건 삭제의 향후 영향 - 대법원 2024. 12. 19. 선고 2020다247190 및 2023다302838.pdf]]"
+  - "[[raw/research_press/통상임금의 개념 및 판단 기준 - 고정성 폐기를 통한 통상임금 법리의 변경.pdf]]"
 source_locator:
   - "이유 1.가. 통상임금에 관한 법리"
   - "이유 1.다. 이 사건에 대한 판단"
@@ -71,5 +74,4 @@ extinction_period: ""
 
 ## Notes
 
-[[fact-workday-condition-bonus-2024]]에서는 기준기간 내 15일 이상 근무 조건이 각 기준기간의 소정근로일수에 미치지 않아 통상임금성이 인정되었다.
-
+[[fact-workday-condition-bonus-2024]]에서는 기준기간 내 15일 이상 근무 조건이 각 기준기간의 소정근로일수에 미치지 않아 통상임금성이 인정되었다. 재직조건부 임금은 병행 기준인 [[rule-reinstatement-condition-ordinary-wage-2024]]에서 관리한다.

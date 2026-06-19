@@ -30,8 +30,11 @@ related_cases:
 related_laws: []
 related_fact_patterns:
   - "[[fact-regular-bonus-prorated-2013]]"
+  - "[[fact-reinstatement-condition-regular-bonus-2024]]"
 related_raw:
   - "[[raw/cases/대법원 2024. 12. 19. 선고 2023다302838 전원합의체 판결.pdf]]"
+  - "[[raw/research_press/통상임금 판결의 고정성 요건 삭제의 향후 영향 - 대법원 2024. 12. 19. 선고 2020다247190 및 2023다302838.pdf]]"
+  - "[[raw/research_press/통상임금의 개념 및 판단 기준 - 고정성 폐기를 통한 통상임금 법리의 변경.pdf]]"
 source_locator:
   - "이유 1.다. 이 사건에 대한 판단"
 source_excerpt:
@@ -54,4 +57,3 @@ last_updated: "2026-06-19"
 ## Conclusion
 
 소정근로일수 이내의 근무일수 조건이 붙은 상여금은 그 조건만으로 통상임금에서 제외되지 않는다.
-

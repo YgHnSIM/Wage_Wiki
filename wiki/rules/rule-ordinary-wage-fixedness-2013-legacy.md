@@ -24,8 +24,11 @@ related_concepts:
   - "[[concept-fixedness]]"
 related_rules:
   - "[[rule-ordinary-wage-fixedness-excluded-2024]]"
+  - "[[rule-reinstatement-condition-ordinary-wage-2024]]"
+  - "[[rule-workday-condition-ordinary-wage-2024]]"
 related_cases:
   - "[[case-2012다89399]]"
+  - "[[case-2020다247190]]"
   - "[[case-2023다302838]]"
 related_laws: []
 related_fact_patterns:
@@ -34,6 +37,7 @@ related_fact_patterns:
 related_raw:
   - "[[raw/cases/대법원 2013. 12. 18. 선고 2012다89399 전원합의체판결.pdf]]"
   - "[[raw/cases/대법원 2024. 12. 19. 선고 2023다302838 전원합의체 판결.pdf]]"
+  - "[[raw/research_press/통상임금의 개념 및 판단 기준 - 고정성 폐기를 통한 통상임금 법리의 변경.pdf]]"
 source_locator:
   - "2013 판결 이유 1.나.3. 고정성"
   - "2024 판결 이유 1.나. 판례의 변경"
@@ -75,4 +79,3 @@ extinction_period: ""
 ## Notes
 
 이 문서는 폐기된 법리 자체를 추적하기 위한 legacy Rule이다. 현재 통상임금 판단의 주된 기준으로 사용하지 않는다.
-

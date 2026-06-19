@@ -1,0 +1,80 @@
+---
+id: "rule-reinstatement-condition-ordinary-wage-2024"
+entity_type: rule
+title: "재직조건부 임금의 통상임금성 판단 규칙"
+status: draft
+ingestion_status: linked
+primary_authority: "대법원 2024. 12. 19. 선고 2020다247190 전원합의체 판결"
+authority_level: 2
+enforcement_weight: high
+conflict_status: none
+conflict_type: none
+conflict_resolution: ""
+conflict_resolution_note: ""
+conflict_resolved_date: ""
+effective_from: 2024-12-19
+effective_to: 9999-12-31
+superseded_by: ""
+superseded_date: ""
+review_cycle: annual
+review_trigger:
+  - "재직조건부 임금 통상임금 후속 판례"
+related_concepts:
+  - "[[concept-ordinary-wage]]"
+  - "[[concept-fixedness]]"
+related_rules:
+  - "[[rule-ordinary-wage-fixedness-excluded-2024]]"
+  - "[[rule-wage-reinstatement-condition-validity-2025]]"
+  - "[[rule-performance-pay-minimum-guarantee-ordinary-wage-2025]]"
+related_cases:
+  - "[[case-2020다247190]]"
+  - "[[case-2019다204876]]"
+  - "[[case-2019다244942]]"
+related_laws: []
+related_fact_patterns:
+  - "[[fact-reinstatement-condition-regular-bonus-2024]]"
+  - "[[fact-public-institution-performance-salary-minimum-guarantee-2025]]"
+related_raw:
+  - "[[raw/research_press/재직조건부 상여금의 통상임금 인정, 그 의의와 남은 과제 - 대법원 2024. 12. 19. 선고 2020다247190 및 2023다302838 .pdf]]"
+  - "[[raw/research_press/통상임금의 개념 및 판단 기준 - 고정성 폐기를 통한 통상임금 법리의 변경.pdf]]"
+  - "[[raw/research_press/통상임금 판결의 고정성 요건 삭제의 향후 영향 - 대법원 2024. 12. 19. 선고 2020다247190 및 2023다302838.pdf]]"
+source_locator:
+  - "2020다247190 판결요지"
+  - "통상임금의 개념 및 판단 기준, III.3.나"
+source_excerpt:
+  - "조건의 효력 문제와 통상임금성 문제는 구별"
+  - "재직조건만으로 소정근로 대가성이나 통상임금성이 부정되지 않음"
+last_verified: ""
+last_updated: "2026-06-19"
+rule_type: inclusion
+law_version: ""
+law_revision_date: ""
+wage_criteria:
+  - "소정근로 대가성"
+  - "정기성"
+  - "일률성"
+wage_type:
+  - "통상임금"
+worker_scope: "재직조건부 임금을 받는 근로자"
+calculation_unit: "정기상여금, 성과급 최소 지급분 등 재직조건부 임금 항목"
+extinction_period: ""
+---
+
+# 재직조건부 임금의 통상임금성 판단 규칙
+
+## Rule
+
+어떤 임금을 지급받기 위해 특정 시점에 재직 중이어야 한다는 조건이 붙어 있더라도, 그 임금이 소정근로의 대가로서 정기적, 일률적으로 지급하기로 정해진 임금이면 통상임금에 해당한다. 재직조건의 효력 문제와 그 조건이 붙은 임금 항목의 통상임금성 문제는 구별한다.
+
+## Authority
+
+- [[case-2020다247190]]
+- [[case-2019다244942]]
+
+## Application
+
+재직조건부 정기상여금은 먼저 소정근로 대가성, 정기성, 일률성을 기준으로 판단한다. 지급일 전에 퇴직한 근로자가 해당 임금 자체를 청구할 수 있는지는 재직조건의 유효성 문제이지만, 퇴직 전 연장근로 등에 대한 법정수당 산정 기초로 해당 임금을 통상임금에 포함할 수 있는지는 별도 문제이다.
+
+## Notes
+
+이 Rule은 [[rule-ordinary-wage-fixedness-excluded-2024]]의 재직조건 적용 축이다. 재직조건 자체가 유효한지는 [[rule-wage-reinstatement-condition-validity-2025]]에서 별도로 관리한다.
