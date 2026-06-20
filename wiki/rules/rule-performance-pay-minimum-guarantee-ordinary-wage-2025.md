@@ -19,6 +19,7 @@ superseded_date: ""
 review_cycle: annual
 review_trigger:
   - "성과급 통상임금 후속 판례"
+  - "공공기관 성과급 지급대상기간 귀속 판례"
 related_concepts:
   - "[[concept-ordinary-wage]]"
 related_rules:
@@ -26,21 +27,26 @@ related_rules:
   - "[[rule-ordinary-wage-fixedness-excluded-2024]]"
 related_cases:
   - "[[case-2019다244942]]"
+  - "[[case-2023다216777]]"
   - "[[case-2020다247190]]"
 related_laws: []
 related_fact_patterns:
   - "[[fact-public-institution-performance-salary-minimum-guarantee-2025]]"
+  - "[[fact-khnp-basic-performance-pay-minimum-guarantee-2025]]"
 related_raw:
   - "[[raw/research_press/공공기관 성과급의 통상임금 해당 여부와 총인건비 문제 - 대법원 2025. 1. 23. 선고 2019다244942 판결.pdf]]"
   - "[[raw/research_press/통상임금의 개념 및 판단 기준 - 고정성 폐기를 통한 통상임금 법리의 변경.pdf]]"
+  - "https://www.law.go.kr/LSW/precInfoP.do?mode=0&precSeq=608505"
 source_locator:
   - "2019다244942 판결요지"
+  - "2023다216777 판결요지 및 이유 3. 기본성과급의 통상임금 해당 여부"
   - "통상임금의 개념 및 판단 기준, III.3.라"
 source_excerpt:
   - "근무실적과 무관한 최소보장 부분은 소정근로의 대가"
   - "순수한 의미의 성과급은 일반적으로 통상임금이 아님"
+  - "성과급에 관하여 최소지급분이 있는지는 지급 대상기간인 전년도를 기준으로 판단"
 last_verified: ""
-last_updated: "2026-06-19"
+last_updated: "2026-06-20"
 rule_type: inclusion
 law_version: ""
 law_revision_date: ""
@@ -48,6 +54,7 @@ wage_criteria:
   - "소정근로 대가성"
   - "정기성"
   - "일률성"
+  - "사전적 산정 가능성"
 wage_type:
   - "통상임금"
 worker_scope: "성과급 또는 성과연봉을 받는 근로자"
@@ -61,15 +68,28 @@ extinction_period: ""
 
 근무실적에 따라 지급 여부나 지급액이 결정되는 순수 성과급은 일반적으로 소정근로 대가성이 없어 통상임금이 아니다. 그러나 성과급이라는 명칭을 사용하더라도 근무실적과 무관하게 최소한도의 일정액을 지급하기로 정한 부분은 소정근로의 대가로서 통상임금에 해당할 수 있다.
 
+최소보장분은 지급대상기간 당시 규정, 단체협약, 보수규정, 확립된 관행 등에 의해 객관적으로 특정되거나 산정 가능해야 한다. 정확한 원 단위 금액이 고정되어 있을 필요는 없지만, 최저 지급률, 하한액, 산식 등은 평가결과와 무관하게 사전에 정해져 있어야 한다.
+
+전년도 근무실적에 대한 성과급이 당해 연도에 지급되는 경우, 지급 시기만 당해 연도로 정한 것이라면 그 성과급은 전년도의 임금이다. 최소보장분이 인정되면 지급연도가 아니라 지급대상기간인 전년도의 통상임금에 산입한다.
+
 ## Authority
 
 - [[case-2019다244942]]
+- [[case-2023다216777]]
 - [[case-2020다247190]]
 
 ## Application
 
 성과급 항목을 판단할 때에는 명칭, 공공기관 예산운영지침상 분류, 총인건비 통제 여부보다 지급 구조를 먼저 확인한다. 최하위 등급에도 일정 금액이 보장되는지, 일정한 주기로 분할 지급되는지, 지급액이 근무실적과 무관한 최소 부분으로 확정되는지가 핵심이다.
 
+과거 성과급 또는 장려금에 최소지급 관행이 있었다는 사정만으로 제도 개편 후 성과급에도 같은 최소보장분이 승계된다고 단정할 수 없다. 보수규정상 지급기준 변경 가능성, 정부 지침, 실제 차등 지급 내역을 함께 보아야 한다. [[fact-khnp-basic-performance-pay-minimum-guarantee-2025]]에서는 기본성과급이 원칙적으로 200%로 규정되었더라도 실제 133~267% 차등 지급된 점 때문에 200% 전액을 최소지급분으로 볼 수 없다고 판단되었다.
+
+## Distinction from Fixedness
+
+2024년 전원합의체 판결은 고정성을 통상임금의 독립 요건에서 제외하였다. 그러나 이는 성과급의 사후 변동분까지 통상임금에 포함한다는 뜻이 아니다. 통상임금은 연장, 야간, 휴일근로 제공 전에 산정될 수 있어야 하므로, 성과급 최소보장분도 지급대상기간 당시 객관적으로 산정 가능한 하한이어야 한다.
+
 ## Notes
 
 공공기관에서 최소보장 성과급이 통상임금에 포함되면 총인건비 준수 문제가 발생할 수 있다. 이 실무적 긴장은 [[discussion-public-institution-total-labor-cost-2025]]에서 별도로 관리한다.
+
+공공기관 경영평가성과급의 최신 판례 흐름은 [[discussion-public-institution-performance-bonus-ordinary-wage-2026]]에서 추적한다.

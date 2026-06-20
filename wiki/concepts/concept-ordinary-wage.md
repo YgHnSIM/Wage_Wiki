@@ -36,12 +36,14 @@ related_cases:
   - "[[case-2023다302838]]"
   - "[[case-2019다204876]]"
   - "[[case-2019다244942]]"
+  - "[[case-2023다216777]]"
 related_laws: []
 related_fact_patterns:
   - "[[fact-regular-bonus-prorated-2013]]"
   - "[[fact-reinstatement-condition-regular-bonus-2024]]"
   - "[[fact-workday-condition-bonus-2024]]"
   - "[[fact-public-institution-performance-salary-minimum-guarantee-2025]]"
+  - "[[fact-khnp-basic-performance-pay-minimum-guarantee-2025]]"
 related_raw:
   - "[[raw/cases/대법원 2013. 12. 18. 선고 2012다89399 전원합의체판결.pdf]]"
   - "[[raw/cases/대법원 2024. 12. 19. 선고 2023다302838 전원합의체 판결.pdf]]"
@@ -56,7 +58,7 @@ source_locator:
 source_excerpt:
   - "소정근로의 대가로서 정기적, 일률적으로 지급하기로 정한 임금"
 last_verified: ""
-last_updated: "2026-06-19"
+last_updated: "2026-06-20"
 ---
 
 # 통상임금
@@ -78,3 +80,7 @@ last_updated: "2026-06-19"
 ## Notes
 
 2013년에는 고정성이 통상임금의 개념적 징표로 정리되었으나, 2024년 전원합의체 판례는 고정성을 독립 요건에서 제외하였다. 그 결과 재직조건부 임금, 근무일수 조건부 임금, 성과급 최소보장분은 각각의 지급 구조에 따라 소정근로 대가성, 정기성, 일률성을 중심으로 다시 판단한다.
+
+성과급 영역에서는 고정성 요건 폐기 후에도 순수 성과급은 원칙적으로 통상임금이 아니다. 근무실적과 무관하게 보장된 최소보장분만 통상임금에 산입될 수 있고, 전년도 성과에 대한 성과급은 지급연도가 아니라 지급대상기간의 통상임금으로 귀속된다.
+
+공공기관 경영평가 성과급과 기본성과급의 후속 동향은 [[discussion-public-institution-performance-bonus-ordinary-wage-2026]]에서 별도로 추적한다.

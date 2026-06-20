@@ -1,0 +1,83 @@
+---
+id: "discussion-public-institution-performance-bonus-ordinary-wage-2026"
+entity_type: discussion
+title: "공공기관 경영평가 성과급의 통상임금성 최신 동향"
+status: draft
+ingestion_status: linked
+primary_authority: "대법원 2025. 8. 14. 선고 2023다216777 판결 및 후속 판례 동향"
+authority_level: 7
+enforcement_weight: low
+conflict_status: none
+conflict_type: none
+conflict_resolution: ""
+conflict_resolution_note: ""
+conflict_resolved_date: ""
+effective_from: 2025-08-14
+effective_to: 9999-12-31
+superseded_by: ""
+superseded_date: ""
+review_cycle: annual
+review_trigger:
+  - "공공기관 경영평가성과급 통상임금 후속 판례"
+  - "2024년 통상임금 전원합의체 판결 후속 해석"
+related_concepts:
+  - "[[concept-ordinary-wage]]"
+  - "[[concept-fixedness]]"
+related_rules:
+  - "[[rule-performance-pay-minimum-guarantee-ordinary-wage-2025]]"
+  - "[[rule-ordinary-wage-fixedness-excluded-2024]]"
+related_cases:
+  - "[[case-2020다247190]]"
+  - "[[case-2019다244942]]"
+  - "[[case-2023다216777]]"
+related_laws: []
+related_fact_patterns:
+  - "[[fact-public-institution-performance-salary-minimum-guarantee-2025]]"
+  - "[[fact-khnp-basic-performance-pay-minimum-guarantee-2025]]"
+related_raw:
+  - "https://www.law.go.kr/LSW/precInfoP.do?mode=0&precSeq=600537"
+  - "https://www.law.go.kr/LSW/precInfoP.do?mode=0&precSeq=608505"
+  - "https://www.jipyong.com/kr/board/news_view.php?seq=14502"
+  - "https://www.yulchon.com/ko/resources/publications/legal-update-view/41782/page.do"
+source_locator:
+  - "대법원 2020다247190 전원합의체 판결 판결요지"
+  - "대법원 2023다216777 판결 판시사항 [2]"
+  - "지평 및 율촌 판례 해설"
+source_excerpt:
+  - "고정성을 통상임금의 개념적 징표에서 제외"
+  - "순수한 의미의 성과급은 여전히 통상임금에 해당한다고 볼 수 없음"
+  - "전년도의 임금에 해당하는 성과급의 최소지급분은 전년도의 통상임금"
+last_verified: ""
+last_updated: "2026-06-20"
+---
+
+# 공공기관 경영평가 성과급의 통상임금성 최신 동향
+
+## Issue
+
+2024년 전원합의체 판결은 통상임금 판단에서 고정성 요건을 폐기하였다. 그러나 공공기관 경영평가성과급, 자체성과급, 기본성과급, 내부평가급의 통상임금성은 여전히 소정근로 대가성에서 제한된다. 법원은 성과급 전체가 아니라 근무실적과 무관하게 보장된 최소지급분이 있는지를 중심으로 판단한다.
+
+## Current Direction
+
+- 경영평가결과, 기관평가, 부서평가, 개인평가에 따라 지급률이 결정되는 순수 성과급은 원칙적으로 통상임금이 아니다.
+- 성과급이라는 명칭이 붙어 있더라도 최하위 등급자에게도 지급하기로 한 하한액이 있으면 그 최소지급분은 통상임금이 될 수 있다.
+- 최소지급분은 지급대상기간 당시 규정, 단체협약, 보수규정, 확립된 관행 등에 의해 객관적으로 특정되거나 산정 가능해야 한다.
+- 전년도 근무실적에 대한 성과급을 당해 연도에 지급하는 구조라면, 최소지급분은 지급연도가 아니라 지급대상기간인 전년도 통상임금에 산입한다.
+- 과거 장려금의 최소지급 관행이나 전환 재원만으로 개편 후 성과급의 최소지급분이 그대로 승계된다고 단정할 수 없다.
+
+## Case Flow
+
+[[case-2013가합64415]]는 한수원 통상임금 사건의 제1심으로, 여러 임금 항목의 통상임금성을 선별적으로 인정하였다. [[case-2017나2016158]]은 기본성과급 200% 전액을 기존 장려금의 최소지급분이 전환된 것으로 보아 통상임금성을 넓게 인정하였다.
+
+[[case-2023다216777]]은 항소심 판단을 일부 바로잡았다. 대법원은 기본성과급에 최소지급분이 있을 수 있다는 법리는 유지하면서도, 200% 전액을 최소지급분으로 단정하려면 지급대상기간 당시 실제 보장된 하한이 확인되어야 한다고 보았다. 한수원의 보수규정상 차등 지급 가능성과 실제 133~267% 차등 지급 사실이 이 판단의 핵심이다.
+
+## Practical Notes
+
+공공기관 실무에서는 성과급을 다음 순서로 나누어 검토한다.
+
+1. 지급대상기간이 어느 연도인지 확인한다.
+2. 지급률이 기관·부서·개인 평가에 따라 사후 결정되는지 확인한다.
+3. 평가와 무관한 최저 지급률, 최저 금액, 산식이 지급대상기간 당시 존재했는지 확인한다.
+4. 최소지급분이 있으면 지급연도가 아니라 지급대상기간의 통상임금에 산입한다.
+
+고정성 폐기는 최소지급분 판단을 완화하는 것이 아니라, 조건의 불확실성을 이유로 통상임금성을 곧바로 부정하던 법리를 제거한 것이다. 성과급 영역에서는 여전히 소정근로 대가성과 사전적 산정 가능성이 핵심이다.
