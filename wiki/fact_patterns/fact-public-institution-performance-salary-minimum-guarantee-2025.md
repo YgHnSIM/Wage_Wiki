@@ -19,6 +19,7 @@ superseded_date: ""
 review_cycle: annual
 review_trigger:
   - "공공기관 성과급 제도 또는 예산운영지침 변경"
+  - "공공기관 성과급 최소지급분 후속 판례"
 related_concepts:
   - "[[concept-ordinary-wage]]"
 related_rules:
@@ -26,8 +27,10 @@ related_rules:
   - "[[rule-reinstatement-condition-ordinary-wage-2024]]"
 related_cases:
   - "[[case-2019다244942]]"
+  - "[[case-2023다216777]]"
 related_laws: []
-related_fact_patterns: []
+related_fact_patterns:
+  - "[[fact-khnp-basic-performance-pay-minimum-guarantee-2025]]"
 related_raw:
   - "[[raw/research_press/공공기관 성과급의 통상임금 해당 여부와 총인건비 문제 - 대법원 2025. 1. 23. 선고 2019다244942 판결.pdf]]"
 source_locator:
@@ -36,7 +39,7 @@ source_excerpt:
   - "최소 보장 부분은 기본급처럼 보장"
   - "총인건비 통제 하에서 대응이 달라질 수 있음"
 last_verified: ""
-last_updated: "2026-06-19"
+last_updated: "2026-06-20"
 ---
 
 # 공공기관 성과연봉 최소보장분 사실유형
@@ -48,6 +51,8 @@ last_updated: "2026-06-19"
 ## Rule Application
 
 성과급의 명칭이 붙어 있더라도 최소보장분이 근무실적과 무관하게 정기적으로 지급되면 [[rule-performance-pay-minimum-guarantee-ordinary-wage-2025]]에 따라 통상임금성이 인정될 수 있다. 재직조건이 붙어 있다는 사정은 [[rule-reinstatement-condition-ordinary-wage-2024]]에 따라 별도로 통상임금성을 부정하지 않는다.
+
+반대로 규정상 차등 지급이 가능하고 실제로 최저 지급률이 사후 평가 결과에 따라 달라지는 구조라면, 과거 지급 관행이나 성과급 재원만으로 최소보장분을 인정하기 어렵다. 이 제한 사례는 [[fact-khnp-basic-performance-pay-minimum-guarantee-2025]]에서 별도로 관리한다.
 
 ## Conclusion
 

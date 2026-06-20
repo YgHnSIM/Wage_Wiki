@@ -26,9 +26,11 @@ related_rules:
   - "[[rule-performance-pay-minimum-guarantee-ordinary-wage-2025]]"
 related_cases:
   - "[[case-2019다244942]]"
+  - "[[case-2023다216777]]"
 related_laws: []
 related_fact_patterns:
   - "[[fact-public-institution-performance-salary-minimum-guarantee-2025]]"
+  - "[[fact-khnp-basic-performance-pay-minimum-guarantee-2025]]"
 related_raw:
   - "[[raw/research_press/공공기관 성과급의 통상임금 해당 여부와 총인건비 문제 - 대법원 2025. 1. 23. 선고 2019다244942 판결.pdf]]"
 source_locator:
@@ -37,7 +39,7 @@ source_excerpt:
   - "최소보장 부분을 인정한 공공기관은 총인건비 준수 어려움에 직면할 수 있음"
   - "최소보장 부분이 없던 기관은 영향이 상대적으로 작음"
 last_verified: ""
-last_updated: "2026-06-19"
+last_updated: "2026-06-20"
 ---
 
 # 공공기관 성과급 통상임금성과 총인건비 쟁점
@@ -55,3 +57,5 @@ last_updated: "2026-06-19"
 ## Practical Notes
 
 공공기관 실무에서는 성과급 항목을 순수 성과연동분과 최소보장분으로 나누어 검토해야 한다. 총인건비 제도에 따른 부담은 임금체계 개편의 이유가 될 수 있지만, 통상임금 산입 여부를 부정하는 법적 근거로 바로 연결되지는 않는다.
+
+최근 판례 흐름은 최소보장분이 실제로 존재하는지를 더 엄격히 확인하는 방향이다. [[case-2023다216777]]은 과거 장려금의 최소지급 관행이나 전환 재원만으로 개편 후 기본성과급의 최소지급분을 인정할 수 없고, 지급대상기간 당시 보수규정과 실제 차등 지급 내역을 보아야 한다고 판단하였다. 공공기관 경영평가 성과급의 통상임금성 일반 동향은 [[discussion-public-institution-performance-bonus-ordinary-wage-2026]]에서 추적한다.
