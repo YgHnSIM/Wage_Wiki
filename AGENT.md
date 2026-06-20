@@ -328,9 +328,6 @@ related_laws: []
 related_fact_patterns: []
 
 related_raw: []                 # 필수: 원천 raw 문서 링크
-
-source_locator: []              # 권장: 판시사항 번호, 조문 위치 등
-
 source_excerpt: []              # 권장: 핵심 원문 발췌 (저작권 범위 내)
 
 last_verified: ""
@@ -470,17 +467,13 @@ enforcement_date: ""            # 시행일
 모든 Rule, Case, Law 문서는 최소 1개 이상의 원천 출처를 가져야 한다.
 
 **필수:** `related_raw`
-**권장:** `source_locator`, `source_excerpt`
+**권장:** `source_excerpt`
 
 **예시:**
 
 ```yaml
 related_raw:
   - "[[2013다2672_원문]]"
-
-source_locator:
-  - "판시사항 3"
-
 source_excerpt:
   - "정기적이고 일률적으로 지급되는 금품..."
 ```

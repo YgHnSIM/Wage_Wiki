@@ -27,7 +27,6 @@ related_laws:
 related_fact_patterns: []
 related_raw:
   - "[[RAW_DOCUMENT]]"
-source_locator: []
 source_excerpt: []
 last_verified: ""
 last_updated: "{{date}}"
