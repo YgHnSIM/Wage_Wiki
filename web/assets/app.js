@@ -5,13 +5,6 @@
   if (!explorer) return;
 
   const elements = {
-    status: document.getElementById("status-filter"),
-    legal: document.getElementById("legal-filter"),
-    date: document.getElementById("date-filter"),
-    sort: document.getElementById("sort-filter"),
-    effective: document.getElementById("effective-filter"),
-    reset: document.getElementById("reset-filters"),
-    showAll: document.getElementById("show-all"),
     results: document.getElementById("results"),
     statusText: document.getElementById("result-status"),
     empty: document.getElementById("empty-state"),
@@ -19,50 +12,19 @@
     typeButtons: Array.from(document.querySelectorAll(".type-filter")),
   };
 
-  const defaultDate = explorer.dataset.defaultDate;
   const pageSize = 18;
   let records = [];
   let filtered = [];
   let visible = pageSize;
   let activeType = "all";
 
-  function currentState() {
-    return {
-      type: activeType,
-      status: elements.status.value,
-      legal: elements.legal.value,
-      date: elements.date.value || defaultDate,
-      sort: elements.sort.value,
-      effective: elements.effective.checked,
-    };
+  function sortRecords(items) {
+    return items.sort((left, right) => right.sortDate.localeCompare(left.sortDate));
   }
 
-  function isEffective(record, date) {
-    return record.effectiveFrom <= date && date <= record.effectiveTo;
-  }
-
-  function sortRecords(items, state) {
-    return items.sort((left, right) => {
-      if (state.sort === "title") {
-        return left.title.localeCompare(right.title, "ko");
-      }
-      if (state.sort === "authority") {
-        const leftAuthority = Number(left.authorityLevel || 99);
-        const rightAuthority = Number(right.authorityLevel || 99);
-        if (leftAuthority !== rightAuthority) return leftAuthority - rightAuthority;
-      }
-      return right.sortDate.localeCompare(left.sortDate) || left.title.localeCompare(right.title, "ko");
-    });
-  }
-
-  function updateUrl(state) {
+  function updateUrl() {
     const params = new URLSearchParams();
-    if (state.type !== "all") params.set("type", state.type);
-    if (state.status !== "verified") params.set("status", state.status);
-    if (state.legal !== "current") params.set("legal", state.legal);
-    if (state.date !== defaultDate) params.set("asof", state.date);
-    if (state.sort !== "date") params.set("sort", state.sort);
-    if (!state.effective) params.set("effective", "0");
+    if (activeType !== "all") params.set("type", activeType);
     const query = params.toString();
     const anchor = query || window.location.hash === "#explore" ? "#explore" : "";
     const next = window.location.pathname + (query ? `?${query}` : "") + anchor;
@@ -76,6 +38,11 @@
       button.classList.toggle("is-active", active);
       button.setAttribute("aria-pressed", String(active));
     });
+  }
+
+  function activeTypeLabel() {
+    const activeButton = elements.typeButtons.find((button) => button.dataset.type === activeType);
+    return activeButton ? activeButton.dataset.label : "전체 문서";
   }
 
   function badge(value, label, kind) {
@@ -128,14 +95,8 @@
   }
 
   function render() {
-    const state = currentState();
-    filtered = records.filter((record) => {
-      if (state.type !== "all" && record.type !== state.type) return false;
-      if (state.status !== "all" && record.status !== state.status) return false;
-      if (state.legal !== "all" && record.legalStatus !== state.legal) return false;
-      return !state.effective || isEffective(record, state.date);
-    });
-    sortRecords(filtered, state);
+    filtered = records.filter((record) => activeType === "all" || record.type === activeType);
+    sortRecords(filtered);
 
     elements.results.replaceChildren();
     const fragment = document.createDocumentFragment();
@@ -143,13 +104,13 @@
     elements.results.append(fragment);
 
     const shown = Math.min(filtered.length, visible);
-    elements.statusText.textContent = `조건에 맞는 문서 ${filtered.length}개${filtered.length > shown ? ` · ${shown}개 표시` : ""}`;
+    elements.statusText.textContent = `${activeTypeLabel()} ${filtered.length}개${filtered.length > shown ? ` · ${shown}개 표시` : ""}`;
     elements.empty.hidden = filtered.length !== 0;
     elements.loadMore.hidden = shown >= filtered.length;
     if (!elements.loadMore.hidden) {
       elements.loadMore.textContent = `더 보기 · ${filtered.length - shown}개 남음`;
     }
-    updateUrl(state);
+    updateUrl();
   }
 
   function refresh() {
@@ -160,56 +121,13 @@
   function applyParams() {
     const params = new URLSearchParams(window.location.search);
     setType(params.get("type") || "all");
-    elements.status.value = params.get("status") || "verified";
-    if (!elements.status.value) elements.status.value = "verified";
-    const selectedDate = params.get("asof") || defaultDate;
-    elements.legal.value = params.get("legal") || (selectedDate !== defaultDate ? "all" : "current");
-    if (!elements.legal.value) elements.legal.value = selectedDate !== defaultDate ? "all" : "current";
-    elements.date.value = selectedDate;
-    elements.sort.value = params.get("sort") || "date";
-    if (!elements.sort.value) elements.sort.value = "date";
-    const effectiveParam = params.get("effective");
-    elements.effective.checked = effectiveParam !== "0" && !(elements.legal.value === "future" && effectiveParam === null);
   }
 
-  function resetDefaults() {
-    elements.status.value = "verified";
-    elements.legal.value = "current";
-    elements.date.value = defaultDate;
-    elements.sort.value = "date";
-    elements.effective.checked = true;
-    setType("all");
-    refresh();
-  }
-
-  [elements.status, elements.sort, elements.effective].forEach((control) => {
-    control.addEventListener("change", refresh);
-  });
-  elements.legal.addEventListener("change", () => {
-    if (elements.legal.value === "future") {
-      elements.effective.checked = false;
-    }
-    refresh();
-  });
-  elements.date.addEventListener("change", () => {
-    if (elements.date.value && elements.date.value !== defaultDate && elements.legal.value === "current") {
-      elements.legal.value = "all";
-    }
-    refresh();
-  });
   elements.typeButtons.forEach((button) => {
     button.addEventListener("click", () => {
       setType(button.dataset.type);
       refresh();
     });
-  });
-  elements.reset.addEventListener("click", resetDefaults);
-  elements.showAll.addEventListener("click", () => {
-    elements.status.value = "all";
-    elements.legal.value = "all";
-    elements.effective.checked = false;
-    setType("all");
-    refresh();
   });
   elements.loadMore.addEventListener("click", () => {
     visible += pageSize;
