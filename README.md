@@ -25,11 +25,28 @@
 | `schemas/` | JSON Schema, 통제 어휘, ID alias |
 | `sources/` | source registry, 과거 경로 alias, raw manifest |
 | `scripts/` | 외부 패키지가 필요 없는 검사·생성 도구 |
+| `web/` | GitHub Pages용 CSS·JavaScript 원본 |
 | `tests/qa_regression.jsonl` | 법률 QA 회귀 질문과 필수 권위·Rule ID |
 
 ## 요구 환경
 
 Python 3.10 이상만 필요하다. PyYAML이나 jsonschema 등 외부 패키지를 설치하지 않는다. frontmatter는 저장소가 사용하는 YAML subset을 안전하게 읽으며 YAML tag, anchor, 임의 객체 생성은 거부한다.
+
+## 웹사이트
+
+웹사이트는 [GitHub Pages](https://yghnsim.github.io/Wage_Wiki/)에서 제공한다. `wiki/`의 88개 엔티티를 빌드 시 정적 HTML로 변환하므로 별도 서버나 데이터베이스가 필요하지 않다. 기본 검색은 기준일에 유효한 `verified + current` 문서만 표시하고, 편집 상태·법적 상태·기준 시점·문서 유형 필터를 사용해 범위를 넓힐 수 있다.
+
+로컬 빌드와 검사는 다음과 같다.
+
+```text
+python scripts/build_site.py --output build/site --site-url "http://localhost:8000/"
+python scripts/check_site.py build/site --output build/site-check.json
+python -m http.server 8000 --directory build/site
+```
+
+브라우저에서 `http://localhost:8000/`을 연다. 생성물은 `build/site/`에만 만들어지고 커밋하지 않는다. `raw/`의 PDF·HTML은 Pages 산출물에서 제외하며 상세 페이지에는 검토된 외부 원문 URL만 표시한다.
+
+`.github/workflows/pages.yml`은 `main` push와 수동 실행 시 lint, 단위 테스트, QA·manifest 검사를 통과한 뒤 사이트를 생성하고 내부 링크를 점검하여 Pages에 배포한다. 프로젝트 사이트의 `/Wage_Wiki/` 경로와 향후 사용자 도메인 변경은 `actions/configure-pages`가 제공하는 URL을 빌드에 전달해 처리한다.
 
 ## 점검과 생성
 
@@ -44,6 +61,8 @@ python scripts/build_dashboard.py --output build/dashboard.md
 python scripts/export_graph.py --output build/graph.json
 python scripts/build_search_index.py --chunks build/chunks.jsonl --database build/wage_wiki.sqlite
 python scripts/search_wiki.py "통상임금 고정성" --database build/wage_wiki.sqlite --include-review --include-historical
+python scripts/build_site.py --output build/site --site-url "https://example.invalid/Wage_Wiki/"
+python scripts/check_site.py build/site --output build/site-check.json
 python -m unittest discover -s scripts/tests -v
 ```
 

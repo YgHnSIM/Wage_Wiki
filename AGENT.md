@@ -797,4 +797,20 @@ Concept 문서에 `related_rules`가 없는 경우.
 
 ---
 
+## 16. Web Publishing Protocol
+
+GitHub Pages 사이트는 `wiki/`와 `schemas/`를 source of truth로 삼아 빌드한다. 생성된 `build/site/`는 커밋하지 않는다.
+
+1. `python scripts/build_site.py --output build/site --site-url <배포 URL>`로 정적 사이트를 생성한다.
+2. `python scripts/check_site.py build/site`로 내부 링크, 프로젝트 Pages 상대경로, 중복 ID, 로컬 경로 노출을 검사한다.
+3. 배포 전에 strict v1.3 lint, 단위 테스트, QA regression, raw manifest 검사를 모두 통과한다.
+4. `raw/` 파일은 Pages artifact에 포함하지 않는다. 공개 화면에는 엔티티의 `source_urls`만 외부 링크로 표시한다.
+5. 문서 URL은 제목이나 파일명이 아니라 canonical `id`에서 계산한 안정 slug를 사용한다. `id_aliases`는 별도 redirect 경로로 생성한다.
+6. 기본 검색 범위는 기준일에 유효한 `verified + current`다. `review`, `draft`, `future`, `superseded`, `overruled`, `historical`은 사용자가 명시적으로 선택할 때 표시한다.
+7. 페이지에는 편집 상태와 법적 상태를 분리해 표시하고, 장래·대체·판례변경·원문 일부 공개 상태에는 안내문을 제공한다.
+
+`.github/workflows/pages.yml`은 GitHub Pages 전용 배포 경로다. 저장소 전체나 `build/` 전체를 업로드하지 않고 `build/site/`만 Pages artifact로 게시한다.
+
+---
+
 *본 규약은 v1.3이며, 변경 시 Log에 `UPDATE` 액션으로 기록하고 버전을 갱신한다.*

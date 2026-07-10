@@ -1,7 +1,9 @@
 .obsidian/
+.playwright-cli/
 __pycache__/
 *.py[cod]
 .venv/
 tmp/
+output/
 derived/
 build/
