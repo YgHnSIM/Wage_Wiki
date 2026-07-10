@@ -32,12 +32,27 @@ class SiteBuildTests(unittest.TestCase):
             self.assertEqual(report["entities"], expected_entities)
             self.assertTrue((output / "index.html").is_file())
             self.assertTrue((output / "about" / "index.html").is_file())
+            home = (output / "index.html").read_text(encoding="utf-8")
+            self.assertNotIn("시점별 길잡이", home)
+            self.assertNotIn('class="featured"', home)
+            self.assertNotIn('id="search-input"', home)
+            self.assertNotIn('class="search-panel"', home)
+            for filter_id in (
+                "type-filters",
+                "status-filter",
+                "legal-filter",
+                "date-filter",
+                "sort-filter",
+                "effective-filter",
+            ):
+                self.assertIn(filter_id, home)
             not_found = (output / "404.html").read_text(encoding="utf-8")
             self.assertIn('href="https://example.test/Wage_Wiki/assets/styles.css?', not_found)
             self.assertIn('href="https://example.test/Wage_Wiki/#explore"', not_found)
             self.assertEqual(len(list((output / "entities").glob("*/index.html"))), expected_entities)
             records = json.loads((output / "assets" / "entities.json").read_text(encoding="utf-8"))
             self.assertEqual(len(records), expected_entities)
+            self.assertFalse(any("searchText" in record or "searchNormalised" in record for record in records))
             self.assertFalse(any("raw" in path.relative_to(output).parts for path in output.rglob("*")))
             checked = check_site(output)
             self.assertEqual(checked["issues"], 0, checked["details"])

@@ -11,10 +11,9 @@ import json
 import re
 import shutil
 import sys
-import unicodedata
 from collections import Counter
 from pathlib import Path
-from typing import Any, Callable, Iterable
+from typing import Any, Callable
 from urllib.parse import quote, urlparse
 
 from kg_common import (
@@ -164,26 +163,6 @@ RELATED_FIELDS = (
     "related_interpretations",
     "related_fact_patterns",
 )
-SEARCH_FIELDS = (
-    "aliases",
-    "id_aliases",
-    "case_number",
-    "case_numbers",
-    "document_number",
-    "holding_summary",
-    "legal_principles",
-    "issue",
-    "elements",
-    "exceptions",
-    "conclusion",
-    "wage_type",
-    "wage_criteria",
-    "decision_factors",
-    "primary_authority",
-    "source_excerpt",
-    "evidence",
-)
-
 HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 LIST_RE = re.compile(r"^\s*[-*+]\s+(.+)$")
 ORDERED_LIST_RE = re.compile(r"^\s*\d+[.)]\s+(.+)$")
@@ -461,11 +440,6 @@ def _sort_date(entity: Entity) -> str:
     return _date_info(entity)[1] or scalar_text(entity.data.get("as_of_date")) or "0000-00-00"
 
 
-def _normalise_search(value: str) -> str:
-    value = unicodedata.normalize("NFKC", value).casefold().replace("ㆍ", "·")
-    return re.sub(r"[\s·.,:;()\[\]{}'\"/_-]+", "", value)
-
-
 def _effective_on(data: dict[str, Any], as_of: str) -> bool:
     start = scalar_text(data.get("effective_from")) or "1900-01-01"
     end = scalar_text(data.get("effective_to")) or "9999-12-31"
@@ -490,10 +464,6 @@ def _entity_records(entities: list[Entity], slugs: dict[str, str]) -> list[dict[
         number = f"{TYPE_PREFIXES.get(entity_type, 'EN')}-{counters[entity_type]:02d}"
         summary = _summary(entity)
         date_label, date_value = _date_info(entity)
-        search_parts = [entity_id, scalar_text(data.get("title")), summary, entity.body]
-        for field in SEARCH_FIELDS:
-            search_parts.extend(_flatten(data.get(field)))
-        search_text = " ".join(part for part in search_parts if part)
         records.append(
             {
                 "id": entity_id,
@@ -518,8 +488,6 @@ def _entity_records(entities: list[Entity], slugs: dict[str, str]) -> list[dict[
                 "enforcementWeight": scalar_text(data.get("enforcement_weight")),
                 "sourceAvailability": scalar_text(data.get("source_availability")),
                 "summary": summary,
-                "searchText": search_text,
-                "searchNormalised": _normalise_search(search_text),
                 "url": f"entities/{slugs[entity_id]}/",
             }
         )
@@ -546,13 +514,8 @@ def _document(
     social_url = f'<meta property="og:url" content="{html.escape(canonical_url, quote=True)}">' if canonical_url else ""
     favicon_url = html.escape(f"{asset_prefix}favicon.svg?v={ASSET_VERSION}", quote=True)
     stylesheet_url = html.escape(f"{asset_prefix}styles.css?v={ASSET_VERSION}", quote=True)
-    search_core_url = html.escape(f"{asset_prefix}search-core.js?v={ASSET_VERSION}", quote=True)
     script_url = html.escape(f"{asset_prefix}app.js?v={ASSET_VERSION}", quote=True)
-    script = (
-        f'<script defer src="{search_core_url}"></script>\n  <script defer src="{script_url}"></script>'
-        if include_app
-        else ""
-    )
+    script = f'<script defer src="{script_url}"></script>' if include_app else ""
     return f"""<!doctype html>
 <html lang="ko">
 <head>
@@ -613,18 +576,6 @@ def _record_card(record: dict[str, Any]) -> str:
 </article>"""
 
 
-def _feature_list(title: str, records: Iterable[dict[str, Any]], description: str) -> str:
-    items = "".join(
-        f'<li><a href="{html.escape(item["url"], quote=True)}"><span>{html.escape(item["number"])}</span>'
-        f'<strong>{html.escape(item["title"])}</strong><small>{html.escape(item["dateDisplay"])}</small></a></li>'
-        for item in records
-    )
-    return f"""<section class="feature-column">
-  <header><h3>{html.escape(title)}</h3><p>{html.escape(description)}</p></header>
-  <ol>{items}</ol>
-</section>"""
-
-
 def _home_page(
     records: list[dict[str, Any]],
     counts: Counter[str],
@@ -641,16 +592,6 @@ def _home_page(
     ]
     trusted.sort(key=lambda item: item["sortDate"], reverse=True)
     initial = trusted[:18]
-    latest_cases = sorted(
-        (item for item in trusted if item["type"] == "case"), key=lambda item: item["sortDate"], reverse=True
-    )[:4]
-    current_rules = sorted(
-        (item for item in trusted if item["type"] == "rule"), key=lambda item: item["sortDate"], reverse=True
-    )[:4]
-    future = sorted(
-        (item for item in records if item["legalStatus"] == "future" and item["status"] == "verified"),
-        key=lambda item: item["effectiveFrom"],
-    )[:4]
     type_buttons = [f'<button type="button" class="type-filter is-active" data-type="all" aria-pressed="true">전체 <span>{len(records)}</span></button>']
     for entity_type in sorted(counts, key=lambda value: TYPE_ORDER.get(value, 99)):
         type_buttons.append(
@@ -665,7 +606,7 @@ def _home_page(
     <div class="hero__copy">
       <p class="section-label">대한민국 임금법 지식베이스</p>
       <h1 id="hero-title">판례와 규칙을<br>한 흐름으로 읽습니다.</h1>
-      <p class="hero__description">법령, 판례, 행정해석과 사실유형을 근거·관계·적용 시점에 따라 탐색할 수 있습니다. 기본 검색은 검증된 현행 자료만 보여줍니다.</p>
+      <p class="hero__description">법령, 판례, 행정해석과 사실유형을 근거·관계·적용 시점에 따라 탐색할 수 있습니다. 기본 목록은 검증된 현행 자료만 보여줍니다.</p>
       <a class="text-link" href="#explore">문서 탐색 시작</a>
     </div>
     <div class="hero__folio" aria-label="데이터 현황">
@@ -682,29 +623,11 @@ def _home_page(
     <div><span>스키마</span><strong>v1.3</strong></div>
   </section>
 
-  <section class="featured" aria-labelledby="featured-title">
-    <div class="section-heading"><p class="section-label">시점별 길잡이</p><h2 id="featured-title">지금 읽을 문서</h2></div>
-    <div class="featured__grid">
-      {_feature_list('현행 핵심 규칙', current_rules, '현재 적용되는 검증된 판단 규칙')}
-      {_feature_list('최신 판례', latest_cases, '선고일이 가장 최근인 검증된 현행 판례')}
-      {_feature_list('장래 적용', future, '시행 전 반드시 날짜를 확인할 자료')}
-    </div>
-  </section>
-
   <section class="explorer" id="explore" aria-labelledby="explore-title" data-index-url="assets/entities.json?v={ASSET_VERSION}" data-default-date="{html.escape(as_of, quote=True)}">
     <div class="section-heading section-heading--split">
       <div><p class="section-label">전체 지식베이스</p><h2 id="explore-title">문서 탐색</h2></div>
       <p class="result-status" id="result-status" aria-live="polite">검증된 현행 문서 {len(trusted)}개</p>
     </div>
-    <form class="search-panel" id="search-form" role="search">
-      <label for="search-input">판례·규칙·법령 검색</label>
-      <div class="search-row">
-        <input id="search-input" name="q" type="search" autocomplete="off" placeholder="사건번호, 임금 유형, 판단 기준을 입력하세요">
-        <button type="button" id="clear-search">검색어 지우기</button>
-      </div>
-      <p>사건번호의 공백과 가운뎃점 차이는 검색 결과에 영향을 주지 않습니다.</p>
-    </form>
-
     <div class="type-filters" aria-label="문서 유형 필터">{''.join(type_buttons)}</div>
 
     <div class="filter-grid">
@@ -732,7 +655,6 @@ def _home_page(
       <label>정렬
         <select id="sort-filter">
           <option value="date">최신순</option>
-          <option value="relevance">관련도순</option>
           <option value="authority">권위순</option>
           <option value="title">제목순</option>
         </select>
@@ -745,10 +667,10 @@ def _home_page(
       <p class="filter-note" id="date-filter-note">과거 기준일을 선택하면 당시 유효했던 대체·판례변경 문서를 포함하도록 법적 상태가 전체로 바뀝니다.</p>
     </div>
 
-    <noscript><p class="notice">검색과 필터를 사용하려면 JavaScript가 필요합니다. 아래에는 검증된 현행 문서 일부가 표시됩니다.</p></noscript>
+    <noscript><p class="notice">필터를 사용하려면 JavaScript가 필요합니다. 아래에는 검증된 현행 문서 일부가 표시됩니다.</p></noscript>
     <div class="results" id="results">{initial_cards}</div>
     <div class="load-more-wrap"><button type="button" id="load-more" hidden>더 보기</button></div>
-    <div class="empty-state" id="empty-state" hidden><h3>조건에 맞는 문서가 없습니다.</h3><p>검색어를 줄이거나 편집·법적 상태 필터를 변경해 보세요.</p></div>
+    <div class="empty-state" id="empty-state" hidden><h3>조건에 맞는 문서가 없습니다.</h3><p>문서 유형·편집 상태·법적 상태 또는 기준 시점 필터를 변경해 보세요.</p></div>
   </section>
 
   <section class="disclaimer" aria-labelledby="disclaimer-title">
@@ -1081,19 +1003,19 @@ def _about_page(
   <section class="about-copy">
     <h2>두 가지 상태를 분리합니다.</h2>
     <p><strong>편집 상태</strong>는 문서가 초안, 검토 중, 검증됨 중 어디에 있는지를 뜻합니다. <strong>법적 상태</strong>는 법리가 현행인지, 장래 적용인지, 대체되거나 판례 변경된 것인지를 뜻합니다. 검증된 문서라도 역사적 법리일 수 있으므로 두 상태를 함께 확인해야 합니다.</p>
-    <h2>기본 검색은 시점 안전성을 우선합니다.</h2>
+    <h2>기본 탐색은 시점 안전성을 우선합니다.</h2>
     <p>첫 화면은 기준일에 유효한 검증된 현행 문서만 표시합니다. 사용자가 편집 상태, 법적 상태, 기준 시점을 바꾸면 장래 자료와 과거 법리도 탐색할 수 있습니다.</p>
     <h2>근거와 관계를 함께 제공합니다.</h2>
     <p>판단 요약만 제시하지 않고 출처 ID, 원문 위치, 짧은 발췌, 검증일과 공식 외부 주소를 표시합니다. 문서 사이의 확립·적용·해석·대체 관계도 상세 화면에서 확인할 수 있습니다.</p>
     <h2>정적 사이트로 운영합니다.</h2>
-    <p>사이트는 GitHub Actions에서 다시 생성되어 GitHub Pages로 배포됩니다. 서버, 사용자 계정, 광고·분석 스크립트를 사용하지 않으며 검색은 브라우저 안에서만 처리됩니다.</p>
+    <p>사이트는 GitHub Actions에서 다시 생성되어 GitHub Pages로 배포됩니다. 서버, 사용자 계정, 광고·분석 스크립트를 사용하지 않으며 필터링은 브라우저 안에서만 처리됩니다.</p>
   </section>
   <section class="disclaimer"><h2>책임 범위</h2><p>이 사이트는 연구와 정보 제공을 위한 자료입니다. 실제 사건에는 사실관계, 적용 시점, 단체협약·취업규칙 등 추가 요소가 영향을 줄 수 있으므로 필요한 경우 전문가의 검토를 받으세요.</p><a class="text-link" href="../#explore">문서 탐색으로 돌아가기</a></section>
 </main>
 <footer class="site-footer"><p>Wage Wiki · 전체 {len(records)}개 문서</p><p><a href="{html.escape(repository_url, quote=True)}">GitHub 저장소</a></p></footer>"""
     return _document(
         title=f"데이터 안내 | {SITE_TITLE}",
-        description="Wage Wiki의 수록 범위, 편집·법적 상태, 검색 기준과 근거 표시 방법",
+        description="Wage Wiki의 수록 범위, 편집·법적 상태, 탐색 기준과 근거 표시 방법",
         body=body,
         asset_prefix="../assets/",
         canonical_url=_canonical(site_url, "about/"),
@@ -1113,7 +1035,7 @@ def _redirect_page(target: str, canonical_url: str) -> str:
 def _not_found(site_url: str, repository_url: str) -> str:
     home_url = _canonical(site_url) if site_url else "./"
     asset_prefix = _canonical(site_url, "assets/") if site_url else "assets/"
-    body = f"""{_site_header(home_url, repository_url)}<main id="main" class="not-found"><p class="error-code">404</p><h1>페이지를 찾을 수 없습니다.</h1><p>주소가 변경되었거나 존재하지 않는 문서입니다.</p><a class="text-link" href="{html.escape(home_url, quote=True)}#explore">전체 문서 검색</a></main>"""
+    body = f"""{_site_header(home_url, repository_url)}<main id="main" class="not-found"><p class="error-code">404</p><h1>페이지를 찾을 수 없습니다.</h1><p>주소가 변경되었거나 존재하지 않는 문서입니다.</p><a class="text-link" href="{html.escape(home_url, quote=True)}#explore">전체 문서 보기</a></main>"""
     return _document(
         title=f"페이지를 찾을 수 없음 | {SITE_TITLE}",
         description="요청한 Wage Wiki 페이지를 찾을 수 없습니다.",
@@ -1175,11 +1097,11 @@ def build_site(
         raise RuntimeError(f"frontmatter parse failed: {messages}")
     if not entities:
         raise RuntimeError("no wiki entities found")
-    for required in ("styles.css", "search-core.js", "app.js", "favicon.svg"):
+    for required in ("styles.css", "app.js", "favicon.svg"):
         if not (asset_source / required).is_file():
             raise RuntimeError(f"missing web asset: {asset_source / required}")
     asset_digest = hashlib.sha256()
-    for asset_name in ("styles.css", "search-core.js", "app.js", "favicon.svg"):
+    for asset_name in ("styles.css", "app.js", "favicon.svg"):
         asset_digest.update((asset_source / asset_name).read_bytes())
 
     by_id, names = entity_lookup(entities)
@@ -1200,7 +1122,6 @@ def build_site(
         shutil.rmtree(output)
     (output / "assets").mkdir(parents=True)
     shutil.copy2(asset_source / "styles.css", output / "assets" / "styles.css")
-    shutil.copy2(asset_source / "search-core.js", output / "assets" / "search-core.js")
     shutil.copy2(asset_source / "app.js", output / "assets" / "app.js")
     shutil.copy2(asset_source / "favicon.svg", output / "assets" / "favicon.svg")
     (output / "index.html").write_text(
