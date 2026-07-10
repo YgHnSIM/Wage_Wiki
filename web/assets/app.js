@@ -1,16 +1,10 @@
 (function () {
   "use strict";
 
-  const searchCore = window.WageWikiSearch;
-  if (!searchCore) throw new Error("Wage Wiki search core failed to load.");
-  const { matchesQuery, queryParts, score } = searchCore;
   const explorer = document.querySelector(".explorer[data-index-url]");
   if (!explorer) return;
 
   const elements = {
-    form: document.getElementById("search-form"),
-    search: document.getElementById("search-input"),
-    clearSearch: document.getElementById("clear-search"),
     status: document.getElementById("status-filter"),
     legal: document.getElementById("legal-filter"),
     date: document.getElementById("date-filter"),
@@ -34,7 +28,6 @@
 
   function currentState() {
     return {
-      q: elements.search.value.trim(),
       type: activeType,
       status: elements.status.value,
       legal: elements.legal.value,
@@ -48,12 +41,8 @@
     return record.effectiveFrom <= date && date <= record.effectiveTo;
   }
 
-  function sortRecords(items, state, parts) {
+  function sortRecords(items, state) {
     return items.sort((left, right) => {
-      if (state.sort === "relevance" && parts.length) {
-        const relevance = score(right, parts) - score(left, parts);
-        if (relevance) return relevance;
-      }
       if (state.sort === "title") {
         return left.title.localeCompare(right.title, "ko");
       }
@@ -68,7 +57,6 @@
 
   function updateUrl(state) {
     const params = new URLSearchParams();
-    if (state.q) params.set("q", state.q);
     if (state.type !== "all") params.set("type", state.type);
     if (state.status !== "verified") params.set("status", state.status);
     if (state.legal !== "current") params.set("legal", state.legal);
@@ -90,29 +78,6 @@
     });
   }
 
-  function appendHighlighted(target, text, query) {
-    const parts = String(query || "")
-      .trim()
-      .split(/\s+/)
-      .filter((part) => part.length > 1)
-      .sort((left, right) => right.length - left.length);
-    if (!parts.length) {
-      target.textContent = text;
-      return;
-    }
-    const escaped = parts.map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-    const expression = new RegExp(`(${escaped.join("|")})`, "gi");
-    let cursor = 0;
-    for (const match of text.matchAll(expression)) {
-      target.append(document.createTextNode(text.slice(cursor, match.index)));
-      const mark = document.createElement("mark");
-      mark.textContent = match[0];
-      target.append(mark);
-      cursor = match.index + match[0].length;
-    }
-    target.append(document.createTextNode(text.slice(cursor)));
-  }
-
   function badge(value, label, kind) {
     const node = document.createElement("span");
     node.className = `badge badge--${kind}`;
@@ -121,7 +86,7 @@
     return node;
   }
 
-  function renderCard(record, query) {
+  function renderCard(record) {
     const article = document.createElement("article");
     article.className = "result-card";
 
@@ -144,11 +109,11 @@
     const heading = document.createElement("h3");
     const link = document.createElement("a");
     link.href = record.url;
-    appendHighlighted(link, record.title, query);
+    link.textContent = record.title;
     heading.append(link);
 
     const summary = document.createElement("p");
-    appendHighlighted(summary, record.summary, query);
+    summary.textContent = record.summary;
 
     const badges = document.createElement("div");
     badges.className = "badges";
@@ -164,24 +129,21 @@
 
   function render() {
     const state = currentState();
-    const parts = queryParts(state.q);
     filtered = records.filter((record) => {
       if (state.type !== "all" && record.type !== state.type) return false;
       if (state.status !== "all" && record.status !== state.status) return false;
       if (state.legal !== "all" && record.legalStatus !== state.legal) return false;
-      if (state.effective && !isEffective(record, state.date)) return false;
-      return matchesQuery(record, state.q);
+      return !state.effective || isEffective(record, state.date);
     });
-    sortRecords(filtered, state, parts);
+    sortRecords(filtered, state);
 
     elements.results.replaceChildren();
     const fragment = document.createDocumentFragment();
-    filtered.slice(0, visible).forEach((record) => fragment.append(renderCard(record, state.q)));
+    filtered.slice(0, visible).forEach((record) => fragment.append(renderCard(record)));
     elements.results.append(fragment);
 
     const shown = Math.min(filtered.length, visible);
-    const prefix = state.q ? `“${state.q}” 검색 결과` : "조건에 맞는 문서";
-    elements.statusText.textContent = `${prefix} ${filtered.length}개${filtered.length > shown ? ` · ${shown}개 표시` : ""}`;
+    elements.statusText.textContent = `조건에 맞는 문서 ${filtered.length}개${filtered.length > shown ? ` · ${shown}개 표시` : ""}`;
     elements.empty.hidden = filtered.length !== 0;
     elements.loadMore.hidden = shown >= filtered.length;
     if (!elements.loadMore.hidden) {
@@ -197,13 +159,12 @@
 
   function applyParams() {
     const params = new URLSearchParams(window.location.search);
-    elements.search.value = params.get("q") || "";
     setType(params.get("type") || "all");
     elements.status.value = params.get("status") || "verified";
     if (!elements.status.value) elements.status.value = "verified";
     const selectedDate = params.get("asof") || defaultDate;
     elements.legal.value = params.get("legal") || (selectedDate !== defaultDate ? "all" : "current");
-    if (!elements.legal.value) elements.legal.value = "current";
+    if (!elements.legal.value) elements.legal.value = selectedDate !== defaultDate ? "all" : "current";
     elements.date.value = selectedDate;
     elements.sort.value = params.get("sort") || "date";
     if (!elements.sort.value) elements.sort.value = "date";
@@ -212,7 +173,6 @@
   }
 
   function resetDefaults() {
-    elements.search.value = "";
     elements.status.value = "verified";
     elements.legal.value = "current";
     elements.date.value = defaultDate;
@@ -222,13 +182,6 @@
     refresh();
   }
 
-  elements.form.addEventListener("submit", (event) => event.preventDefault());
-  elements.search.addEventListener("input", refresh);
-  elements.clearSearch.addEventListener("click", () => {
-    elements.search.value = "";
-    elements.search.focus();
-    refresh();
-  });
   [elements.status, elements.sort, elements.effective].forEach((control) => {
     control.addEventListener("change", refresh);
   });
@@ -266,14 +219,6 @@
     applyParams();
     refresh();
   });
-  document.addEventListener("keydown", (event) => {
-    const target = event.target;
-    const editing = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement;
-    if (event.key === "/" && !editing) {
-      event.preventDefault();
-      elements.search.focus();
-    }
-  });
 
   applyParams();
   fetch(explorer.dataset.indexUrl, { credentials: "same-origin" })
@@ -282,12 +227,12 @@
       return response.json();
     })
     .then((data) => {
-      if (!Array.isArray(data)) throw new Error("검색 인덱스 형식이 올바르지 않습니다.");
+      if (!Array.isArray(data)) throw new Error("문서 데이터 형식이 올바르지 않습니다.");
       records = data;
       refresh();
     })
     .catch(() => {
-      elements.statusText.textContent = "검색 인덱스를 불러오지 못했습니다.";
+      elements.statusText.textContent = "문서 데이터를 불러오지 못했습니다.";
       elements.loadMore.hidden = true;
     });
 })();

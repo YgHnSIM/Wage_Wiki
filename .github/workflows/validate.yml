@@ -33,10 +33,7 @@ jobs:
         run: python -m py_compile scripts/*.py
 
       - name: Check browser script syntax
-        run: |
-          node --check web/assets/search-core.js
-          node --check web/assets/app.js
-          node scripts/tests/search_core_test.js
+        run: node --check web/assets/app.js
 
       - name: Run unit tests
         run: python -m unittest discover -s scripts/tests -v
