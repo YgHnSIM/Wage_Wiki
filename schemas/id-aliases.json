@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.3",
+  "policy": "Canonical IDs are immutable. Corrected or localized forms resolve through aliases.",
+  "aliases_to_canonical": {
+    "fact-employment-status-condition-regular-bonus-2024": "fact-reinstatement-condition-regular-bonus-2024",
+    "rule-employment-status-condition-ordinary-wage-2024": "rule-reinstatement-condition-ordinary-wage-2024",
+    "rule-wage-employment-status-condition-validity-2025": "rule-wage-reinstatement-condition-validity-2025",
+    "discussion-employment-status-condition-validity-2025": "discussion-reinstatement-condition-validity-2025",
+    "case-2012다55518": "case-2012da55518-signing-bonus",
+    "case-2017다202272": "case-2017da202272-comfort-payment-return"
+  },
+  "notes": {
+    "reinstatement-condition": "재직조건을 복직조건으로 오해할 수 있는 기존 ID를 유지하면서 의미가 정확한 alias를 제공한다.",
+    "localized-case-number": "기존 로마자 사건번호 ID를 유지하면서 한글 사건번호 alias를 제공한다."
+  }
+}

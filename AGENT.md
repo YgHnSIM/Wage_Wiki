@@ -99,14 +99,15 @@ LLM은 다음 행위를 절대 금지한다.
 - History
 - Discussion
 - Fact Pattern
+- Interpretation
 
 ---
 
 ### 2.3 Query Driven Dashboard
 
-`index.md` 및 각 폴더 Dashboard는 수동 편집을 금지한다.
+`index.md` 및 각 폴더 Dashboard는 수동 집계를 금지한다.
 
-Dataview 및 자동 Query만 사용한다.
+Dataview, 자동 Query 또는 `scripts/build_dashboard.py`가 생성한 정적 Markdown만 사용한다. 정적 대시보드는 Dataview가 없는 환경과 CI의 재현 가능한 점검 결과로 사용한다.
 
 ---
 
@@ -160,6 +161,7 @@ Conclusion
 ├── laws
 ├── history
 ├── discussions
+├── interpretations
 ├── fact_patterns
 ├── logs
 └── index.md
@@ -267,7 +269,7 @@ Knowledge Graph 편입
 |------|------|
 | `imported` → `extracted` | raw 문서에서 entity 식별 완료, entity_type 확정, id 부여 |
 | `extracted` → `linked` | `related_*` 링크 1개 이상 연결 완료, Orphan 상태 해소 |
-| `linked` → `verified` | `primary_authority` 검증 완료, conflict 검사 수행, `authority_level` 정합성 확인 |
+| `linked` → `verified` | `primary_authority_id`·`authority_ids` 해소, evidence locator 검증, Case source availability gate, conflict 검사, `authority_level` 정합성 확인 |
 
 조건을 충족하지 않은 상태 전진은 금지한다.
 
@@ -289,144 +291,154 @@ Knowledge Graph 편입
 
 ---
 
-## 8. Canonical Frontmatter Schema
+## 8. Canonical Frontmatter Schema v1.3
+
+`schemas/frontmatter-v1.3.schema.json`과 `schemas/vocabularies.json`을 기계 판독 기준으로 삼는다. 기존 v1.2 문서는 `scripts/migrate_schema_v13.py`의 dry-run 보고서를 검토한 뒤에만 이관한다.
 
 ### 8.1 공통 필드 (모든 entity_type 적용)
 
 ```yaml
 ---
-id: ""                          # 고유 식별자 (예: rule-001, case-2013다2672)
-
-entity_type: ""                 # concept / rule / case / law / history / discussion / fact_pattern
-
+schema_version: "1.3"
+id: ""                          # 변경하지 않는 canonical ID
+id_aliases: []                  # 교정·한글화 ID가 canonical ID로 해소되는 별칭
+entity_type: ""                 # concept / rule / case / law / interpretation / history / discussion / fact_pattern
 title: ""
-
-status: draft                   # draft / verified / legacy
-
+aliases: []                     # 제목·검색 별칭
+jurisdiction: KR
+status: draft                   # 편집 상태: draft / review / verified
+legal_status: current           # 법적 상태: current / historical / superseded / overruled / future / unknown
 ingestion_status: imported      # imported / extracted / linked / verified
-
-primary_authority: ""           # 주 근거 권위 (법령명 또는 판례번호)
-
-authority_level: 7              # 1~7 (Section 5 참조)
-
-enforcement_weight: low         # critical / high / medium / low
-
-conflict_status: none           # none / active
-
-conflict_type: none             # none / authority / temporal / interpretive / jurisdictional
-
-conflict_resolution: ""         # pending / resolved / unresolvable (conflict_status: active일 때 필수)
-
-conflict_resolution_note: ""    # 해소 근거 또는 실무 판단 요약
-
-conflict_resolved_date: ""      # 해소 확정일
-
+primary_authority: ""           # 사람이 읽는 권위 표기
+primary_authority_id: ""        # 주 권위의 canonical ID
+authority_ids: []               # 복합 권위의 canonical ID 목록
+authority_level: 7
+enforcement_weight: low
+conflict_status: none
+conflict_type: none
+conflict_resolution: ""
+conflict_resolution_note: ""
+conflict_resolved_date: ""
 effective_from: 1900-01-01
-
 effective_to: 9999-12-31
-
-superseded_by: ""               # 이 엔티티를 대체한 상위 Rule 또는 Law ID
-
-superseded_date: ""             # 대체 확정일 (판례 변경, 법령 개정 등)
-
-review_cycle: annual            # monthly / quarterly / annual
-
-review_trigger: []              # 재검토 트리거 이벤트 목록
-
+as_of_date: ""                 # 이 문서의 법적 내용이 유효하다고 확인한 기준일
+superseded_by: ""
+superseded_date: ""
+review_cycle: annual
+review_trigger: []
 related_concepts: []
-
 related_rules: []
-
 related_cases: []
-
 related_laws: []
-
+related_interpretations: []
 related_fact_patterns: []
-
-related_raw: []                 # 필수: 원천 raw 문서 링크
-source_excerpt: []              # 권장: 핵심 원문 발췌 (저작권 범위 내)
-
-last_verified: ""
-
+related_raw: []                 # 로컬 raw 링크만 허용
+source_urls: []                 # 외부 URL은 related_raw와 분리
+source_excerpt: []              # v1.2 호환용; 신규 근거는 evidence 사용
+evidence: []                    # source_id + locator + supports로 주장 단위 출처 연결
+relations: []                   # relation_type + target_id인 typed edge
+last_checked: ""               # 최신성·존재 여부 확인일
+last_verified: ""              # 내용 검증 완료일
 last_updated: ""
+verified_by: []                 # 검증자 식별자 목록
 ---
 ```
 
----
+`status`는 편집 워크플로만 나타낸다. 과거의 `status: legacy`는 금지하며 법적 효력은 `legal_status`로 표현한다. `verified` 문서는 `ingestion_status: verified`, `last_verified`, `last_checked`, `verified_by`를 모두 가져야 한다.
 
-### 8.2 Case 전용 추가 필드
-
-Case entity_type 문서는 공통 필드에 더하여 다음 필드를 반드시 포함한다.
+### 8.2 주장 단위 Evidence와 Typed Relation
 
 ```yaml
----
-court_name: ""                  # 대법원 / 서울고등법원 / 서울중앙지방법원 등
-
-case_number: ""                 # 예: 2013다2672
-
-decision_date: ""               # 판결 선고일 (YYYY-MM-DD)
-
-case_role: ""                   # leading / persuasive / conflicting / overruling
-
-holding_summary: ""             # 판시 요지 (필수 — Lint Check 9 대상)
-
-legal_principles: []            # 이 판결에서 추출된 법리 목록 (필수 — Lint Check 9 대상)
----
+evidence:
+  - evidence_id: "ev-case-001"
+    source_id: "raw-case-2020da247190"
+    locator: "이유 3.가 / PDF p.12 / 문단 4"
+    excerpt: "저작권 허용 범위의 짧은 발췌"
+    supports:
+      - "holding-001"
+    verified_on: "2026-07-10"
+relations:
+  - relation_type: supports
+    target_id: "rule-example"
+    target: "[[문서 제목]]"
+    note: ""
 ```
 
----
+`source_id`는 `sources/registry.yaml` 또는 raw manifest에 등록한다. `supports`는 본문의 claim ID를 가리킨다. `locator` 없는 발췌는 verified 근거로 인정하지 않는다. 관계 허용값은 Section 9와 vocab 파일을 따른다.
 
-### 8.3 Rule 전용 추가 필드
-
-Rule entity_type 문서는 공통 필드에 더하여 다음 필드를 포함한다.
+### 8.3 Case 전용 필드
 
 ```yaml
----
-rule_type: ""                   # inclusion / exclusion / calculation / limitation / procedure
-
-law_version: ""                 # 적용 법령 버전
-
-law_revision_date: ""           # 해당 법령 개정일
-
-wage_criteria: []               # 판단 기준 요소: ["정기성", "일률성", "고정성"] 등
-
-wage_type: []                   # ["통상임금", "평균임금"] 등
-
-worker_scope: ""                # 적용 대상 근로자 범위 (예: 전 직원 / 정규직 / 생산직)
-
-calculation_unit: ""            # 산정 주기 및 단위 (예: 월 / 분기 / 연)
-
-extinction_period: ""           # 소멸시효 (예: 3년)
----
+court_name: ""
+case_number: ""
+decision_date: ""
+case_role: persuasive
+holding_summary: ""
+legal_principles: []
+source_availability: available  # available / unavailable_official / partial
+source_availability_note: ""
 ```
 
----
+Case는 원칙적으로 자신의 공식 판결 raw를 연결한다. 공식 원문이 공개되지 않은 경우 `source_availability: unavailable_official`과 검색일·검색 범위가 담긴 설명, 공식 검색 결과 URL을 남기면 예외로 인정한다. 일부 자료만 있는 경우 `partial`과 결손 범위를 기록한다.
 
-### 8.4 Law 전용 추가 필드
-
-Law entity_type 문서는 공통 필드에 더하여 다음 필드를 포함한다.
+### 8.4 Rule 전용 필드
 
 ```yaml
----
-law_version: ""                 # 현행 법령 버전
-
-law_revision_date: ""           # 최근 개정일
-
-promulgation_date: ""           # 공포일
-
-enforcement_date: ""            # 시행일
----
+rule_type: inclusion
+issue: ""
+elements: []
+exceptions: []
+conclusion: ""
+temporal:
+  applicable_from: 1900-01-01
+  applicable_to: 9999-12-31
+  rule_version: ""
+  transition_note: ""
+law_version: ""
+law_revision_date: ""
+wage_criteria: []               # 통제 어휘인 핵심 기준만
+decision_factors: []            # 사건별 자유형 판단요소
+wage_type: []
+worker_scope: ""
+calculation_unit: ""
+extinction_period: ""
 ```
+
+### 8.5 Law 전용 필드
+
+```yaml
+law_version: ""
+law_revision_date: ""
+promulgation_date: ""
+enforcement_date: ""
+```
+
+장래 시행 법령은 `legal_status: future`, `effective_from`과 `enforcement_date`를 장래 시행일로 기록한다. 시행 전에는 현행 Rule의 Authority로 사용하지 않는다.
+
+### 8.6 Interpretation 전용 필드
+
+```yaml
+issuing_agency: "고용노동부"
+document_number: ""
+issue_date: ""
+interpretation_type: guideline # guideline / official_reply / directive / notice / manual
+legal_effect: persuasive        # binding_internal / persuasive / informational
+```
+
+행정해석·지침은 판례나 법령과 구분되는 `interpretation` 엔티티로 작성하고 기본 `authority_level: 5`를 사용한다.
 
 ---
 
 ## 9. Controlled Vocabulary
 
 ### entity_type
-`concept` / `rule` / `case` / `law` / `history` / `discussion` / `fact_pattern`
+`concept` / `rule` / `case` / `law` / `interpretation` / `history` / `discussion` / `fact_pattern`
 
 ### status
-`draft` / `verified` / `legacy`
+`draft` / `review` / `verified`
+
+### legal_status
+`current` / `historical` / `superseded` / `overruled` / `future` / `unknown`
 
 ### ingestion_status
 `imported` / `extracted` / `linked` / `verified`
@@ -446,6 +458,9 @@ enforcement_date: ""            # 시행일
 ### case_role
 `leading` / `persuasive` / `conflicting` / `overruling`
 
+### source_availability
+`available` / `unavailable_official` / `partial`
+
 ### rule_type
 `inclusion` / `exclusion` / `calculation` / `limitation` / `procedure`
 
@@ -453,10 +468,15 @@ enforcement_date: ""            # 시행일
 `critical` / `high` / `medium` / `low`
 
 ### wage_criteria (다중 선택 가능)
-`정기성` / `일률성` / `고정성` / `근로대가성` / `사전확정성`
+`정기성` / `일률성` / `소정근로대가성` / `근로대가성` / `계속성` / `정기지급성` / `사전확정성` / `고정성`
+
+`고정성`은 종전 법리의 역사적 분석에만 사용한다. 목록 밖의 구체적 요소는 `decision_factors`에 자유문자열로 기록한다.
 
 ### wage_type (다중 선택 가능)
-`통상임금` / `평균임금` / `최저임금` / `비과세`
+`임금` / `통상임금` / `평균임금` / `최저임금` / `비과세`
+
+### relation_type
+`establishes` / `applies` / `interprets` / `distinguishes` / `overrules` / `supersedes` / `conflicts_with` / `exception_to` / `illustrated_by` / `supports` / `cites` / `amends` / `implements`
 
 ---
 
@@ -471,28 +491,37 @@ enforcement_date: ""            # 시행일
 | Fact Pattern | Rule 1개 이상 |
 | Case | Rule 1개 이상 |
 | Law | History 권장 |
+| Interpretation | Rule 또는 Law 1개 이상 |
 
 **Orphan Entity는 허용되지 않는다.**
 
 신규 문서 생성 시 링크가 1개도 없는 상태로 저장하는 것을 금지한다. 링크 대상이 아직 존재하지 않는 경우, 연결 예정 엔티티를 stub으로 먼저 생성한 뒤 링크한다.
 
+`related_*`는 Obsidian 탐색과 v1.2 호환을 위해 유지한다. 법률적 의미를 가진 간선은 반드시 `relations`에도 기록하며 `target_id`는 canonical ID 또는 `id_aliases`로 해소되어야 한다.
+
 ---
 
 ## 11. Source Provenance Protocol
 
-모든 Rule, Case, Law 문서는 최소 1개 이상의 원천 출처를 가져야 한다.
+모든 Rule, Case, Law, Interpretation 문서는 최소 1개 이상의 원천 출처를 가져야 한다.
 
-**필수:** `related_raw`
-**권장:** `source_excerpt`
+**필수:** 로컬 원문은 `related_raw`, 외부 주소는 `source_urls`, 주장 단위 검증은 `evidence`
+**호환:** `source_excerpt`는 v1.2 문서 열람용으로 유지하되 신규 검증 근거로 단독 사용하지 않는다.
 
 **예시:**
 
 ```yaml
 related_raw:
   - "[[2013다2672_원문]]"
-source_excerpt:
-  - "정기적이고 일률적으로 지급되는 금품..."
+evidence:
+  - evidence_id: "ev-001"
+    source_id: "raw-case-2013da2672"
+    locator: "이유 2.가"
+    excerpt: "정기적이고 일률적으로 지급되는 금품..."
+    supports: ["holding-001"]
 ```
+
+`source_id`는 `raw-<source_type>-<stable-number-or-slug>` 형식을 권장한다. 경로가 바뀌어도 ID는 유지하며 `sources/registry.yaml`의 `path`만 갱신한다. 등록되지 않은 raw는 `scripts/build_manifest.py`가 `raw-sha256-<16자리>` fallback ID를 부여한다. manifest의 SHA-256 불일치는 Raw Integrity 위반이다.
 
 ---
 
@@ -559,13 +588,15 @@ source_excerpt:
 
 판례 변경(overruling) 또는 법령 개정으로 인해 기존 Rule 또는 Law가 무효화된 경우:
 
-1. 기존 문서의 `status`를 `legacy`로 변경한다.
+1. 기존 문서의 편집 `status`는 유지하고 `legal_status`를 `superseded` 또는 `overruled`로 변경한다.
 2. `superseded_by`에 대체 엔티티 ID를 기재한다.
 3. `superseded_date`를 기재한다.
 4. 대체 엔티티에서 `related_rules` 또는 `related_cases`로 역링크를 추가한다.
 5. Log에 `DEPRECATE` 액션으로 기록한다.
 
 기존 문서를 삭제하거나 덮어쓰는 것을 금지한다.
+
+canonical `id`는 오역·로마자 혼용이 있어도 변경하지 않는다. 의미가 정확한 ID를 `id_aliases`에 추가하고 `schemas/id-aliases.json`에 alias → canonical 매핑을 등록한다. 과거 로그의 경로도 수정하지 않고 `sources/path_aliases.yaml`로 해소한다.
 
 ---
 
@@ -592,7 +623,7 @@ source_excerpt:
 | `CREATE` | 신규 엔티티 생성 |
 | `UPDATE` | 기존 엔티티 내용 수정 |
 | `LINK` | 링크 추가 또는 수정 |
-| `DEPRECATE` | 엔티티 legacy 처리 (superseded) |
+| `DEPRECATE` | 엔티티의 `legal_status`를 superseded 또는 overruled로 처리 |
 | `CONFLICT_REGISTER` | 충돌 등록 |
 | `CONFLICT_RESOLVE` | 충돌 해소 기록 |
 | `LINT_RUN` | Lint 점검 실행 |
@@ -630,7 +661,7 @@ source_excerpt:
 | `create` | 새 wiki 엔티티 생성 |
 | `link` | 기존 엔티티 간 링크 추가 또는 보강 |
 | `update` | 기존 엔티티 내용 수정 |
-| `deprecate` | legacy 또는 superseded 처리 |
+| `deprecate` | superseded 또는 overruled 법적 상태 처리 |
 | `verify` | lint, 링크 검증, 무결성 점검 |
 | `docs` | 운영 규약, 템플릿, 설명 문서 변경 |
 | `fix` | 잘못된 링크, 메타데이터, 오탈자 등 오류 수정 |
@@ -657,6 +688,19 @@ docs(agent): 커밋 메시지 규칙 추가
 사용자가 `Lint` 또는 `위키 점검`을 요청하면 다음 검사를 수행한다.
 
 Lint 항목은 심각도(Severity)에 따라 처리 우선순위를 부여한다.
+
+표준 실행은 `python scripts/lint_wiki.py --output <report.json>`이다. 파서는 YAML tag·anchor·객체 생성을 허용하지 않으며 nested `evidence`, `relations`, `temporal`을 안전한 자료형으로만 읽는다. CI는 Critical 이상에서 실패하고, 전체 v1.3 전환 후 High 이상 실패로 강화한다.
+
+v1.3 공통 추가 검사:
+
+- canonical ID·`id_aliases` 충돌 및 `primary_authority_id`·`authority_ids` 존재 여부
+- `status`와 `legal_status` 분리, verified 날짜·검증자 정합성
+- Evidence의 source registry, locator, supports claim ID
+- Typed relation의 허용 어휘와 target ID
+- Case 자체 원문 또는 `unavailable_official` 공식 검색 증거
+- Rule의 issue/elements/exceptions/conclusion/temporal 구조
+- `tests/qa_regression.jsonl` 구문 및 required authority/rule ID
+- append-only 로그의 과거 경로를 `sources/path_aliases.yaml`로 해소
 
 ### Severity: Critical (즉시 처리)
 
@@ -711,6 +755,19 @@ Concept 문서에 `related_rules`가 없는 경우.
 **Check 12 — Ingestion Stall**
 `ingestion_status`가 `imported` 또는 `extracted` 상태로 14일 이상 정체된 문서.
 
+### 14.1 최신성 운영 주기
+
+| 대상 | 기본 점검 주기 | 기본 review_cycle |
+|------|----------------|--------------------|
+| 법령·시행령 | 매일 변경 탐지, 분기 검증 | quarterly |
+| 대법원·고용노동부 | 매주 변경 탐지, 분기 검증 | quarterly |
+| `최신 동향` Discussion | 매월 | monthly |
+| 일반 Discussion | 분기 | quarterly |
+| 최근 2년 Case | 분기 또는 trigger 발생 시 | quarterly |
+| 그 이전 Case·Concept·History·Fact Pattern | 연간 또는 trigger 발생 시 | annual |
+
+변경 탐지 시 영향받는 `authority_ids`, `relations`, `review_trigger`를 따라 관련 Rule만 우선 재검증한다. 단순 조회일 갱신으로 판시·법령 내용 검증을 대체하지 않는다.
+
 ---
 
 ## 15. Repository Success Criteria
@@ -732,7 +789,12 @@ Concept 문서에 `related_rules`가 없는 경우.
 | 11 | 모든 충돌(conflict)에 해소 상태 기록 |
 | 12 | Superseded 엔티티의 대체 경로 추적 가능 |
 | 13 | 모든 Case에 holding_summary 및 legal_principles 존재 |
+| 14 | 통제 어휘 위반, ID·상태 모순, 깨진 typed relation 0건 |
+| 15 | 모든 Case에 자체 공식 raw 또는 `unavailable_official` 공식 검색 증거 존재 |
+| 16 | verified 문서의 `last_checked >= last_updated`, verified 권위 문서의 모든 핵심 주장에 source locator 존재 |
+| 17 | review_cycle 초과 0건 및 raw SHA-256 manifest 정합성 유지 |
+| 18 | QA 회귀셋의 required authority/rule ID 해소율 100% |
 
 ---
 
-*본 규약은 v1.2이며, 변경 시 Log에 `UPDATE` 액션으로 기록하고 버전을 갱신한다.*
+*본 규약은 v1.3이며, 변경 시 Log에 `UPDATE` 액션으로 기록하고 버전을 갱신한다.*

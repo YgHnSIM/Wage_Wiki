@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.3",
+  "entity_type": [
+    "concept",
+    "rule",
+    "case",
+    "law",
+    "interpretation",
+    "history",
+    "discussion",
+    "fact_pattern"
+  ],
+  "status": ["draft", "review", "verified"],
+  "legacy_status_aliases": ["legacy"],
+  "legal_status": [
+    "current",
+    "historical",
+    "superseded",
+    "overruled",
+    "future",
+    "unknown"
+  ],
+  "ingestion_status": ["imported", "extracted", "linked", "verified"],
+  "conflict_status": ["none", "active"],
+  "conflict_type": [
+    "none",
+    "authority",
+    "temporal",
+    "interpretive",
+    "jurisdictional"
+  ],
+  "conflict_resolution": ["pending", "resolved", "unresolvable"],
+  "review_cycle": ["monthly", "quarterly", "annual"],
+  "case_role": ["leading", "persuasive", "conflicting", "overruling"],
+  "source_availability": ["available", "unavailable_official", "partial"],
+  "rule_type": ["inclusion", "exclusion", "calculation", "limitation", "procedure"],
+  "interpretation_type": ["guideline", "official_reply", "directive", "notice", "manual"],
+  "legal_effect": ["binding_internal", "persuasive", "informational"],
+  "enforcement_weight": ["critical", "high", "medium", "low"],
+  "relation_type": [
+    "establishes",
+    "applies",
+    "interprets",
+    "distinguishes",
+    "overrules",
+    "supersedes",
+    "conflicts_with",
+    "exception_to",
+    "illustrated_by",
+    "supports",
+    "cites",
+    "amends",
+    "implements"
+  ],
+  "wage_criteria": [
+    "정기성",
+    "일률성",
+    "소정근로대가성",
+    "근로대가성",
+    "계속성",
+    "정기지급성",
+    "사전확정성",
+    "고정성"
+  ],
+  "historical_only_wage_criteria": ["고정성"],
+  "wage_type": ["임금", "통상임금", "평균임금", "최저임금", "비과세"],
+  "jurisdiction": ["KR"]
+}
