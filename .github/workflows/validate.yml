@@ -1,0 +1,56 @@
+name: Validate legal knowledge graph
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile tools
+        run: python -m py_compile scripts/*.py
+
+      - name: Run unit tests
+        run: python -m unittest discover -s scripts/tests -v
+
+      - name: Validate QA regression catalogue
+        run: python scripts/check_qa_regression.py
+
+      - name: Lint wiki and QA regression set
+        run: python scripts/lint_wiki.py --output build/lint-report.json --strict-v13 --fail-on high
+
+      - name: Build raw manifest
+        run: python scripts/build_manifest.py --check sources/raw-manifest.jsonl --output build/raw-manifest.jsonl
+
+      - name: Build dashboard
+        run: python scripts/build_dashboard.py --output build/dashboard.md
+
+      - name: Export graph
+        run: python scripts/export_graph.py --output build/graph.json
+
+      - name: Build and smoke-test FTS search index
+        run: |
+          python scripts/build_search_index.py --chunks build/chunks.jsonl --database build/wage_wiki.sqlite
+          python scripts/search_wiki.py "통상임금" --database build/wage_wiki.sqlite --include-review --include-historical --limit 3
+
+      - name: Upload validation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-artifacts
+          path: build/
