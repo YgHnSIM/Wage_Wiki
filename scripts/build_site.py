@@ -590,13 +590,15 @@ def _home_page(
         for item in records
         if item["status"] == "verified" and item["legalStatus"] == "current" and item["effectiveFrom"] <= as_of <= item["effectiveTo"]
     ]
-    trusted.sort(key=lambda item: item["sortDate"], reverse=True)
-    initial = trusted[:18]
-    type_buttons = [f'<button type="button" class="type-filter is-active" data-type="all" aria-pressed="true">전체 <span>{len(records)}</span></button>']
+    ordered_records = sorted(records, key=lambda item: item["sortDate"], reverse=True)
+    initial = ordered_records[:18]
+    type_buttons = [f'<button type="button" class="type-filter is-active" data-type="all" data-label="전체 문서" aria-pressed="true">전체 <span>{len(records)}</span></button>']
     for entity_type in sorted(counts, key=lambda value: TYPE_ORDER.get(value, 99)):
+        type_label = TYPE_LABELS.get(entity_type, entity_type)
         type_buttons.append(
-            f'<button type="button" class="type-filter" data-type="{html.escape(entity_type, quote=True)}" aria-pressed="false">'
-            f'{html.escape(TYPE_LABELS.get(entity_type, entity_type))} <span>{counts[entity_type]}</span></button>'
+            f'<button type="button" class="type-filter" data-type="{html.escape(entity_type, quote=True)}" '
+            f'data-label="{html.escape(type_label, quote=True)}" aria-pressed="false">'
+            f'{html.escape(type_label)} <span>{counts[entity_type]}</span></button>'
         )
     initial_cards = "".join(_record_card(item) for item in initial)
     formatted_as_of = html.escape(_format_date(as_of))
@@ -606,7 +608,7 @@ def _home_page(
     <div class="hero__copy">
       <p class="section-label">대한민국 임금법 지식베이스</p>
       <h1 id="hero-title">판례와 규칙을<br>한 흐름으로 읽습니다.</h1>
-      <p class="hero__description">법령, 판례, 행정해석과 사실유형을 근거·관계·적용 시점에 따라 탐색할 수 있습니다. 기본 목록은 검증된 현행 자료만 보여줍니다.</p>
+      <p class="hero__description">법령, 판례, 행정해석과 사실유형을 근거·관계·적용 시점에 따라 탐색할 수 있습니다. 전체 문서를 최신순으로 보고 유형별로 좁혀볼 수 있습니다.</p>
       <a class="text-link" href="#explore">문서 탐색 시작</a>
     </div>
     <div class="hero__folio" aria-label="데이터 현황">
@@ -623,54 +625,17 @@ def _home_page(
     <div><span>스키마</span><strong>v1.3</strong></div>
   </section>
 
-  <section class="explorer" id="explore" aria-labelledby="explore-title" data-index-url="assets/entities.json?v={ASSET_VERSION}" data-default-date="{html.escape(as_of, quote=True)}">
+  <section class="explorer" id="explore" aria-labelledby="explore-title" data-index-url="assets/entities.json?v={ASSET_VERSION}">
     <div class="section-heading section-heading--split">
       <div><p class="section-label">전체 지식베이스</p><h2 id="explore-title">문서 탐색</h2></div>
-      <p class="result-status" id="result-status" aria-live="polite">검증된 현행 문서 {len(trusted)}개</p>
+      <p class="result-status" id="result-status" aria-live="polite">전체 문서 {len(records)}개 · {len(initial)}개 표시</p>
     </div>
     <div class="type-filters" aria-label="문서 유형 필터">{''.join(type_buttons)}</div>
 
-    <div class="filter-grid">
-      <label>편집 상태
-        <select id="status-filter">
-          <option value="verified" selected>검증됨</option>
-          <option value="review">검토 중</option>
-          <option value="draft">초안</option>
-          <option value="all">전체</option>
-        </select>
-      </label>
-      <label>법적 상태
-        <select id="legal-filter">
-          <option value="current" selected>현행</option>
-          <option value="future">장래 적용</option>
-          <option value="superseded">대체됨</option>
-          <option value="overruled">판례 변경됨</option>
-          <option value="historical">역사적 자료</option>
-          <option value="all">전체</option>
-        </select>
-      </label>
-      <label>기준 시점
-        <input id="date-filter" type="date" value="{html.escape(as_of, quote=True)}" aria-describedby="date-filter-note">
-      </label>
-      <label>정렬
-        <select id="sort-filter">
-          <option value="date">최신순</option>
-          <option value="authority">권위순</option>
-          <option value="title">제목순</option>
-        </select>
-      </label>
-      <label class="check-label"><input id="effective-filter" type="checkbox" checked> 기준 시점에 유효한 문서만</label>
-      <div class="filter-actions">
-        <button type="button" id="reset-filters">기본값 복원</button>
-        <button type="button" id="show-all">전체 문서 보기</button>
-      </div>
-      <p class="filter-note" id="date-filter-note">과거 기준일을 선택하면 당시 유효했던 대체·판례변경 문서를 포함하도록 법적 상태가 전체로 바뀝니다.</p>
-    </div>
-
-    <noscript><p class="notice">필터를 사용하려면 JavaScript가 필요합니다. 아래에는 검증된 현행 문서 일부가 표시됩니다.</p></noscript>
+    <noscript><p class="notice">유형 필터를 사용하려면 JavaScript가 필요합니다. 아래에는 최신 문서 일부가 표시됩니다.</p></noscript>
     <div class="results" id="results">{initial_cards}</div>
     <div class="load-more-wrap"><button type="button" id="load-more" hidden>더 보기</button></div>
-    <div class="empty-state" id="empty-state" hidden><h3>조건에 맞는 문서가 없습니다.</h3><p>문서 유형·편집 상태·법적 상태 또는 기준 시점 필터를 변경해 보세요.</p></div>
+    <div class="empty-state" id="empty-state" hidden><h3>선택한 유형에 문서가 없습니다.</h3><p>다른 문서 유형을 선택해 보세요.</p></div>
   </section>
 
   <section class="disclaimer" aria-labelledby="disclaimer-title">
@@ -1003,12 +968,12 @@ def _about_page(
   <section class="about-copy">
     <h2>두 가지 상태를 분리합니다.</h2>
     <p><strong>편집 상태</strong>는 문서가 초안, 검토 중, 검증됨 중 어디에 있는지를 뜻합니다. <strong>법적 상태</strong>는 법리가 현행인지, 장래 적용인지, 대체되거나 판례 변경된 것인지를 뜻합니다. 검증된 문서라도 역사적 법리일 수 있으므로 두 상태를 함께 확인해야 합니다.</p>
-    <h2>기본 탐색은 시점 안전성을 우선합니다.</h2>
-    <p>첫 화면은 기준일에 유효한 검증된 현행 문서만 표시합니다. 사용자가 편집 상태, 법적 상태, 기준 시점을 바꾸면 장래 자료와 과거 법리도 탐색할 수 있습니다.</p>
+    <h2>문서 유형으로 전체 자료를 탐색합니다.</h2>
+    <p>첫 화면은 전체 문서를 최신순으로 표시하며 판단 규칙, 판례, 법령, 행정해석, 사실유형 등 문서 유형으로 범위를 좁힐 수 있습니다. 각 카드의 편집 상태와 법적 상태 배지로 검증 여부와 적용 시점을 구분합니다.</p>
     <h2>근거와 관계를 함께 제공합니다.</h2>
     <p>판단 요약만 제시하지 않고 출처 ID, 원문 위치, 짧은 발췌, 검증일과 공식 외부 주소를 표시합니다. 문서 사이의 확립·적용·해석·대체 관계도 상세 화면에서 확인할 수 있습니다.</p>
     <h2>정적 사이트로 운영합니다.</h2>
-    <p>사이트는 GitHub Actions에서 다시 생성되어 GitHub Pages로 배포됩니다. 서버, 사용자 계정, 광고·분석 스크립트를 사용하지 않으며 필터링은 브라우저 안에서만 처리됩니다.</p>
+    <p>사이트는 GitHub Actions에서 다시 생성되어 GitHub Pages로 배포됩니다. 서버, 사용자 계정, 광고·분석 스크립트를 사용하지 않으며 유형 필터링은 브라우저 안에서만 처리됩니다.</p>
   </section>
   <section class="disclaimer"><h2>책임 범위</h2><p>이 사이트는 연구와 정보 제공을 위한 자료입니다. 실제 사건에는 사실관계, 적용 시점, 단체협약·취업규칙 등 추가 요소가 영향을 줄 수 있으므로 필요한 경우 전문가의 검토를 받으세요.</p><a class="text-link" href="../#explore">문서 탐색으로 돌아가기</a></section>
 </main>

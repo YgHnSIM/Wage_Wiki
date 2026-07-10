@@ -806,7 +806,7 @@ GitHub Pages 사이트는 `wiki/`와 `schemas/`를 source of truth로 삼아 빌
 3. 배포 전에 strict v1.3 lint, 단위 테스트, QA regression, raw manifest 검사를 모두 통과한다.
 4. `raw/` 파일은 Pages artifact에 포함하지 않는다. 공개 화면에는 엔티티의 `source_urls`만 외부 링크로 표시한다.
 5. 문서 URL은 제목이나 파일명이 아니라 canonical `id`에서 계산한 안정 slug를 사용한다. `id_aliases`는 별도 redirect 경로로 생성한다.
-6. 기본 탐색 범위는 기준일에 유효한 `verified + current`다. `review`, `draft`, `future`, `superseded`, `overruled`, `historical`은 사용자가 명시적으로 선택할 때 표시한다.
+6. 홈 탐색은 공개된 전체 문서를 최신순으로 표시하고 문서 유형 필터만 제공한다. 편집 상태와 법적 상태는 숨은 필터로 사용하지 않고 문서 카드의 배지로 명시한다.
 7. 페이지에는 편집 상태와 법적 상태를 분리해 표시하고, 장래·대체·판례변경·원문 일부 공개 상태에는 안내문을 제공한다.
 
 `.github/workflows/pages.yml`은 GitHub Pages 전용 배포 경로다. 저장소 전체나 `build/` 전체를 업로드하지 않고 `build/site/`만 Pages artifact로 게시한다.

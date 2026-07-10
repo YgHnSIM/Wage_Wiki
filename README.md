@@ -34,7 +34,7 @@ Python 3.10 이상만 필요하다. PyYAML이나 jsonschema 등 외부 패키지
 
 ## 웹사이트
 
-웹사이트는 [GitHub Pages](https://yghnsim.github.io/Wage_Wiki/)에서 제공한다. `wiki/`의 88개 엔티티를 빌드 시 정적 HTML로 변환하므로 별도 서버나 데이터베이스가 필요하지 않다. 기본 목록은 기준일에 유효한 `verified + current` 문서만 표시하고, 편집 상태·법적 상태·기준 시점·문서 유형 필터를 사용해 범위를 넓힐 수 있다.
+웹사이트는 [GitHub Pages](https://yghnsim.github.io/Wage_Wiki/)에서 제공한다. `wiki/`의 88개 엔티티를 빌드 시 정적 HTML로 변환하므로 별도 서버나 데이터베이스가 필요하지 않다. 첫 화면은 전체 문서를 최신순으로 표시하며 문서 유형 필터로 범위를 좁힐 수 있다. 편집 상태와 법적 상태는 각 문서 카드의 배지로 확인한다.
 
 로컬 빌드와 검사는 다음과 같다.
 

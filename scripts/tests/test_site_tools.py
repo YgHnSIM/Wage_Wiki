@@ -37,15 +37,19 @@ class SiteBuildTests(unittest.TestCase):
             self.assertNotIn('class="featured"', home)
             self.assertNotIn('id="search-input"', home)
             self.assertNotIn('class="search-panel"', home)
-            for filter_id in (
-                "type-filters",
+            self.assertIn('class="type-filters"', home)
+            self.assertIn(f"전체 문서 {expected_entities}개", home)
+            for removed_control in (
+                "filter-grid",
                 "status-filter",
                 "legal-filter",
                 "date-filter",
                 "sort-filter",
                 "effective-filter",
+                "reset-filters",
+                "show-all",
             ):
-                self.assertIn(filter_id, home)
+                self.assertNotIn(removed_control, home)
             not_found = (output / "404.html").read_text(encoding="utf-8")
             self.assertIn('href="https://example.test/Wage_Wiki/assets/styles.css?', not_found)
             self.assertIn('href="https://example.test/Wage_Wiki/#explore"', not_found)
