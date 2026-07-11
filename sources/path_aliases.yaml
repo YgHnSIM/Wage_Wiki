@@ -1,6 +1,7 @@
 schema_version: "1.0"
 description: "Append-only 로그의 과거 영문/ID 기반 경로를 현재 한국어 파일명으로 해소한다."
 aliases:
+  "raw/cases/대법원 2026. 1. 29. 선고 2022다255454 판결.html": "raw/cases/대법원 2026. 1. 29. 선고 2022다255454 판결.pdf"
   "wiki/cases/case-2012다89399.md": "wiki/cases/대법원 2013. 12. 18. 선고 2012다89399 전원합의체 판결.md"
   "wiki/cases/case-2013가합64415.md": "wiki/cases/서울중앙지방법원 2017. 2. 3. 선고 2013가합64415 판결.md"
   "wiki/cases/case-2017나2016158.md": "wiki/cases/서울고등법원 2023. 1. 13. 선고 2017나2016158 판결.md"
