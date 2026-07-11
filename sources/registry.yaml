@@ -115,6 +115,13 @@ sources:
     jurisdiction: "KR"
     path: "raw/cases/대법원 2026. 1. 29. 선고 2025다217529·217530 판결.pdf"
     authority_level: 3
+  - source_id: "raw-case-2025da210219"
+    title: "대법원 2026. 3. 12. 선고 2025다210219 판결"
+    publisher: "대한민국 법원"
+    source_type: "case"
+    jurisdiction: "KR"
+    path: "raw/cases/대법원 2026. 3. 12. 선고 2025다210219 판결.pdf"
+    authority_level: 3
   - source_id: "raw-case-2025da210219-press"
     title: "대법원 2026. 3. 12. 선고 2025다210219 판결 보도자료"
     publisher: "대한민국 법원"
