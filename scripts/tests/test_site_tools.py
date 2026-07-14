@@ -63,10 +63,13 @@ class SiteBuildTests(unittest.TestCase):
             self.assertLessEqual(max(len(record["summary"]) for record in records), 161)
             self.assertFalse(any("raw" in path.relative_to(output).parts for path in output.rglob("*")))
             flowchart_pages = []
+            temporal_metadata_pages = []
             for page_path in (output / "entities").glob("*/index.html"):
                 page = page_path.read_text(encoding="utf-8")
                 if "<h1>보장시간 합의 후 법정수당 재산정</h1>" in page:
                     flowchart_pages.append(page)
+                if "<h1>대법원 2013. 12. 18. 선고 2012다89399 전원합의체 판결</h1>" in page:
+                    temporal_metadata_pages.append(page)
                 relation_aside = re.search(r'<aside class="relations".*?</aside>', page, flags=re.S)
                 if not relation_aside:
                     continue
@@ -76,6 +79,15 @@ class SiteBuildTests(unittest.TestCase):
             self.assertEqual(flowchart_pages[0].count('<figure class="flowchart '), 2)
             self.assertEqual(flowchart_pages[0].count('<svg class="flowchart__svg"'), 2)
             self.assertNotIn("language-mermaid", flowchart_pages[0])
+            self.assertEqual(len(temporal_metadata_pages), 1)
+            primary_metadata = re.search(
+                r'<dl class="document-meta__primary">(.*?)</dl>', temporal_metadata_pages[0], flags=re.S
+            )
+            self.assertIsNotNone(primary_metadata)
+            self.assertIn('class="document-meta__row--period-start"', primary_metadata.group(1))
+            self.assertIn('class="document-meta__row--period-end"', primary_metadata.group(1))
+            self.assertIn("<dt>적용 시작</dt><dd>2013. 12. 18.</dd>", primary_metadata.group(1))
+            self.assertIn("<dt>적용 종료</dt><dd>종료일 없음</dd>", primary_metadata.group(1))
             checked = check_site(output)
             self.assertEqual(checked["issues"], 0, checked["details"])
 
