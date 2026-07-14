@@ -1825,6 +1825,12 @@ th {
     font-size: 3.5rem;
   }
 
+  .document-index a[aria-current="location"] {
+    padding-left: 0;
+    border-left: 0;
+    color: var(--muted);
+  }
+
   .prose {
     max-width: none;
     padding: 3rem 0;
