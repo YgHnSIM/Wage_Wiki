@@ -1412,9 +1412,14 @@ def _entity_page(
             content = f'<a href="../{slugs[primary_authority_id]}/">{html.escape(value)}</a>'
         else:
             content = html.escape(value)
-        return f"<div><dt>{html.escape(label)}</dt><dd>{content}</dd></div>"
+        row_class = {
+            "주 권위": "document-meta__row--authority",
+            "적용 시작": "document-meta__row--period-start",
+            "적용 종료": "document-meta__row--period-end",
+        }.get(label, "document-meta__row--detail")
+        return f'<div class="{row_class}"><dt>{html.escape(label)}</dt><dd>{content}</dd></div>'
 
-    primary_labels = {"주 권위", "적용 시작"}
+    primary_labels = {"주 권위", "적용 시작", "적용 종료"}
     primary_metadata_html = "".join(metadata_row(label, value) for label, value in metadata_rows if label in primary_labels)
     secondary_metadata_html = "".join(metadata_row(label, value) for label, value in metadata_rows if label not in primary_labels)
     toc = _toc_entries(body_html)
