@@ -12,7 +12,7 @@ ROOT = SCRIPTS.parent
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from build_site import _summary, _truncate_summary, build_site, render_inline
+from build_site import _summary, _truncate_summary, build_site, render_inline, render_markdown
 from check_site import check_site
 from kg_common import Entity, entity_lookup, load_entities
 
@@ -62,13 +62,20 @@ class SiteBuildTests(unittest.TestCase):
             self.assertTrue(all("aliases" in record and "caseNumber" in record for record in records))
             self.assertLessEqual(max(len(record["summary"]) for record in records), 161)
             self.assertFalse(any("raw" in path.relative_to(output).parts for path in output.rglob("*")))
+            flowchart_pages = []
             for page_path in (output / "entities").glob("*/index.html"):
                 page = page_path.read_text(encoding="utf-8")
+                if "<h1>보장시간 합의 후 법정수당 재산정</h1>" in page:
+                    flowchart_pages.append(page)
                 relation_aside = re.search(r'<aside class="relations".*?</aside>', page, flags=re.S)
                 if not relation_aside:
                     continue
                 targets = re.findall(r'<a href="(\.\./[^\"]+/)">', relation_aside.group(0))
                 self.assertEqual(len(targets), len(set(targets)), page_path.name)
+            self.assertEqual(len(flowchart_pages), 1)
+            self.assertEqual(flowchart_pages[0].count('<figure class="flowchart '), 2)
+            self.assertEqual(flowchart_pages[0].count('<svg class="flowchart__svg"'), 2)
+            self.assertNotIn("language-mermaid", flowchart_pages[0])
             checked = check_site(output)
             self.assertEqual(checked["issues"], 0, checked["details"])
 
@@ -169,6 +176,35 @@ class SafeMarkdownTests(unittest.TestCase):
         self.assertIn("&lt;script&gt;", rendered)
         self.assertIn('href="../rule-target-a1b2c3d4/"', rendered)
         self.assertIn("규칙 보기", rendered)
+
+    def test_mermaid_flowchart_is_rendered_as_safe_static_svg(self) -> None:
+        body = """# 테스트
+
+```mermaid
+flowchart LR
+    A["<script>alert(1)</script> 시작"] --> B{"판단할 것인가?"}
+    B -- "예" --> C["결론"]
+```
+"""
+        rendered = render_markdown(body, {}, {}, lambda slug: slug, "fact-test", "테스트")
+        self.assertIn('<figure class="flowchart flowchart--horizontal-source"', rendered)
+        self.assertIn('<svg class="flowchart__svg"', rendered)
+        self.assertIn('class="flowchart__node flowchart__node--decision"', rendered)
+        self.assertIn('class="flowchart__edge-label"', rendered)
+        self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt; 시작", rendered)
+        self.assertNotIn("<script>alert(1)</script>", rendered)
+        self.assertNotIn("language-mermaid", rendered)
+
+    def test_unsupported_mermaid_diagram_fails_the_build(self) -> None:
+        body = """# 테스트
+
+```mermaid
+sequenceDiagram
+    A->>B: 요청
+```
+"""
+        with self.assertRaisesRegex(RuntimeError, "only Mermaid flowchart"):
+            render_markdown(body, {}, {}, lambda slug: slug, "fact-test", "테스트")
 
 
 if __name__ == "__main__":

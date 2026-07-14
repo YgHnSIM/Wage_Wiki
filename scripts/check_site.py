@@ -69,6 +69,8 @@ def check_site(site_root: Path) -> dict[str, object]:
             continue
         if LOCAL_PATH_LEAK_RE.search(text):
             issues.append(_issue("LOCAL_PATH_LEAK", relative, "page contains a local filesystem path"))
+        if "language-mermaid" in text:
+            issues.append(_issue("UNRENDERED_MERMAID", relative, "Mermaid source was published instead of a flowchart"))
         parser = PageParser()
         try:
             parser.feed(text)
