@@ -1096,6 +1096,63 @@ svg {
   white-space: pre-wrap;
 }
 
+.flowchart {
+  max-width: 100%;
+  margin: 2.5rem 0;
+  padding: 1.25rem 0;
+  border-top: 1px solid var(--line-strong);
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.flowchart__svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.flowchart__edges path {
+  fill: none;
+  stroke: var(--line-strong);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.flowchart__arrow {
+  fill: var(--line-strong);
+}
+
+.flowchart__node rect,
+.flowchart__node polygon {
+  fill: var(--white);
+  stroke: var(--line-strong);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.flowchart__node--decision polygon {
+  fill: var(--surface);
+}
+
+.flowchart__node text,
+.flowchart__edge-label text {
+  fill: var(--ink);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.flowchart__node text {
+  dominant-baseline: central;
+}
+
+.flowchart__edge-label rect {
+  fill: var(--white);
+}
+
+.flowchart__edge-label text {
+  font-size: 12px;
+}
+
 .wiki-link {
   color: var(--blue);
   font-weight: 700;
@@ -1749,6 +1806,11 @@ th {
     font-size: 1rem;
   }
 
+  .flowchart {
+    margin-block: 2rem;
+    padding-block: 1rem;
+  }
+
   .relations {
     position: static;
     max-height: none;
@@ -1837,6 +1899,10 @@ th {
   .document-lower {
     padding: 1rem 0;
     border: 0;
+  }
+
+  .flowchart {
+    break-inside: avoid;
   }
 
   .date-rail strong,

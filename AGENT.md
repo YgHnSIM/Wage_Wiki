@@ -809,6 +809,7 @@ GitHub Pages 사이트는 `wiki/`와 `schemas/`를 source of truth로 삼아 빌
 6. 홈 탐색은 공개된 전체 문서를 최신순으로 표시하고 제목·별칭·사건번호·본문 검색과 문서 유형 필터를 제공한다. 편집 상태와 법적 상태는 숨은 필터로 사용하지 않고 문서 카드의 배지로 명시한다.
 7. 페이지에는 편집 상태와 법적 상태를 분리해 표시하고, 장래·대체·판례변경·원문 일부 공개 상태에는 안내문을 제공한다.
 8. 검증된 현행 Rule은 실제 연결이 모두 존재하는 경우에만 `Fact Pattern → Rule → Authority → Conclusion` 판단 경로를 표시한다. 동일 대상 문서의 복수 관계는 한 항목에 병합하고, 근거에는 source registry의 사람이 읽는 원문 제목과 locator를 우선 표시한다.
+9. 본문의 `mermaid` 코드 블록은 정적 SVG로 변환한다. 공개 문서에서는 `flowchart LR/RL/TD/TB/BT`와 사각형·둥근 사각형·판단 노드 및 선택지 라벨 간선만 사용한다. 방향 선언은 파싱하되 좁은 상세 본문의 가독성을 위해 공개 화면에서는 위에서 아래로 재배치한다. 지원하지 않는 Mermaid 문법이나 렌더링되지 않은 `language-mermaid` 코드 블록은 배포 오류로 처리한다.
 
 `.github/workflows/pages.yml`은 GitHub Pages 전용 배포 경로다. 저장소 전체나 `build/` 전체를 업로드하지 않고 `build/site/`만 Pages artifact로 게시한다.
 
