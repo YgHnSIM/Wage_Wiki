@@ -88,6 +88,7 @@
     "verified_by": {"$ref": "#/$defs/stringArray"},
     "court_name": {"type": "string"},
     "case_number": {"type": "string"},
+    "case_numbers": {"$ref": "#/$defs/stringArray"},
     "decision_date": {"$ref": "#/$defs/optionalDate"},
     "case_role": {"enum": ["leading", "persuasive", "conflicting", "overruling"]},
     "holding_summary": {"type": "string"},

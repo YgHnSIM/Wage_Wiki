@@ -5,18 +5,16 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
-import json
 import re
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
+from graph_contract import RELATED_FIELDS, RELATED_FIELD_TYPES
 from kg_common import (
-    FrontmatterError,
     SCHEMA_VERSION,
     URL_RE,
-    _SubsetYamlParser,
     as_list,
     entity_lookup,
     issue,
@@ -32,146 +30,20 @@ from kg_common import (
     wiki_targets,
     write_json,
 )
+from lint_sources import (
+    _raw_index,
+    _resolves_raw,
+    _validate_raw_manifest,
+    _validate_source_registry,
+)
+from log_contract import LOG_ACTIONS
+from qa_catalog import validate_qa_catalog
+from review_policy import review_deadline_passed
+from schema_contract import SchemaContractError, load_schema_contract
 
 
-COMMON_V13_FIELDS = (
-    "schema_version",
-    "jurisdiction",
-    "legal_status",
-    "as_of_date",
-    "last_checked",
-    "verified_by",
-    "aliases",
-    "id_aliases",
-    "primary_authority_id",
-    "authority_ids",
-    "source_urls",
-    "evidence",
-    "relations",
-)
-RELATED_FIELDS = (
-    "related_concepts",
-    "related_rules",
-    "related_cases",
-    "related_laws",
-    "related_interpretations",
-    "related_fact_patterns",
-)
 SOURCE_ENTITY_TYPES = {"rule", "case", "law", "interpretation"}
 OFFICIAL_DOMAINS = ("law.go.kr", "scourt.go.kr", "moel.go.kr")
-
-
-def _raw_index(root: Path) -> set[str]:
-    result: set[str] = set()
-    raw_root = root / "raw"
-    if not raw_root.exists():
-        return result
-    for path in raw_root.rglob("*"):
-        if not path.is_file():
-            continue
-        relative = path.relative_to(root).as_posix()
-        for candidate in (relative, relative.removeprefix("raw/"), path.name, path.stem):
-            result.add(normalized_ref(candidate))
-    return result
-
-
-def _validate_source_registry(root: Path, issues: list[dict[str, Any]]) -> set[str]:
-    path = root / "sources" / "registry.yaml"
-    relative = path.relative_to(root).as_posix()
-    if not path.exists():
-        issues.append(issue("high", "SOURCE_REGISTRY_MISSING", relative, "source registry does not exist"))
-        return set()
-    try:
-        data = _SubsetYamlParser(path.read_text(encoding="utf-8-sig")).parse()
-    except (OSError, UnicodeError, FrontmatterError) as exc:
-        issues.append(issue("critical", "SOURCE_REGISTRY_PARSE", relative, str(exc)))
-        return set()
-    records = data.get("sources")
-    if not isinstance(records, list):
-        issues.append(issue("critical", "SOURCE_REGISTRY_TYPE", relative, "sources must be a list"))
-        return set()
-    ids: set[str] = set()
-    paths: dict[str, str] = {}
-    for index, record in enumerate(records):
-        field = f"sources[{index}]"
-        if not isinstance(record, dict):
-            issues.append(issue("high", "SOURCE_REGISTRY_RECORD", relative, f"{field} must be a mapping"))
-            continue
-        source_id = scalar_text(record.get("source_id"))
-        if not source_id or source_id in ids:
-            issues.append(issue("critical", "SOURCE_REGISTRY_ID", relative, f"{field}.source_id is missing or duplicated"))
-        if source_id:
-            ids.add(source_id)
-        source_path = scalar_text(record.get("path"))
-        if source_path:
-            normalized = normalized_ref(source_path)
-            if normalized in paths and paths[normalized] != source_id:
-                issues.append(issue("critical", "SOURCE_REGISTRY_PATH_DUPLICATE", relative, f"path has multiple source IDs: {source_path}"))
-            paths[normalized] = source_id
-            resolved = (root / source_path).resolve()
-            try:
-                resolved.relative_to(root)
-            except ValueError:
-                issues.append(issue("critical", "SOURCE_REGISTRY_PATH_ESCAPE", relative, f"path escapes repository: {source_path}"))
-            else:
-                if not resolved.is_file():
-                    issues.append(issue("critical", "SOURCE_REGISTRY_PATH_BROKEN", relative, f"source path does not exist: {source_path}"))
-                elif not normalized.startswith("raw/"):
-                    issues.append(issue("high", "SOURCE_REGISTRY_PATH_SCOPE", relative, f"source path must be under raw/: {source_path}"))
-    return ids
-
-
-def _validate_raw_manifest(root: Path, issues: list[dict[str, Any]]) -> set[str]:
-    path = root / "sources" / "raw-manifest.jsonl"
-    relative = path.relative_to(root).as_posix()
-    if not path.exists():
-        issues.append(issue("high", "RAW_MANIFEST_MISSING", relative, "generate the committed raw manifest"))
-        return set()
-    records: list[dict[str, Any]] = []
-    try:
-        for line_number, line in enumerate(path.read_text(encoding="utf-8-sig").splitlines(), start=1):
-            if not line.strip():
-                continue
-            record = json.loads(line)
-            if not isinstance(record, dict):
-                raise ValueError(f"line {line_number}: record must be an object")
-            records.append(record)
-    except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
-        issues.append(issue("critical", "RAW_MANIFEST_PARSE", relative, str(exc)))
-        return set()
-    manifest_paths = [scalar_text(record.get("path")) for record in records]
-    source_ids = [scalar_text(record.get("source_id")) for record in records]
-    if any(not value for value in manifest_paths) or len(manifest_paths) != len(set(manifest_paths)):
-        issues.append(issue("critical", "RAW_MANIFEST_PATH", relative, "manifest paths are missing or duplicated"))
-    if any(not value for value in source_ids) or len(source_ids) != len(set(source_ids)):
-        issues.append(issue("critical", "RAW_MANIFEST_SOURCE_ID", relative, "manifest source IDs are missing or duplicated; check raw deduplication and registry"))
-    try:
-        from build_manifest import build_manifest
-
-        actual = build_manifest(root)
-    except (OSError, UnicodeError) as exc:
-        issues.append(issue("critical", "RAW_MANIFEST_BUILD", relative, str(exc)))
-        return set(source_ids)
-    expected_render = [json.dumps(record, ensure_ascii=False, sort_keys=True) for record in records]
-    actual_render = [json.dumps(record, ensure_ascii=False, sort_keys=True) for record in actual]
-    if expected_render != actual_render:
-        expected_by_path = {scalar_text(record.get("path")): record for record in records}
-        actual_by_path = {scalar_text(record.get("path")): record for record in actual}
-        added = sorted(set(actual_by_path) - set(expected_by_path))
-        removed = sorted(set(expected_by_path) - set(actual_by_path))
-        changed = sorted(path_key for path_key in set(actual_by_path) & set(expected_by_path) if actual_by_path[path_key] != expected_by_path[path_key])
-        issues.append(issue("critical", "RAW_MANIFEST_STALE", relative, f"manifest differs: added={len(added)}, removed={len(removed)}, changed={len(changed)}"))
-    return set(source_ids)
-
-
-def _resolves_raw(target: str, raw_names: set[str], path_aliases: dict[str, str]) -> bool:
-    normalized = normalized_ref(target)
-    candidates = {normalized, normalized_ref(Path(normalized).name)}
-    for candidate in tuple(candidates):
-        if candidate in path_aliases:
-            candidates.add(path_aliases[candidate])
-            candidates.add(normalized_ref(Path(path_aliases[candidate]).name))
-    return any(candidate in raw_names for candidate in candidates)
 
 
 def _authority_levels(entity: Any, by_id: dict[str, Any]) -> set[int]:
@@ -302,10 +174,9 @@ def _validate_dates(entity: Any, today: dt.date, issues: list[dict[str, Any]]) -
         issues.append(issue("high", "VERIFICATION_OUTDATED", entity.relative_path, "verified document was updated after last_verified"))
     if last_updated and last_checked and last_updated > last_checked and entity.data.get("status") == "verified":
         issues.append(issue("high", "CHECK_OUTDATED", entity.relative_path, "verified document was updated after last_checked"))
-    cycle_days = {"monthly": 31, "quarterly": 92, "annual": 366}
     cycle = scalar_text(entity.data.get("review_cycle"))
     checked = last_checked or last_verified
-    if checked and cycle in cycle_days and (today - checked).days > cycle_days[cycle]:
+    if checked and review_deadline_passed(checked, cycle, today):
         issues.append(issue("medium", "STALE_VERIFICATION", entity.relative_path, f"review_cycle {cycle} deadline has passed"))
     if entity.data.get("status") == "draft" and last_updated and (today - last_updated).days > 30:
         issues.append(issue("medium", "DRAFT_BACKLOG", entity.relative_path, "draft has not been updated for more than 30 days"))
@@ -346,6 +217,7 @@ def _validate_log_targets(root: Path, path_aliases: dict[str, str], issues: list
         for path in (root / "wiki").rglob("*.md")
         if path.is_file()
     }
+    action_re = re.compile(r"^\s*Action:\s*(\S+)\s*$")
     target_re = re.compile(r"^\s*Target:\s*(.+?)\s*$")
     for log in logs_root.glob("*.md"):
         try:
@@ -353,6 +225,17 @@ def _validate_log_targets(root: Path, path_aliases: dict[str, str], issues: list
         except (OSError, UnicodeError):
             continue
         for line_number, line in enumerate(lines, start=1):
+            action_match = action_re.match(line)
+            if action_match and action_match.group(1) not in LOG_ACTIONS:
+                issues.append(
+                    issue(
+                        "high",
+                        "LOG_ACTION_INVALID",
+                        log.relative_to(root).as_posix(),
+                        f"line {line_number}: unknown Action {action_match.group(1)}",
+                        "Action",
+                    )
+                )
             match = target_re.match(line)
             if not match:
                 continue
@@ -368,57 +251,69 @@ def _validate_log_targets(root: Path, path_aliases: dict[str, str], issues: list
 
 def _validate_qa_regression(root: Path, id_targets: dict[str, Any], issues: list[dict[str, Any]]) -> None:
     path = root / "tests" / "qa_regression.jsonl"
-    if not path.exists():
-        return
-    seen: set[str] = set()
-    try:
-        lines = path.read_text(encoding="utf-8-sig").splitlines()
-    except (OSError, UnicodeError) as exc:
-        issues.append(issue("critical", "QA_REGRESSION_READ", path.relative_to(root).as_posix(), str(exc)))
-        return
-    required_fields = {"id", "as_of", "question", "expected", "required_authority_ids", "required_rule_ids", "forbidden_claims"}
-    for line_number, line in enumerate(lines, start=1):
-        if not line.strip():
-            continue
-        try:
-            record = json.loads(line)
-        except json.JSONDecodeError as exc:
-            issues.append(issue("critical", "QA_REGRESSION_JSON", path.relative_to(root).as_posix(), f"line {line_number}: {exc.msg}"))
-            continue
-        if not isinstance(record, dict):
-            issues.append(issue("critical", "QA_REGRESSION_TYPE", path.relative_to(root).as_posix(), f"line {line_number}: record must be an object"))
-            continue
-        missing = sorted(required_fields - set(record))
-        if missing:
-            issues.append(issue("high", "QA_REGRESSION_FIELD", path.relative_to(root).as_posix(), f"line {line_number}: missing {missing}"))
-        test_id = scalar_text(record.get("id"))
-        if not test_id or test_id in seen:
-            issues.append(issue("high", "QA_REGRESSION_ID", path.relative_to(root).as_posix(), f"line {line_number}: missing or duplicate test id"))
-        seen.add(test_id)
-        if not parse_date(record.get("as_of")):
-            issues.append(issue("high", "QA_REGRESSION_DATE", path.relative_to(root).as_posix(), f"line {line_number}: invalid as_of date"))
-        for field, expected_type in (("required_authority_ids", "authority"), ("required_rule_ids", "rule")):
-            values = record.get(field)
-            if not isinstance(values, list) or any(not isinstance(value, str) for value in values):
-                issues.append(issue("high", "QA_REGRESSION_ID_LIST", path.relative_to(root).as_posix(), f"line {line_number}: {field} must be a string list"))
-                continue
-            for required_id in values:
-                target = id_targets.get(required_id)
-                if target is None:
-                    issues.append(issue("critical", "QA_REGRESSION_ID_BROKEN", path.relative_to(root).as_posix(), f"line {line_number}: unknown required ID {required_id}"))
-                elif expected_type == "rule" and target.data.get("entity_type") != "rule":
-                    issues.append(issue("high", "QA_REGRESSION_ID_TYPE", path.relative_to(root).as_posix(), f"line {line_number}: {required_id} is not a rule"))
-        forbidden = record.get("forbidden_claims")
-        if not isinstance(forbidden, list) or not forbidden or any(not scalar_text(value) for value in forbidden):
-            issues.append(issue("high", "QA_REGRESSION_FORBIDDEN", path.relative_to(root).as_posix(), f"line {line_number}: forbidden_claims must be a non-empty string list"))
+    relative = path.relative_to(root).as_posix()
+    mappings = {
+        "QA_READ": ("critical", "QA_REGRESSION_READ"),
+        "INVALID_JSON": ("critical", "QA_REGRESSION_JSON"),
+        "INVALID_RECORD_TYPE": ("critical", "QA_REGRESSION_TYPE"),
+        "MISSING_FIELDS": ("high", "QA_REGRESSION_FIELD"),
+        "DUPLICATE_OR_EMPTY_ID": ("high", "QA_REGRESSION_ID"),
+        "INVALID_AS_OF": ("high", "QA_REGRESSION_DATE"),
+        "INVALID_ID_LIST": ("high", "QA_REGRESSION_ID_LIST"),
+        "UNKNOWN_AUTHORITY_ID": ("critical", "QA_REGRESSION_ID_BROKEN"),
+        "UNKNOWN_RULE_ID": ("critical", "QA_REGRESSION_ID_BROKEN"),
+        "REQUIRED_ID_NOT_RULE": ("high", "QA_REGRESSION_ID_TYPE"),
+        "INVALID_FORBIDDEN_CLAIMS": ("high", "QA_REGRESSION_FORBIDDEN"),
+    }
+    result = validate_qa_catalog(path, id_targets, missing_ok=True)
+    for item in result["issues"]:
+        severity, code = mappings.get(item["code"], ("high", "QA_REGRESSION_INVALID"))
+        line = item.get("line", 0)
+        prefix = f"line {line}: " if line else ""
+        issues.append(
+            issue(
+                severity,
+                code,
+                relative,
+                prefix + scalar_text(item.get("message")),
+                scalar_text(item.get("field")),
+            )
+        )
 
 
 def lint_repository(root: Path, today: dt.date | None = None, strict_v13: bool = False) -> dict[str, Any]:
     root = root.resolve()
     today = today or dt.date.today()
     entities, issues = load_entities(root)
-    vocab = load_json(root / "schemas" / "vocabularies.json", {})
-    relation_vocab = set(vocab.get("relation_type", []))
+    contract = None
+    try:
+        contract = load_schema_contract(root)
+    except SchemaContractError as exc:
+        issues.append(
+            issue("critical", "SCHEMA_CONTRACT_READ", "schemas", str(exc))
+        )
+    if contract is not None:
+        for problem in contract.problems:
+            issues.append(
+                issue(
+                    "critical",
+                    problem.code,
+                    "schemas",
+                    problem.message,
+                    problem.field,
+                )
+            )
+        vocab = contract.vocabulary
+        relation_vocab = set(contract.relation_types)
+        controlled_fields = {
+            field: set(values) for field, values in contract.controlled_fields.items()
+        }
+        list_fields = set(contract.string_list_fields)
+    else:
+        vocab = load_json(root / "schemas" / "vocabularies.json", {})
+        relation_vocab = set(vocab.get("relation_type", []))
+        controlled_fields = {}
+        list_fields = set()
     by_id, names = entity_lookup(entities)
     path_aliases = load_path_aliases(root)
     raw_names = _raw_index(root)
@@ -451,8 +346,26 @@ def lint_repository(root: Path, today: dt.date | None = None, strict_v13: bool =
     if not isinstance(global_aliases, dict):
         issues.append(issue("critical", "ID_ALIAS_MAP_TYPE", "schemas/id-aliases.json", "aliases_to_canonical must be an object"))
         global_aliases = {}
-    for alias, canonical in global_aliases.items():
-        alias_text, canonical_text = scalar_text(alias), scalar_text(canonical)
+    global_alias_map = {
+        scalar_text(alias): scalar_text(canonical)
+        for alias, canonical in global_aliases.items()
+        if scalar_text(alias)
+    }
+    for alias, group in alias_groups.items():
+        if len(group) != 1 or alias in id_groups:
+            continue
+        canonical = scalar_text(group[0].data.get("id"))
+        if global_alias_map.get(alias) != canonical:
+            issues.append(
+                issue(
+                    "high",
+                    "ID_ALIAS_MAP_DRIFT",
+                    group[0].relative_path,
+                    f"frontmatter alias is not mapped to its canonical ID in schemas/id-aliases.json: {alias}",
+                    "id_aliases",
+                )
+            )
+    for alias_text, canonical_text in global_alias_map.items():
         target = by_id.get(canonical_text)
         if target is None:
             issues.append(issue("critical", "ID_ALIAS_CANONICAL_BROKEN", "schemas/id-aliases.json", f"unknown canonical ID for {alias_text}: {canonical_text}"))
@@ -461,22 +374,21 @@ def lint_repository(root: Path, today: dt.date | None = None, strict_v13: bool =
         if collision is not None and collision is not target:
             issues.append(issue("critical", "ID_ALIAS_COLLISION", "schemas/id-aliases.json", f"global alias collides with another entity: {alias_text}"))
             continue
+        if alias_text not in {scalar_text(value) for value in as_list(target.data.get("id_aliases"))}:
+            issues.append(
+                issue(
+                    "high",
+                    "ID_ALIAS_FRONTMATTER_DRIFT",
+                    "schemas/id-aliases.json",
+                    f"global alias is missing from canonical entity frontmatter: {alias_text}",
+                    "aliases_to_canonical",
+                )
+            )
         id_targets[alias_text] = target
         key = normalized_ref(alias_text)
         if target not in names[key]:
             names[key].append(target)
 
-    controlled_fields = {
-        key: set(value)
-        for key, value in vocab.items()
-        if isinstance(value, list) and key not in {"legacy_status_aliases", "historical_only_wage_criteria"}
-    }
-    list_fields = {
-        "aliases", "id_aliases", "verified_by", "authority_ids", "source_urls", "review_trigger",
-        "related_concepts", "related_rules", "related_cases", "related_laws", "related_interpretations",
-        "related_fact_patterns", "related_raw", "source_excerpt", "legal_principles", "elements", "exceptions",
-        "wage_criteria", "decision_factors", "wage_type",
-    }
     for entity in entities:
         data = entity.data
         entity_type = scalar_text(data.get("entity_type"))
@@ -484,8 +396,11 @@ def lint_repository(root: Path, today: dt.date | None = None, strict_v13: bool =
         if version != SCHEMA_VERSION:
             severity = "high" if strict_v13 else "medium"
             issues.append(issue(severity, "SCHEMA_MIGRATION_REQUIRED", entity.relative_path, f"schema_version is {version or '<missing>'}; expected {SCHEMA_VERSION}", "schema_version"))
-        else:
-            for field in COMMON_V13_FIELDS:
+        elif contract is not None:
+            required_fields = contract.required_fields | contract.required_by_entity_type.get(
+                entity_type, frozenset()
+            )
+            for field in sorted(required_fields):
                 if field not in data:
                     issues.append(issue("high", "V13_FIELD_MISSING", entity.relative_path, f"required v1.3 field is missing: {field}", field))
         if not scalar_text(data.get("id")):
@@ -537,6 +452,19 @@ def lint_repository(root: Path, today: dt.date | None = None, strict_v13: bool =
                     issues.append(issue("critical", "BROKEN_REFERENCE", entity.relative_path, f"{field} target does not exist: {target}", field))
                 elif len(matches) > 1:
                     issues.append(issue("high", "AMBIGUOUS_REFERENCE", entity.relative_path, f"{field} target is ambiguous: {target}", field))
+                else:
+                    actual_type = scalar_text(matches[0].data.get("entity_type"))
+                    expected_type = RELATED_FIELD_TYPES[field]
+                    if actual_type != expected_type:
+                        issues.append(
+                            issue(
+                                "high",
+                                "REFERENCE_TYPE_MISMATCH",
+                                entity.relative_path,
+                                f"{field} requires {expected_type}, but {target} resolves to {actual_type or '<missing>'}",
+                                field,
+                            )
+                        )
         relation_records = data.get("relations")
         if isinstance(relation_records, list) and relation_records:
             links_present = True

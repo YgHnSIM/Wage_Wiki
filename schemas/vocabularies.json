@@ -29,7 +29,7 @@
     "interpretive",
     "jurisdictional"
   ],
-  "conflict_resolution": ["pending", "resolved", "unresolvable"],
+  "conflict_resolution": ["", "pending", "resolved", "unresolvable"],
   "review_cycle": ["monthly", "quarterly", "annual"],
   "case_role": ["leading", "persuasive", "conflicting", "overruling"],
   "source_availability": ["available", "unavailable_official", "partial"],

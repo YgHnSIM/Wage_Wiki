@@ -57,6 +57,7 @@ last_updated: "{{date}}"
 verified_by: []
 court_name: ""
 case_number: ""
+case_numbers: []
 decision_date: ""
 case_role: persuasive
 holding_summary: ""

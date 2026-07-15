@@ -10,40 +10,22 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from kg_common import FrontmatterError, _SubsetYamlParser, normalized_ref, scalar_text, sha256_file
+from kg_common import normalized_ref, sha256_file
+from source_catalog import (
+    TEMP_NAMES,
+    TEMP_SUFFIXES,
+    is_control_or_temporary,
+    iter_raw_files,
+    registry_path_map,
+)
 
 
 def _registry_paths(root: Path) -> dict[str, str]:
-    path = root / "sources" / "registry.yaml"
-    if not path.exists():
-        return {}
-    try:
-        data = _SubsetYamlParser(path.read_text(encoding="utf-8-sig")).parse()
-    except (OSError, UnicodeError, FrontmatterError):
-        return {}
-    result: dict[str, str] = {}
-    sources = data.get("sources", [])
-    if not isinstance(sources, list):
-        return result
-    for record in sources:
-        if not isinstance(record, dict):
-            continue
-        source_id = scalar_text(record.get("source_id"))
-        source_path = scalar_text(record.get("path"))
-        if source_id and source_path:
-            result[normalized_ref(source_path)] = source_id
-    return result
-
-
-TEMP_NAMES = {".gitkeep", ".ds_store", "thumbs.db"}
-TEMP_SUFFIXES = {".tmp", ".part", ".crdownload"}
+    return registry_path_map(root)
 
 
 def _is_control_or_temporary(path: Path, raw_root: Path, include_hidden: bool) -> bool:
-    relative_parts = path.relative_to(raw_root).parts
-    if path.name.casefold() in TEMP_NAMES or path.suffix.casefold() in TEMP_SUFFIXES or path.name.startswith("~$"):
-        return True
-    return not include_hidden and any(part.startswith(".") for part in relative_parts)
+    return is_control_or_temporary(path, raw_root, include_hidden=include_hidden)
 
 
 def build_manifest(root: Path, include_hidden: bool = False) -> list[dict[str, Any]]:
@@ -51,11 +33,7 @@ def build_manifest(root: Path, include_hidden: bool = False) -> list[dict[str, A
     raw_root = root / "raw"
     registry = _registry_paths(root)
     records: list[dict[str, Any]] = []
-    if not raw_root.exists():
-        return records
-    for path in sorted((item for item in raw_root.rglob("*") if item.is_file()), key=lambda item: item.as_posix().casefold()):
-        if _is_control_or_temporary(path, raw_root, include_hidden):
-            continue
+    for path in iter_raw_files(root, include_hidden=include_hidden):
         relative = path.relative_to(root).as_posix()
         digest = sha256_file(path)
         category = path.relative_to(raw_root).parts[0] if len(path.relative_to(raw_root).parts) > 1 else "_root"
