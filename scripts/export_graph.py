@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from graph_contract import RELATED_FIELD_TYPES
 from kg_common import (
     SCHEMA_VERSION,
     as_list,
@@ -25,14 +26,7 @@ from kg_common import (
 )
 
 
-RELATED_FIELDS = {
-    "related_concepts": "concept",
-    "related_rules": "rule",
-    "related_cases": "case",
-    "related_laws": "law",
-    "related_interpretations": "interpretation",
-    "related_fact_patterns": "fact_pattern",
-}
+RELATED_FIELDS = RELATED_FIELD_TYPES
 
 
 def _edge_id(source: str, relation: str, target: str) -> str:

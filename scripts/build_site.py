@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote, urlparse
 
+from graph_contract import RELATED_FIELDS
 from kg_common import (
     Entity,
     as_list,
@@ -33,6 +34,7 @@ from site_markdown import (
     render_inline,
     render_markdown,
 )
+from source_catalog import registry_title_map
 
 
 SITE_TITLE = "대한민국 임금법 판례 지식베이스"
@@ -136,14 +138,8 @@ RELATION_LABELS = {
     "has_primary_authority": "주 권위",
     "has_authority": "근거 권위",
 }
-RELATED_FIELDS = (
-    "related_concepts",
-    "related_rules",
-    "related_cases",
-    "related_laws",
-    "related_interpretations",
-    "related_fact_patterns",
-)
+
+
 def _flatten(value: Any) -> list[str]:
     if value in (None, ""):
         return []
@@ -376,18 +372,7 @@ def _judgment_paths(
 def _load_source_titles(path: Path) -> dict[str, str]:
     if not path.is_file():
         return {}
-    result: dict[str, str] = {}
-    current_id = ""
-    for line in path.read_text(encoding="utf-8").splitlines():
-        source_match = re.match(r'^\s*-\s+source_id:\s*["\']?([^"\']+?)["\']?\s*$', line)
-        if source_match:
-            current_id = source_match.group(1).strip()
-            continue
-        title_match = re.match(r'^\s+title:\s*["\']?(.+?)["\']?\s*$', line)
-        if current_id and title_match:
-            result[current_id] = title_match.group(1).strip()
-            current_id = ""
-    return result
+    return registry_title_map(path.parent.parent)
 
 
 def _canonical(site_url: str, relative: str = "") -> str:

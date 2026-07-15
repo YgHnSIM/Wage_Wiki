@@ -7,20 +7,15 @@ import argparse
 import json
 from pathlib import Path
 
-from kg_common import load_entities, scalar_text
+from kg_common import as_list, load_entities, load_json, scalar_text
+from qa_catalog import REQUIRED_FIELDS, validate_qa_catalog
 
 
-REQUIRED_FIELDS = {
-    "id", "as_of", "question", "expected", "required_authority_ids",
-    "required_rule_ids", "forbidden_claims",
-}
-
-
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument("--file", type=Path, default=Path("tests/qa_regression.jsonl"))
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     root = args.root.resolve()
     path = args.file if args.file.is_absolute() else root / args.file
 
@@ -28,41 +23,30 @@ def main() -> int:
     if parse_issues:
         print(json.dumps({"ok": False, "parse_issues": parse_issues}, ensure_ascii=False, indent=2))
         return 1
-    entity_ids = {scalar_text(entity.data.get("id")) for entity in entities}
-    rule_ids = {
-        scalar_text(entity.data.get("id"))
-        for entity in entities
-        if scalar_text(entity.data.get("entity_type")) == "rule"
-    }
+    id_targets = {}
+    by_id = {}
+    for entity in entities:
+        entity_id = scalar_text(entity.data.get("id"))
+        if entity_id:
+            by_id[entity_id] = entity
+            id_targets[entity_id] = entity
+        for alias in as_list(entity.data.get("id_aliases")):
+            alias_text = scalar_text(alias)
+            if alias_text:
+                id_targets.setdefault(alias_text, entity)
+    global_aliases = load_json(root / "schemas" / "id-aliases.json", {}).get(
+        "aliases_to_canonical", {}
+    )
+    if isinstance(global_aliases, dict):
+        for alias, canonical in global_aliases.items():
+            target = by_id.get(scalar_text(canonical))
+            if target is not None:
+                id_targets.setdefault(scalar_text(alias), target)
 
-    issues: list[dict[str, object]] = []
-    seen: set[str] = set()
-    rows = 0
-    for line_number, raw_line in enumerate(path.read_text(encoding="utf-8-sig").splitlines(), 1):
-        if not raw_line.strip():
-            continue
-        rows += 1
-        try:
-            record = json.loads(raw_line)
-        except json.JSONDecodeError as exc:
-            issues.append({"line": line_number, "code": "INVALID_JSON", "message": str(exc)})
-            continue
-        missing = sorted(REQUIRED_FIELDS - set(record))
-        if missing:
-            issues.append({"line": line_number, "code": "MISSING_FIELDS", "fields": missing})
-        record_id = str(record.get("id", ""))
-        if not record_id or record_id in seen:
-            issues.append({"line": line_number, "code": "DUPLICATE_OR_EMPTY_ID", "id": record_id})
-        seen.add(record_id)
-        for entity_id in record.get("required_authority_ids", []):
-            if entity_id not in entity_ids:
-                issues.append({"line": line_number, "code": "UNKNOWN_AUTHORITY_ID", "id": entity_id})
-        for rule_id in record.get("required_rule_ids", []):
-            if rule_id not in rule_ids:
-                issues.append({"line": line_number, "code": "UNKNOWN_RULE_ID", "id": rule_id})
-
-    print(json.dumps({"ok": not issues, "rows": rows, "issues": issues}, ensure_ascii=False, indent=2))
-    return 0 if not issues else 1
+    result = validate_qa_catalog(path, id_targets)
+    report = {"ok": not result["issues"], **result}
+    print(json.dumps(report, ensure_ascii=False, indent=2))
+    return 0 if report["ok"] else 1
 
 
 if __name__ == "__main__":

@@ -629,6 +629,7 @@ canonical `id`는 오역·로마자 혼용이 있어도 변경하지 않는다. 
 | `LINT_RUN` | Lint 점검 실행 |
 | `VERIFY` | 엔티티 verified 상태 확정 |
 | `INGEST` | raw 문서 신규 추가 |
+| `MIGRATE` | 스키마 버전 이관 또는 메타데이터 구조 변환 |
 | `ROUTE_RAW` | raw 루트 파일을 적절한 raw 하위 폴더로 이동 |
 | `DEDUPE_RAW` | 중복 raw 중 canonical raw만 남기고 나머지를 제거 |
 

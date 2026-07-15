@@ -431,18 +431,9 @@ def load_json(path: Path, default: Any) -> Any:
 
 
 def load_registry_ids(repo_root: Path) -> set[str]:
-    path = repo_root / "sources" / "registry.yaml"
-    if not path.exists():
-        return set()
-    try:
-        data = _SubsetYamlParser(path.read_text(encoding="utf-8-sig")).parse()
-    except (OSError, UnicodeError, FrontmatterError):
-        return set()
-    return {
-        scalar_text(record.get("source_id"))
-        for record in as_list(data.get("sources"))
-        if isinstance(record, dict) and scalar_text(record.get("source_id"))
-    }
+    from source_catalog import registry_ids
+
+    return registry_ids(repo_root)
 
 
 def load_path_aliases(repo_root: Path) -> dict[str, str]:

@@ -32,6 +32,8 @@
 
 Python 3.10 이상만 필요하다. PyYAML이나 jsonschema 등 외부 패키지를 설치하지 않는다. frontmatter는 저장소가 사용하는 YAML subset을 안전하게 읽으며 YAML tag, anchor, 임의 객체 생성은 거부한다.
 
+검증 정책은 `scripts/`의 공통 계약 모듈을 단일 진실원으로 사용한다. `schema_contract.py`는 JSON Schema와 통제 어휘의 버전·enum·필수 필드를 교차 점검하고, `source_catalog.py`는 source registry와 raw 파일 열거를 담당한다. `qa_catalog.py`, `review_policy.py`, `graph_contract.py`, `log_contract.py`는 각각 QA 회귀셋, 최신성 주기, `related_*` 대상 유형, append-only 로그 Action 어휘를 정의한다. CLI 도구는 이 계약을 공유하되 기존 출력 형식과 종료 코드를 유지한다.
+
 ## 웹사이트
 
 웹사이트는 [GitHub Pages](https://yghnsim.github.io/Wage_Wiki/)에서 제공한다. `wiki/`의 전체 엔티티를 빌드 시 정적 HTML로 변환하므로 별도 서버나 데이터베이스가 필요하지 않다. 현재는 통상임금·평균임금, 성과급, 지급조건, 최저임금과 반환약정 쟁점을 중심으로 수록한다. 첫 화면은 전체 문서를 최신순으로 표시하며 제목·별칭·사건번호·본문 검색과 문서 유형 필터로 범위를 좁힐 수 있다. 편집 상태와 법적 상태는 각 문서 카드의 배지로 확인한다.

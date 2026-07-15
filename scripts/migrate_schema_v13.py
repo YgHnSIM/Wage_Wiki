@@ -17,6 +17,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+from graph_contract import RELATED_FIELDS
 from kg_common import (
     SCHEMA_VERSION,
     URL_RE,
@@ -32,6 +33,8 @@ from kg_common import (
     wiki_targets,
     write_json,
 )
+from review_policy import recommended_review_cycle as _recommended_cycle
+from source_catalog import iter_raw_files
 
 
 COMMON_ORDER = (
@@ -45,7 +48,7 @@ COMMON_ORDER = (
     "last_checked", "last_verified", "last_updated", "verified_by",
 )
 TYPE_ORDER = {
-    "case": ("court_name", "case_number", "decision_date", "case_role", "holding_summary", "legal_principles", "source_availability", "source_availability_note"),
+    "case": ("court_name", "case_number", "case_numbers", "decision_date", "case_role", "holding_summary", "legal_principles", "source_availability", "source_availability_note"),
     "rule": ("rule_type", "issue", "elements", "exceptions", "conclusion", "temporal", "law_version", "law_revision_date", "wage_criteria", "decision_factors", "wage_type", "worker_scope", "calculation_unit", "extinction_period"),
     "law": ("law_version", "law_revision_date", "promulgation_date", "enforcement_date"),
     "interpretation": ("issuing_agency", "document_number", "issue_date", "interpretation_type", "legal_effect"),
@@ -61,18 +64,6 @@ def _ordered(data: dict[str, Any]) -> dict[str, Any]:
         if key not in result:
             result[key] = value
     return result
-
-
-def _recommended_cycle(entity_type: str, title: str, data: dict[str, Any], as_of: dt.date) -> str:
-    if entity_type == "discussion":
-        return "monthly" if "최신 동향" in title else "quarterly"
-    if entity_type in {"rule", "law", "interpretation"}:
-        return "quarterly"
-    if entity_type == "case":
-        decision_date = parse_date(data.get("decision_date"))
-        if decision_date and decision_date >= as_of - dt.timedelta(days=730):
-            return "quarterly"
-    return "annual"
 
 
 def _infer_legal_status(data: dict[str, Any], as_of: dt.date) -> str:
@@ -106,12 +97,7 @@ def _source_urls(data: dict[str, Any]) -> tuple[list[str], list[Any]]:
 
 def _raw_names(root: Path) -> set[str]:
     result: set[str] = set()
-    raw_root = root / "raw"
-    if not raw_root.exists():
-        return result
-    for path in raw_root.rglob("*"):
-        if not path.is_file():
-            continue
+    for path in iter_raw_files(root, include_hidden=True, include_control_files=True):
         relative = path.relative_to(root).as_posix()
         result.update({normalized_ref(relative), normalized_ref(path.name), normalized_ref(path.stem)})
     return result
@@ -190,7 +176,7 @@ def _relations(entity: Any, names: dict[str, list[Any]]) -> tuple[list[dict[str,
     unresolved: list[str] = []
     seen: set[tuple[str, str]] = set()
     source_type = scalar_text(entity.data.get("entity_type"))
-    for field in ("related_concepts", "related_rules", "related_cases", "related_laws", "related_interpretations", "related_fact_patterns"):
+    for field in RELATED_FIELDS:
         for target in wiki_targets(entity.data.get(field)):
             matches = resolve_entity_ref(target, names)
             if len(matches) != 1:

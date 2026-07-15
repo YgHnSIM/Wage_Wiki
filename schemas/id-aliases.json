@@ -7,10 +7,18 @@
     "rule-wage-employment-status-condition-validity-2025": "rule-wage-reinstatement-condition-validity-2025",
     "discussion-employment-status-condition-validity-2025": "discussion-reinstatement-condition-validity-2025",
     "case-2012다55518": "case-2012da55518-signing-bonus",
-    "case-2017다202272": "case-2017da202272-comfort-payment-return"
+    "case-2017다202272": "case-2017da202272-comfort-payment-return",
+    "case-2020다219454": "case-2020다219454-219461-219478",
+    "case-2020다219461": "case-2020다219454-219461-219478",
+    "case-2020다219478": "case-2020다219454-219461-219478",
+    "case-2025다217529": "case-2025다217529-217530",
+    "case-2025다217530": "case-2025다217529-217530",
+    "case-2025다219757": "case-2025다219757-219758",
+    "case-2025다219758": "case-2025다219757-219758"
   },
   "notes": {
     "reinstatement-condition": "재직조건을 복직조건으로 오해할 수 있는 기존 ID를 유지하면서 의미가 정확한 alias를 제공한다.",
-    "localized-case-number": "기존 로마자 사건번호 ID를 유지하면서 한글 사건번호 alias를 제공한다."
+    "localized-case-number": "기존 로마자 사건번호 ID를 유지하면서 한글 사건번호 alias를 제공한다.",
+    "joined-case-numbers": "병합 사건의 개별 사건번호 ID를 하나의 canonical 병합사건 ID로 해소한다."
   }
 }
