@@ -8,6 +8,22 @@ import re
 from typing import Callable
 from urllib.parse import quote
 
+from claim_contract import (
+    CLAIM_ID_RE,
+    body_plain_text,
+    HEADING_RE,
+    LIST_RE,
+    ORDERED_LIST_RE,
+    STANDALONE_CLAIM_MARKER_RE,
+    TABLE_SEPARATOR_RE,
+    fence_closes,
+    fence_spec,
+    heading_fragment,
+    is_document_title_heading,
+    markdown_plain_text,
+    split_claim_marker,
+    strip_fenced_blocks,
+)
 from kg_common import Entity, resolve_entity_ref, scalar_text
 from site_mermaid import render_mermaid_flowchart
 
@@ -67,10 +83,6 @@ HEADING_LABELS = {
     "Version Note": "버전 정보",
 }
 
-HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
-LIST_RE = re.compile(r"^\s*[-*+]\s+(.+)$")
-ORDERED_LIST_RE = re.compile(r"^\s*\d+[.)]\s+(.+)$")
-TABLE_SEPARATOR_RE = re.compile(r"^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$")
 INLINE_TOKEN_RE = re.compile(
     r"`([^`\n]+)`"
     r"|\[\[([^\]|#]+)(?:#([^\]|]+))?(?:\|([^\]]+))?\]\]"
@@ -78,9 +90,7 @@ INLINE_TOKEN_RE = re.compile(
 )
 
 def _slug_fragment(value: str) -> str:
-    value = re.sub(r"[`*_~]", "", value.strip().lower())
-    value = re.sub(r"[^0-9a-z가-힣]+", "-", value, flags=re.I)
-    return value.strip("-") or "section"
+    return heading_fragment(value)
 
 def _inline_plain(text: str) -> str:
     safe = html.escape(text, quote=False)
@@ -131,6 +141,10 @@ def _split_table_row(line: str) -> list[str]:
     value = line.strip().strip("|")
     return [cell.strip() for cell in value.split("|")]
 
+
+def _block_id_attribute(claim_id: str) -> str:
+    return f' id="{html.escape(claim_id, quote=True)}"' if claim_id else ""
+
 def render_markdown(
     body: str,
     names: dict[str, list[Entity]],
@@ -146,6 +160,8 @@ def render_markdown(
     index = 0
     skipped_title = False
     diagram_index = 0
+    standalone_target: int | None = None
+    standalone_target_has_id = False
 
     def inline(value: str) -> str:
         return render_inline(value, names, slugs, link_for, current_id)
@@ -156,11 +172,16 @@ def render_markdown(
             index += 1
             continue
 
-        if line.strip().startswith("```"):
-            language = line.strip()[3:].strip()
+        opener = fence_spec(line)
+        if opener is not None:
+            fence_character, fence_length, language = opener
             code_lines: list[str] = []
             index += 1
-            while index < len(lines) and not lines[index].strip().startswith("```"):
+            while index < len(lines) and not fence_closes(
+                lines[index],
+                fence_character,
+                fence_length,
+            ):
                 code_lines.append(lines[index])
                 index += 1
             index += 1 if index < len(lines) else 0
@@ -169,16 +190,33 @@ def render_markdown(
                 output.append(
                     render_mermaid_flowchart(chr(10).join(code_lines), f"{current_id}-{diagram_index}")
                 )
+                standalone_target = None
                 continue
             class_name = f' class="language-{html.escape(language, quote=True)}"' if language else ""
             output.append(f"<pre><code{class_name}>{html.escape(chr(10).join(code_lines))}</code></pre>")
+            standalone_target = None
+            continue
+
+        standalone_claim = STANDALONE_CLAIM_MARKER_RE.fullmatch(line)
+        if standalone_claim and CLAIM_ID_RE.fullmatch(standalone_claim.group(1)):
+            claim_id = standalone_claim.group(1)
+            if standalone_target is not None and not standalone_target_has_id:
+                output[standalone_target] = re.sub(
+                    r"^<([a-z][a-z0-9-]*)",
+                    lambda match: f'<{match.group(1)} id="{html.escape(claim_id, quote=True)}"',
+                    output[standalone_target],
+                    count=1,
+                )
+            standalone_target = None
+            standalone_target_has_id = False
+            index += 1
             continue
 
         heading_match = HEADING_RE.match(line)
         if heading_match:
             level = len(heading_match.group(1))
             heading_text = heading_match.group(2).strip()
-            if level == 1 and not skipped_title and _plain_text(heading_text) == _plain_text(title):
+            if is_document_title_heading(level, heading_text, title, skipped_title):
                 skipped_title = True
                 index += 1
                 continue
@@ -186,11 +224,13 @@ def render_markdown(
             anchor = _slug_fragment(_plain_text(heading_text))
             display_heading = HEADING_LABELS.get(heading_text, heading_text)
             output.append(f'<h{rendered_level} id="{html.escape(anchor, quote=True)}">{inline(display_heading)}</h{rendered_level}>')
+            standalone_target = None
             index += 1
             continue
 
         if line.strip() in {"---", "***", "___"}:
             output.append("<hr>")
+            standalone_target = None
             index += 1
             continue
 
@@ -212,6 +252,7 @@ def render_markdown(
                 + body_html
                 + "</tbody></table></div>"
             )
+            standalone_target = None
             continue
 
         unordered = LIST_RE.match(line)
@@ -223,9 +264,11 @@ def render_markdown(
                 match = LIST_RE.match(lines[index]) if tag == "ul" else ORDERED_LIST_RE.match(lines[index])
                 if not match:
                     break
-                items.append(f"<li>{inline(match.group(1))}</li>")
+                item_text, claim_id = split_claim_marker(match.group(1))
+                items.append(f"<li{_block_id_attribute(claim_id)}>{inline(item_text)}</li>")
                 index += 1
             output.append(f"<{tag}>" + "".join(items) + f"</{tag}>")
+            standalone_target = None
             continue
 
         if line.lstrip().startswith(">"):
@@ -233,16 +276,24 @@ def render_markdown(
             while index < len(lines) and lines[index].lstrip().startswith(">"):
                 quote_lines.append(lines[index].lstrip()[1:].lstrip())
                 index += 1
-            output.append(f"<blockquote><p>{inline(' '.join(quote_lines))}</p></blockquote>")
+            quote_text, claim_id = split_claim_marker(" ".join(quote_lines))
+            output.append(f"<blockquote{_block_id_attribute(claim_id)}><p>{inline(quote_text)}</p></blockquote>")
+            standalone_target = len(output) - 1
+            standalone_target_has_id = bool(claim_id)
             continue
 
         paragraph: list[str] = [line.strip()]
         index += 1
         while index < len(lines) and lines[index].strip():
             candidate = lines[index]
+            candidate_marker = STANDALONE_CLAIM_MARKER_RE.fullmatch(candidate)
+            if candidate_marker and CLAIM_ID_RE.fullmatch(candidate_marker.group(1)):
+                paragraph.append(candidate.strip())
+                index += 1
+                break
             if (
                 HEADING_RE.match(candidate)
-                or candidate.strip().startswith("```")
+                or fence_spec(candidate) is not None
                 or candidate.strip() in {"---", "***", "___"}
                 or LIST_RE.match(candidate)
                 or ORDERED_LIST_RE.match(candidate)
@@ -252,16 +303,20 @@ def render_markdown(
                 break
             paragraph.append(candidate.strip())
             index += 1
-        output.append(f"<p>{inline(' '.join(paragraph))}</p>")
+        paragraph_text, claim_id = split_claim_marker(" ".join(paragraph))
+        output.append(f"<p{_block_id_attribute(claim_id)}>{inline(paragraph_text)}</p>")
+        standalone_target = len(output) - 1
+        standalone_target_has_id = bool(claim_id)
 
     return "\n".join(output)
 
 
 def _plain_text(value: str) -> str:
-    value = re.sub(r"\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|([^\]]+))?\]\]", lambda m: m.group(2) or m.group(1), value)
-    value = re.sub(r"\[([^\]]+)\]\([^\)]+\)", r"\1", value)
-    value = re.sub(r"[`*_>#~-]", " ", value)
-    return re.sub(r"\s+", " ", value).strip()
+    return markdown_plain_text(value)
+
+
+def _body_plain_text(value: str) -> str:
+    return body_plain_text(value)
 
 
 def _summary(entity: Entity) -> str:
@@ -278,15 +333,20 @@ def _summary(entity: Entity) -> str:
             return _truncate_summary(text, limit=160)
     body_lines = entity.body.replace("\r\n", "\n").replace("\r", "\n").split("\n")
     paragraph: list[str] = []
-    in_code = False
+    fence: tuple[str, int] | None = None
     for line in body_lines:
         stripped = line.strip()
-        if stripped.startswith("```"):
-            in_code = not in_code
+        if fence is not None:
+            if fence_closes(line, *fence):
+                fence = None
             if paragraph:
                 break
             continue
-        if in_code:
+        opener = fence_spec(line)
+        if opener is not None:
+            fence = opener[:2]
+            if paragraph:
+                break
             continue
         if not stripped:
             if paragraph:
@@ -305,10 +365,11 @@ def _summary(entity: Entity) -> str:
             continue
         paragraph.append(stripped.lstrip("> "))
 
-    text = _plain_text(" ".join(paragraph))
+    text = _body_plain_text(" ".join(paragraph))
     if not text:
-        body = re.sub(r"^#{1,6}\s+.+$", "", entity.body, flags=re.M)
-        text = _plain_text(body)
+        body = strip_fenced_blocks(entity.body)
+        body = re.sub(r"^#{1,6}\s+.+$", "", body, flags=re.M)
+        text = _body_plain_text(body)
     return _truncate_summary(text, limit=160)
 
 

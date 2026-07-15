@@ -56,6 +56,10 @@ last_checked: ""
 last_verified: ""
 last_updated: "{{date}}"
 verified_by: []
+verification:
+  verifier_ids: []
+  methods: []
+  note: ""
 rule_type: inclusion
 issue: ""
 elements: []
@@ -81,6 +85,8 @@ extinction_period: ""
 ## Issue
 
 ## Rule
+
+판단 규칙을 작성한다. ^rule-claim-001
 
 ## Elements
 

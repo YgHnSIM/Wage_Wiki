@@ -55,6 +55,10 @@ last_checked: ""
 last_verified: ""
 last_updated: "{{date}}"
 verified_by: []
+verification:
+  verifier_ids: []
+  methods: []
+  note: ""
 issuing_agency: "고용노동부"
 document_number: ""
 issue_date: ""
@@ -65,6 +69,8 @@ legal_effect: persuasive
 # {{title}}
 
 ## Interpretation
+
+행정해석의 핵심 내용을 작성한다. ^interpretation-claim-001
 
 ## Legal Basis
 

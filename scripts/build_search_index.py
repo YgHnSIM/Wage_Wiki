@@ -5,38 +5,50 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import sqlite3
 from pathlib import Path
 
+from claim_contract import (
+    HEADING_RE,
+    body_plain_text,
+    fence_closes,
+    fence_spec,
+    markdown_plain_text,
+    strip_claim_markers,
+)
 from kg_common import load_entities, scalar_text
 
 
-HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
-WIKILINK_RE = re.compile(r"\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|([^\]]+))?\]\]")
-
-
 def plain_text(text: str) -> str:
-    text = WIKILINK_RE.sub(lambda m: m.group(2) or m.group(1), text)
-    text = re.sub(r"`([^`]+)`", r"\1", text)
-    return re.sub(r"\s+", " ", text).strip()
+    return body_plain_text(text)
 
 
 def section_chunks(body: str) -> list[tuple[str, str]]:
     heading = "본문"
     lines: list[str] = []
     result: list[tuple[str, str]] = []
-    for line in body.splitlines():
+    fence: tuple[str, int] | None = None
+    for line in strip_claim_markers(body).splitlines():
+        if fence is not None:
+            if fence_closes(line, *fence):
+                fence = None
+            continue
+        opener = fence_spec(line)
+        if opener is not None:
+            fence = opener[:2]
+            continue
         match = HEADING_RE.match(line)
         if match:
-            content = plain_text("\n".join(lines))
+            content = markdown_plain_text("\n".join(lines))
             if content:
                 result.append((heading, content))
-            heading = plain_text(match.group(2))
+            # Heading claim-like text is deliberately not rescanned as prose:
+            # headings cannot own claim anchors, so rejected markers stay visible.
+            heading = markdown_plain_text(match.group(2))
             lines = []
         else:
             lines.append(line)
-    content = plain_text("\n".join(lines))
+    content = markdown_plain_text("\n".join(lines))
     if content:
         result.append((heading, content))
     return result

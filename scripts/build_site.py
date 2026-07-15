@@ -16,6 +16,16 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote, urlparse
 
+from claim_contract import (
+    CLAIM_ID_RE,
+    DECISION_PATH_FRAGMENT_ID,
+    DOCUMENT_MAIN_FRAGMENT_ID,
+    EVIDENCE_FRAGMENT_ID,
+    RELATIONS_FRAGMENT_ID,
+    SOURCES_FRAGMENT_ID,
+    claim_anchors,
+    resolved_claim_ids,
+)
 from graph_contract import RELATED_FIELDS
 from kg_common import (
     Entity,
@@ -28,6 +38,7 @@ from kg_common import (
     wiki_targets,
 )
 from site_markdown import (
+    _body_plain_text,
     _plain_text,
     _summary,
     _truncate_summary,
@@ -233,7 +244,7 @@ def _entity_records(entities: list[Entity], slugs: dict[str, str]) -> list[dict[
             *[scalar_text(value) for value in as_list(data.get("wage_type"))],
             *[scalar_text(value) for value in as_list(data.get("wage_criteria"))],
             *[scalar_text(value) for value in as_list(data.get("decision_factors"))],
-            _plain_text(entity.body),
+            _body_plain_text(entity.body),
         ]
         search_text = " ".join(dict.fromkeys(part for part in search_parts if part))
         records.append(
@@ -776,6 +787,10 @@ def _support_labels(value: Any) -> list[str]:
     return result
 
 
+def _resolved_claim_ids(body: str, title: str = "") -> set[str]:
+    return resolved_claim_ids({"title": title}, body)
+
+
 def _related_groups_html(
     related: list[tuple[Entity, list[str], list[str]]],
     slugs: dict[str, str],
@@ -852,13 +867,14 @@ def _entity_page(
     path_steps = _decision_path(entity, by_id, names)
     decision_path_html = ""
     if path_steps:
-        decision_path_html = f"""<section class="document-decision-path" aria-labelledby="decision-path-title">
-  <div class="document-decision-path__heading"><p class="section-label">이 문서의 법적 연결</p><h2 id="decision-path-title">판단 경로</h2></div>
+        decision_path_html = f"""<section class="document-decision-path" aria-labelledby="{DECISION_PATH_FRAGMENT_ID}">
+  <div class="document-decision-path__heading"><p class="section-label">이 문서의 법적 연결</p><h2 id="{DECISION_PATH_FRAGMENT_ID}">판단 경로</h2></div>
   {_decision_path_steps_html(path_steps, slugs, link_prefix="../", current_id=entity_id)}
 </section>"""
     notices = _status_notices(data)
     notice_html = "".join(f'<p class="status-notice">{html.escape(notice)}</p>' for notice in notices)
 
+    resolved_claims = _resolved_claim_ids(entity.body, title)
     evidence_items: list[str] = []
     for evidence in as_list(data.get("evidence")):
         if not isinstance(evidence, dict):
@@ -868,8 +884,21 @@ def _entity_page(
         verified = scalar_text(evidence.get("verified_on"))
         source_id = scalar_text(evidence.get("source_id"))
         source_title = source_titles.get(source_id, "등록 원문")
-        supports = _support_labels(evidence.get("supports"))
-        supports_html = f'<span>뒷받침: {html.escape(" · ".join(supports))}</span>' if supports else ""
+        support_parts: list[str] = []
+        unresolved_labels: set[str] = set()
+        for raw_claim_id in as_list(evidence.get("supports")):
+            claim_id = scalar_text(raw_claim_id)
+            if not claim_id:
+                continue
+            label = _support_labels([claim_id])[0]
+            if claim_id in resolved_claims:
+                support_parts.append(
+                    f'<a href="#{html.escape(claim_id, quote=True)}" title="{html.escape(claim_id, quote=True)}">{html.escape(label)}</a>'
+                )
+            elif label not in unresolved_labels:
+                support_parts.append(html.escape(label))
+                unresolved_labels.add(label)
+        supports_html = f'<span>뒷받침: {" · ".join(support_parts)}</span>' if support_parts else ""
         evidence_items.append(
             f"""<li>
   <div class="evidence__meta"><strong>{html.escape(source_title)}</strong><span>{html.escape(locator)}</span>{supports_html}</div>
@@ -879,8 +908,8 @@ def _entity_page(
         )
     evidence_html = ""
     if evidence_items:
-        evidence_html = f"""<section class="document-section evidence" aria-labelledby="evidence-title">
-  <div class="document-section__heading"><span>{len(evidence_items):02d}</span><h2 id="evidence-title">근거</h2></div>
+        evidence_html = f"""<section class="document-section evidence" aria-labelledby="{EVIDENCE_FRAGMENT_ID}">
+  <div class="document-section__heading"><span>{len(evidence_items):02d}</span><h2 id="{EVIDENCE_FRAGMENT_ID}">근거</h2></div>
   <ol>{''.join(evidence_items)}</ol>
 </section>"""
 
@@ -898,12 +927,21 @@ def _entity_page(
         )
     sources_html = ""
     if source_links:
-        sources_html = f"""<section class="document-section sources" aria-labelledby="sources-title">
-  <div class="document-section__heading"><span>{len(source_links):02d}</span><h2 id="sources-title">외부 원문</h2></div>
+        sources_html = f"""<section class="document-section sources" aria-labelledby="{SOURCES_FRAGMENT_ID}">
+  <div class="document-section__heading"><span>{len(source_links):02d}</span><h2 id="{SOURCES_FRAGMENT_ID}">외부 원문</h2></div>
   <ul>{''.join(source_links)}</ul>
 </section>"""
 
-    tech_fields = ["schema_version", "id", "ingestion_status", "review_cycle", "last_checked", "last_updated", "verified_by"]
+    tech_fields = [
+        "schema_version",
+        "id",
+        "ingestion_status",
+        "review_cycle",
+        "last_checked",
+        "last_updated",
+        "verified_by",
+        "verification",
+    ]
     tech_rows = "".join(
         f"<div><dt>{html.escape(key)}</dt><dd>{html.escape(' · '.join(_flatten(data.get(key))))}</dd></div>"
         for key in tech_fields
@@ -916,7 +954,7 @@ def _entity_page(
     else:
         rail_date = "<strong>날짜</strong><span>미기재</span>"
     body = f"""{_site_header('../../', repository_url)}
-<main id="main" tabindex="-1">
+<main id="{DOCUMENT_MAIN_FRAGMENT_ID}" tabindex="-1">
   <nav class="breadcrumb" aria-label="현재 위치"><a href="../../">홈</a><span>/</span><a href="../../#explore">{html.escape(record['typeLabel'])}</a><span>/</span><span aria-current="page">{html.escape(record['number'])}</span></nav>
   <article class="document">
     <header class="document-hero">
@@ -943,8 +981,8 @@ def _entity_page(
         <ol>{toc_html}</ol>
       </nav>
       <div class="prose">{body_html}</div>
-      <aside class="relations" aria-labelledby="relations-title">
-        <div class="aside-heading"><span>{len(related):02d}</span><h2 id="relations-title">연결 문서</h2></div>
+      <aside class="relations" aria-labelledby="{RELATIONS_FRAGMENT_ID}">
+        <div class="aside-heading"><span>{len(related):02d}</span><h2 id="{RELATIONS_FRAGMENT_ID}">연결 문서</h2></div>
         {related_html}
       </aside>
     </div>
