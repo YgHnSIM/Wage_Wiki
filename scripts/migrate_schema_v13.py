@@ -45,7 +45,7 @@ COMMON_ORDER = (
     "effective_to", "as_of_date", "superseded_by", "superseded_date", "review_cycle", "review_trigger",
     "related_concepts", "related_rules", "related_cases", "related_laws", "related_interpretations",
     "related_fact_patterns", "related_raw", "source_urls", "source_excerpt", "evidence", "relations",
-    "last_checked", "last_verified", "last_updated", "verified_by",
+    "last_checked", "last_verified", "last_updated", "verified_by", "verification",
 )
 TYPE_ORDER = {
     "case": ("court_name", "case_number", "case_numbers", "decision_date", "case_role", "holding_summary", "legal_principles", "source_availability", "source_availability_note"),

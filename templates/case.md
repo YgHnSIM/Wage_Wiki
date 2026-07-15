@@ -55,6 +55,10 @@ last_checked: ""
 last_verified: ""
 last_updated: "{{date}}"
 verified_by: []
+verification:
+  verifier_ids: []
+  methods: []
+  note: ""
 court_name: ""
 case_number: ""
 case_numbers: []
@@ -69,6 +73,8 @@ source_availability_note: ""
 # {{title}}
 
 ## Holding
+
+판시사항을 작성한다. ^holding-001
 
 ## Legal Principles
 

@@ -11,6 +11,8 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
+from authority_policy import authority_diagnostics
+from claim_contract import validate_claim_anchors
 from graph_contract import RELATED_FIELDS, RELATED_FIELD_TYPES
 from kg_common import (
     SCHEMA_VERSION,
@@ -40,42 +42,32 @@ from log_contract import LOG_ACTIONS
 from qa_catalog import validate_qa_catalog
 from review_policy import review_deadline_passed
 from schema_contract import SchemaContractError, load_schema_contract
+from temporal_policy import supersession_diagnostics
+from verification_contract import (
+    VerifierRegistryError,
+    has_verifier_identity,
+    load_verifier_registry,
+    validate_verification,
+)
+from verification_policy import verification_timeline_diagnostics
 
 
 SOURCE_ENTITY_TYPES = {"rule", "case", "law", "interpretation"}
 OFFICIAL_DOMAINS = ("law.go.kr", "scourt.go.kr", "moel.go.kr")
-
-
-def _authority_levels(entity: Any, by_id: dict[str, Any]) -> set[int]:
-    levels: set[int] = set()
-    text = scalar_text(entity.data.get("primary_authority"))
-    if any(word in text for word in ("헌법", "법률", "시행령", "시행규칙", "근로기준법", "최저임금법")):
-        levels.add(1)
-    if "전원합의체" in text:
-        levels.add(2)
-    elif "대법원" in text:
-        levels.add(3)
-    if any(word in text for word in ("고등법원", "지방법원", "지법", "고법")):
-        levels.add(4)
-    if any(word in text for word in ("고용노동부", "행정해석", "질의회시", "노사지도 지침")):
-        levels.add(5)
-    if any(word in text for word in ("단체협약", "취업규칙", "근로계약")):
-        levels.add(6)
-    primary_authority_id = scalar_text(entity.data.get("primary_authority_id"))
-    target = by_id.get(primary_authority_id)
-    if target and isinstance(target.data.get("authority_level"), int):
-        levels.add(target.data["authority_level"])
-    if entity.data.get("entity_type") == "law":
-        levels.add(1)
-    elif entity.data.get("entity_type") == "interpretation":
-        levels.add(5)
-    return levels
+ENTITY_ID_RE = re.compile(r"^(?!(?:claim|evidence|source):)[^\s]+$")
+EVIDENCE_FIELDS = frozenset(
+    {"evidence_id", "source_id", "locator", "excerpt", "supports", "verified_on"}
+)
+RELATION_FIELDS = frozenset({"relation_type", "target_id", "target", "note"})
+TEMPORAL_FIELDS = frozenset(
+    {"applicable_from", "applicable_to", "rule_version", "transition_note"}
+)
 
 
 def _validate_list_of_strings(entity: Any, field: str, issues: list[dict[str, Any]]) -> None:
-    value = entity.data.get(field)
-    if value is None:
+    if field not in entity.data:
         return
+    value = entity.data.get(field)
     if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
         issues.append(issue("high", "FIELD_TYPE", entity.relative_path, f"{field} must be a list of strings", field))
     elif len(value) != len(set(value)):
@@ -83,9 +75,9 @@ def _validate_list_of_strings(entity: Any, field: str, issues: list[dict[str, An
 
 
 def _validate_evidence(entity: Any, known_source_ids: set[str], issues: list[dict[str, Any]]) -> None:
-    evidence = entity.data.get("evidence")
-    if evidence is None:
+    if "evidence" not in entity.data:
         return
+    evidence = entity.data.get("evidence")
     if not isinstance(evidence, list):
         issues.append(issue("high", "EVIDENCE_TYPE", entity.relative_path, "evidence must be a list", "evidence"))
         return
@@ -95,30 +87,78 @@ def _validate_evidence(entity: Any, known_source_ids: set[str], issues: list[dic
         if not isinstance(record, dict):
             issues.append(issue("high", "EVIDENCE_ITEM_TYPE", entity.relative_path, f"{field} must be a mapping", field))
             continue
-        evidence_id = scalar_text(record.get("evidence_id"))
-        source_id = scalar_text(record.get("source_id"))
-        locator = scalar_text(record.get("locator"))
+        for unknown_field in sorted(set(record) - EVIDENCE_FIELDS):
+            issues.append(
+                issue(
+                    "high",
+                    "EVIDENCE_FIELD_UNKNOWN",
+                    entity.relative_path,
+                    f"{field} contains an unsupported field: {unknown_field}",
+                    f"{field}.{unknown_field}",
+                )
+            )
+        raw_evidence_id = record.get("evidence_id")
+        raw_source_id = record.get("source_id")
+        raw_locator = record.get("locator")
+        evidence_id = (
+            raw_evidence_id
+            if isinstance(raw_evidence_id, str)
+            and raw_evidence_id
+            and raw_evidence_id == raw_evidence_id.strip()
+            else ""
+        )
+        source_id = (
+            raw_source_id
+            if isinstance(raw_source_id, str)
+            and raw_source_id
+            and raw_source_id == raw_source_id.strip()
+            else ""
+        )
+        locator = (
+            raw_locator
+            if isinstance(raw_locator, str)
+            and raw_locator
+            and raw_locator == raw_locator.strip()
+            else ""
+        )
         supports = record.get("supports")
-        if not evidence_id or evidence_id in seen:
+        if not evidence_id:
+            issues.append(issue("high", "EVIDENCE_ID", entity.relative_path, f"{field}.evidence_id must be a nonempty string", f"{field}.evidence_id"))
+        elif evidence_id in seen:
             issues.append(issue("high", "EVIDENCE_ID", entity.relative_path, f"{field}.evidence_id is missing or duplicated", field))
-        seen.add(evidence_id)
+        if evidence_id:
+            seen.add(evidence_id)
         if not source_id:
-            issues.append(issue("high", "EVIDENCE_SOURCE", entity.relative_path, f"{field}.source_id is required", field))
+            issues.append(issue("high", "EVIDENCE_SOURCE", entity.relative_path, f"{field}.source_id must be a nonempty string", f"{field}.source_id"))
         elif known_source_ids and source_id not in known_source_ids:
             issues.append(issue("high", "EVIDENCE_SOURCE_UNKNOWN", entity.relative_path, f"unknown source_id: {source_id}", field))
         if not locator:
-            issues.append(issue("high", "EVIDENCE_LOCATOR", entity.relative_path, f"{field}.locator is required", field))
-        if not isinstance(supports, list) or not supports or any(not scalar_text(item) for item in supports):
+            issues.append(issue("high", "EVIDENCE_LOCATOR", entity.relative_path, f"{field}.locator must be a nonempty string", f"{field}.locator"))
+        if "excerpt" in record and not isinstance(record["excerpt"], str):
+            issues.append(issue("high", "EVIDENCE_EXCERPT_TYPE", entity.relative_path, f"{field}.excerpt must be a string", f"{field}.excerpt"))
+        if (
+            not isinstance(supports, list)
+            or not supports
+            or any(
+                not isinstance(item, str) or not item.strip() or item != item.strip()
+                for item in supports
+            )
+        ):
             issues.append(issue("high", "EVIDENCE_SUPPORTS", entity.relative_path, f"{field}.supports must contain claim IDs", field))
-        verified_on = scalar_text(record.get("verified_on"))
+        elif len(supports) != len(set(supports)):
+            issues.append(issue("high", "EVIDENCE_SUPPORTS_DUPLICATE", entity.relative_path, f"{field}.supports must contain unique claim IDs", f"{field}.supports"))
+        raw_verified_on = record.get("verified_on")
+        if "verified_on" in record and not isinstance(raw_verified_on, str):
+            issues.append(issue("high", "EVIDENCE_VERIFIED_ON_TYPE", entity.relative_path, f"{field}.verified_on must be a string", f"{field}.verified_on"))
+        verified_on = raw_verified_on if isinstance(raw_verified_on, str) else ""
         if verified_on and not parse_date(verified_on):
-            issues.append(issue("medium", "DATE_INVALID", entity.relative_path, f"{field}.verified_on is not a valid date", field))
+            issues.append(issue("high", "DATE_INVALID", entity.relative_path, f"{field}.verified_on is not a valid date", field))
 
 
 def _validate_relations(entity: Any, id_targets: dict[str, Any], relation_vocab: set[str], issues: list[dict[str, Any]]) -> None:
-    relations = entity.data.get("relations")
-    if relations is None:
+    if "relations" not in entity.data:
         return
+    relations = entity.data.get("relations")
     if not isinstance(relations, list):
         issues.append(issue("high", "RELATIONS_TYPE", entity.relative_path, "relations must be a list", "relations"))
         return
@@ -128,12 +168,41 @@ def _validate_relations(entity: Any, id_targets: dict[str, Any], relation_vocab:
         if not isinstance(record, dict):
             issues.append(issue("high", "RELATION_ITEM_TYPE", entity.relative_path, f"{field} must be a mapping", field))
             continue
-        relation_type = scalar_text(record.get("relation_type"))
-        target_id = scalar_text(record.get("target_id"))
+        for unknown_field in sorted(set(record) - RELATION_FIELDS):
+            issues.append(
+                issue(
+                    "high",
+                    "RELATION_FIELD_UNKNOWN",
+                    entity.relative_path,
+                    f"{field} contains an unsupported field: {unknown_field}",
+                    f"{field}.{unknown_field}",
+                )
+            )
+        raw_relation_type = record.get("relation_type")
+        raw_target_id = record.get("target_id")
+        relation_type = raw_relation_type if isinstance(raw_relation_type, str) else ""
+        target_id = (
+            raw_target_id
+            if isinstance(raw_target_id, str)
+            and raw_target_id
+            and raw_target_id == raw_target_id.strip()
+            else ""
+        )
+        for optional_field in ("target", "note"):
+            if optional_field in record and not isinstance(record[optional_field], str):
+                issues.append(
+                    issue(
+                        "high",
+                        "RELATION_FIELD_TYPE",
+                        entity.relative_path,
+                        f"{field}.{optional_field} must be a string",
+                        f"{field}.{optional_field}",
+                    )
+                )
         if relation_type not in relation_vocab:
             issues.append(issue("high", "VOCAB_RELATION", entity.relative_path, f"invalid relation_type: {relation_type or '<empty>'}", field))
         if not target_id:
-            issues.append(issue("high", "RELATION_TARGET", entity.relative_path, f"{field}.target_id is required", field))
+            issues.append(issue("high", "RELATION_TARGET", entity.relative_path, f"{field}.target_id must be a nonempty trimmed string", f"{field}.target_id"))
         elif target_id not in id_targets:
             issues.append(issue("critical", "RELATION_TARGET_BROKEN", entity.relative_path, f"unknown relation target_id: {target_id}", field))
         pair = (relation_type, target_id)
@@ -160,13 +229,53 @@ def _validate_dates(entity: Any, today: dt.date, issues: list[dict[str, Any]]) -
     if start and end and start > end:
         issues.append(issue("high", "TEMPORAL_ORDER", entity.relative_path, "effective_from is later than effective_to"))
     temporal = entity.data.get("temporal")
-    if isinstance(temporal, dict):
-        applicable_from = parse_date(temporal.get("applicable_from"))
-        applicable_to = parse_date(temporal.get("applicable_to"))
-        if not applicable_from or not applicable_to:
-            issues.append(issue("high", "RULE_TEMPORAL_DATE", entity.relative_path, "temporal applicable dates are required and must be valid", "temporal"))
-        elif applicable_from > applicable_to:
-            issues.append(issue("high", "RULE_TEMPORAL_ORDER", entity.relative_path, "temporal.applicable_from is later than applicable_to", "temporal"))
+    if "temporal" in entity.data:
+        if not isinstance(temporal, dict):
+            issues.append(issue("high", "RULE_TEMPORAL_TYPE", entity.relative_path, "temporal must be a mapping", "temporal"))
+        else:
+            for unknown_field in sorted(set(temporal) - TEMPORAL_FIELDS):
+                issues.append(
+                    issue(
+                        "high",
+                        "RULE_TEMPORAL_FIELD_UNKNOWN",
+                        entity.relative_path,
+                        f"temporal contains an unsupported field: {unknown_field}",
+                        f"temporal.{unknown_field}",
+                    )
+                )
+            for required_field in sorted(TEMPORAL_FIELDS - set(temporal)):
+                issues.append(
+                    issue(
+                        "high",
+                        "RULE_TEMPORAL_FIELD_MISSING",
+                        entity.relative_path,
+                        f"temporal field is required: {required_field}",
+                        f"temporal.{required_field}",
+                    )
+                )
+            raw_from = temporal.get("applicable_from")
+            raw_to = temporal.get("applicable_to")
+            applicable_from = (
+                parse_date(raw_from)
+                if isinstance(raw_from, str)
+                and re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", raw_from)
+                else None
+            )
+            applicable_to = (
+                parse_date(raw_to)
+                if isinstance(raw_to, str)
+                and re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", raw_to)
+                else None
+            )
+            if not applicable_from or not applicable_to:
+                issues.append(issue("high", "RULE_TEMPORAL_DATE", entity.relative_path, "temporal applicable dates are required strings in YYYY-MM-DD format", "temporal"))
+            elif applicable_from > applicable_to:
+                issues.append(issue("high", "RULE_TEMPORAL_ORDER", entity.relative_path, "temporal.applicable_from is later than applicable_to", "temporal"))
+            rule_version = temporal.get("rule_version")
+            if not isinstance(rule_version, str) or not rule_version.strip():
+                issues.append(issue("high", "RULE_TEMPORAL_VERSION", entity.relative_path, "temporal.rule_version must be a nonempty string", "temporal.rule_version"))
+            if "transition_note" in temporal and not isinstance(temporal["transition_note"], str):
+                issues.append(issue("high", "RULE_TEMPORAL_NOTE_TYPE", entity.relative_path, "temporal.transition_note must be a string", "temporal.transition_note"))
     last_updated = parse_date(entity.data.get("last_updated"))
     last_verified = parse_date(entity.data.get("last_verified"))
     last_checked = parse_date(entity.data.get("last_checked"))
@@ -281,7 +390,12 @@ def _validate_qa_regression(root: Path, id_targets: dict[str, Any], issues: list
         )
 
 
-def lint_repository(root: Path, today: dt.date | None = None, strict_v13: bool = False) -> dict[str, Any]:
+def lint_repository(
+    root: Path,
+    today: dt.date | None = None,
+    strict_v13: bool = False,
+    require_claim_anchors: bool = False,
+) -> dict[str, Any]:
     root = root.resolve()
     today = today or dt.date.today()
     entities, issues = load_entities(root)
@@ -306,14 +420,30 @@ def lint_repository(root: Path, today: dt.date | None = None, strict_v13: bool =
         vocab = contract.vocabulary
         relation_vocab = set(contract.relation_types)
         controlled_fields = {
-            field: set(values) for field, values in contract.controlled_fields.items()
+            field: set(values)
+            for field, values in contract.controlled_fields.items()
+            if field != "verification_method"
         }
+        verification_methods = set(contract.verification_methods)
         list_fields = set(contract.string_list_fields)
     else:
         vocab = load_json(root / "schemas" / "vocabularies.json", {})
         relation_vocab = set(vocab.get("relation_type", []))
         controlled_fields = {}
+        raw_verification_methods = vocab.get("verification_method")
+        verification_methods = (
+            set(raw_verification_methods)
+            if isinstance(raw_verification_methods, list)
+            and raw_verification_methods
+            and all(isinstance(value, str) for value in raw_verification_methods)
+            else None
+        )
         list_fields = set()
+    verifier_ids: set[str] | None = None
+    try:
+        verifier_ids = set(load_verifier_registry(root).ids)
+    except VerifierRegistryError as exc:
+        issues.append(issue("critical", "VERIFIER_REGISTRY_READ", "schemas/verifiers.json", str(exc)))
     by_id, names = entity_lookup(entities)
     path_aliases = load_path_aliases(root)
     raw_names = _raw_index(root)
@@ -403,8 +533,11 @@ def lint_repository(root: Path, today: dt.date | None = None, strict_v13: bool =
             for field in sorted(required_fields):
                 if field not in data:
                     issues.append(issue("high", "V13_FIELD_MISSING", entity.relative_path, f"required v1.3 field is missing: {field}", field))
-        if not scalar_text(data.get("id")):
+        entity_id_value = data.get("id")
+        if not isinstance(entity_id_value, str) or not entity_id_value:
             issues.append(issue("critical", "ID_MISSING", entity.relative_path, "id is required", "id"))
+        elif not ENTITY_ID_RE.fullmatch(entity_id_value):
+            issues.append(issue("critical", "ID_INVALID", entity.relative_path, "id contains whitespace or uses a reserved graph namespace", "id"))
         if not scalar_text(data.get("title")):
             issues.append(issue("high", "TITLE_MISSING", entity.relative_path, "title is required", "title"))
         for field in list_fields:
@@ -415,7 +548,7 @@ def lint_repository(root: Path, today: dt.date | None = None, strict_v13: bool =
         for field, allowed in controlled_fields.items():
             if field not in data:
                 continue
-            values = as_list(data.get(field)) if field in {"wage_criteria", "wage_type"} else [data.get(field)]
+            values = as_list(data.get(field)) if field in list_fields else [data.get(field)]
             for value in values:
                 text = scalar_text(value)
                 if text and text not in allowed:
@@ -428,14 +561,18 @@ def lint_repository(root: Path, today: dt.date | None = None, strict_v13: bool =
                 issues.append(issue("high", "VERIFIED_DATE_MISSING", entity.relative_path, "verified status requires last_verified"))
             if version == SCHEMA_VERSION and not scalar_text(data.get("last_checked")):
                 issues.append(issue("high", "CHECK_DATE_MISSING", entity.relative_path, "verified v1.3 status requires last_checked", "last_checked"))
-            if version == SCHEMA_VERSION and not as_list(data.get("verified_by")):
-                issues.append(issue("high", "VERIFIER_MISSING", entity.relative_path, "verified status requires verified_by", "verified_by"))
+            if version == SCHEMA_VERSION and not has_verifier_identity(data):
+                issues.append(issue("high", "VERIFIER_MISSING", entity.relative_path, "verified status requires a nonblank structured or legacy verifier identity", "verification"))
         legal_status = scalar_text(data.get("legal_status"))
         if legal_status in {"superseded", "overruled"}:
             if not scalar_text(data.get("superseded_by")) or not scalar_text(data.get("superseded_date")):
                 issues.append(issue("high", "SUPERSESSION_INCOMPLETE", entity.relative_path, "superseded/overruled entity requires superseded_by and superseded_date"))
         if scalar_text(data.get("superseded_by")) and legal_status not in {"superseded", "overruled"}:
             issues.append(issue("high", "SUPERSESSION_STATUS", entity.relative_path, "superseded_by conflicts with legal_status"))
+        if scalar_text(data.get("superseded_date")) and legal_status not in {"superseded", "overruled"}:
+            issues.append(issue("high", "SUPERSESSION_STATUS", entity.relative_path, "superseded_date conflicts with legal_status"))
+        for diagnostic in supersession_diagnostics(data, id_targets):
+            issues.append(issue(diagnostic.severity, diagnostic.code, entity.relative_path, diagnostic.message, diagnostic.field))
         conflict_status = scalar_text(data.get("conflict_status"))
         resolution = scalar_text(data.get("conflict_resolution"))
         if conflict_status == "active" and resolution not in {"pending", "resolved", "unresolvable"}:
@@ -488,10 +625,8 @@ def lint_repository(root: Path, today: dt.date | None = None, strict_v13: bool =
             issues.append(issue("critical", "RULE_WITHOUT_AUTHORITY", entity.relative_path, "rule has no primary authority"))
         if entity_type == "rule" and not (as_list(data.get("related_cases")) or as_list(data.get("related_laws")) or as_list(data.get("related_interpretations"))):
             issues.append(issue("critical", "RULE_AUTHORITY_LINK_MISSING", entity.relative_path, "rule must link a case, law, or interpretation"))
-        actual_level = data.get("authority_level")
-        expected_levels = _authority_levels(entity, by_id)
-        if isinstance(actual_level, int) and expected_levels and actual_level not in expected_levels:
-            issues.append(issue("high", "AUTHORITY_MISMATCH", entity.relative_path, f"authority_level {actual_level} conflicts with inferred levels {sorted(expected_levels)}", "authority_level"))
+        for diagnostic in authority_diagnostics(data, id_targets):
+            issues.append(issue(diagnostic.severity, diagnostic.code, entity.relative_path, diagnostic.message, diagnostic.field))
         if entity_type == "case" and (not scalar_text(data.get("holding_summary")) or not as_list(data.get("legal_principles"))):
             issues.append(issue("high", "CASE_HOLDING_MISSING", entity.relative_path, "case requires holding_summary and legal_principles"))
         if entity_type == "case" and version == SCHEMA_VERSION:
@@ -509,10 +644,6 @@ def lint_repository(root: Path, today: dt.date | None = None, strict_v13: bool =
                     issues.append(issue("high", "RULE_FIELD_EMPTY", entity.relative_path, f"rule field must be explicit; use '해당 없음' when inapplicable: {field}", field))
             if not as_list(data.get("elements")):
                 issues.append(issue("high", "RULE_ELEMENTS_EMPTY", entity.relative_path, "rule elements must identify at least one decision element", "elements"))
-            if not isinstance(data.get("temporal"), dict):
-                issues.append(issue("high", "RULE_TEMPORAL_TYPE", entity.relative_path, "temporal must be a mapping", "temporal"))
-            elif not scalar_text(data["temporal"].get("rule_version")):
-                issues.append(issue("high", "RULE_TEMPORAL_VERSION", entity.relative_path, "temporal.rule_version must be explicit", "temporal"))
         if entity_type == "interpretation" and version == SCHEMA_VERSION:
             for field in ("issuing_agency", "document_number", "issue_date", "interpretation_type", "legal_effect"):
                 if not scalar_text(data.get(field)):
@@ -530,8 +661,18 @@ def lint_repository(root: Path, today: dt.date | None = None, strict_v13: bool =
         if version == SCHEMA_VERSION and data.get("status") == "verified" and entity_type in SOURCE_ENTITY_TYPES and not as_list(data.get("evidence")):
             issues.append(issue("high", "EVIDENCE_MISSING", entity.relative_path, "verified authority entity requires claim-level evidence", "evidence"))
         _validate_evidence(entity, known_source_ids, issues)
+        for problem in validate_claim_anchors(data, entity.body, require_anchors=require_claim_anchors):
+            issues.append(issue(problem.severity, problem.code, entity.relative_path, problem.message, problem.field))
+        for problem in validate_verification(data, verifier_ids, verification_methods):
+            issues.append(issue(problem.severity, problem.code, entity.relative_path, problem.message, problem.field))
         _validate_relations(entity, id_targets, relation_vocab, issues)
         _validate_dates(entity, today, issues)
+        for diagnostic in verification_timeline_diagnostics(
+            data,
+            today,
+            source_entity=entity_type in SOURCE_ENTITY_TYPES,
+        ):
+            issues.append(issue(diagnostic.severity, diagnostic.code, entity.relative_path, diagnostic.message, diagnostic.field))
         _validate_case_source_gate(entity, raw_names, path_aliases, issues)
 
     _validate_log_targets(root, path_aliases, issues)
@@ -554,13 +695,19 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output", type=Path, help="write JSON report here; stdout when omitted")
     parser.add_argument("--today", type=dt.date.fromisoformat, help="deterministic check date (YYYY-MM-DD)")
     parser.add_argument("--strict-v13", action="store_true", help="treat unmigrated documents as high severity")
+    parser.add_argument("--require-claim-anchors", action="store_true", help="require every evidence supports ID to resolve to a body ^claim-id block")
     parser.add_argument("--fail-on", choices=("critical", "high", "medium", "low", "info", "none"), default="critical")
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    report = lint_repository(args.root, today=args.today, strict_v13=args.strict_v13)
+    report = lint_repository(
+        args.root,
+        today=args.today,
+        strict_v13=args.strict_v13,
+        require_claim_anchors=args.require_claim_anchors,
+    )
     write_json(report, args.output)
     return 1 if severity_fails(report["issues"], args.fail_on) else 0
 

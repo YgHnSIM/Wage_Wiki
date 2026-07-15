@@ -341,10 +341,14 @@ last_checked: ""               # 최신성·존재 여부 확인일
 last_verified: ""              # 내용 검증 완료일
 last_updated: ""
 verified_by: []                 # 검증자 식별자 목록
+verification:                   # v1.3 additive 구조화 검증 메타데이터
+  verifier_ids: []              # schemas/verifiers.json의 안정 ID
+  methods: []                   # vocabularies.json의 verification_method
+  note: ""                      # 대조 자료·범위 설명
 ---
 ```
 
-`status`는 편집 워크플로만 나타낸다. 과거의 `status: legacy`는 금지하며 법적 효력은 `legal_status`로 표현한다. `verified` 문서는 `ingestion_status: verified`, `last_verified`, `last_checked`, `verified_by`를 모두 가져야 한다.
+`status`는 편집 워크플로만 나타낸다. 과거의 `status: legacy`는 금지하며 법적 효력은 `legal_status`로 표현한다. `verified` 문서는 `ingestion_status: verified`, `last_verified`, `last_checked`와 비어 있지 않은 구조화 또는 legacy 검증자 ID를 가져야 한다. legacy `verified_by`가 있으면 구조화 `verification`과 의미가 일치해야 한다.
 
 ### 8.2 주장 단위 Evidence와 Typed Relation
 
@@ -365,6 +369,16 @@ relations:
 ```
 
 `source_id`는 `sources/registry.yaml` 또는 raw manifest에 등록한다. `supports`는 본문의 claim ID를 가리킨다. `locator` 없는 발췌는 verified 근거로 인정하지 않는다. 관계 허용값은 Section 9와 vocab 파일을 따른다.
+
+claim ID는 `^[a-z][a-z0-9-]{0,63}$` 형식을 사용하고 같은 문서 안에서만 유일하면 된다. 실제 주장 문단·목록 항목·인용문 끝에 Obsidian block marker를 둔다. heading·표·코드 fence에는 두지 않고 하나의 렌더링 블록에 둘 이상의 marker를 배치하지 않는다.
+
+```markdown
+대법원은 해당 지급조건만으로 통상임금성을 부정할 수 없다고 판단하였다. ^holding-001
+```
+
+전역 그래프 ID는 `claim:<percent-encoded entity_id>#<percent-encoded claim_id>`로 합성한다. source node는 `source:`, evidence reference는 `evidence:` namespace를 사용하므로 엔티티 ID에는 이 세 접두사를 쓰지 않는다. claim 위치는 근거 excerpt만으로 자동 결정하지 않으며 `plan_claim_anchors.py`의 근거·섹션 정보를 사람이 검토한 뒤 배치한다. 이관 완료 전에는 `--require-claim-anchors`가 단계적 강제 옵션이다.
+
+`verification.verifier_ids`가 검증 주체, `methods`가 검증 방식, `note`가 대조 자료·범위를 나타낸다. `official_source_review`는 범위를 별도로 명명하지 않은 공식 자료 검토이고, `source_cross_check`는 note에 명시한 하나 이상의 자료와 대조한 경우다. 기존 `verified_by`는 v1.3 호환을 위해 보존하며 구조화 값은 `schemas/verifiers.json`과 `verification_method` 어휘로 검증한다. legacy 값이 있으면 구조화 값은 조건부 필수지만 검증 이력이 없는 문서에서는 선택 필드다. evidence의 `verified_on`은 개별 근거 검증일이고 문서의 `last_verified`와 서로 추론하거나 덮어쓰지 않는다.
 
 ### 8.3 Case 전용 필드
 
@@ -694,9 +708,11 @@ Lint 항목은 심각도(Severity)에 따라 처리 우선순위를 부여한다
 
 v1.3 공통 추가 검사:
 
-- canonical ID·`id_aliases` 충돌 및 `primary_authority_id`·`authority_ids` 존재 여부
+- canonical ID·graph namespace·`id_aliases` 충돌 및 `primary_authority_id`·`authority_ids` 존재 여부
 - `status`와 `legal_status` 분리, verified 날짜·검증자 정합성
-- Evidence의 source registry, locator, supports claim ID
+- Evidence의 허용 필드·자료형·source registry·locator·중복 없는 supports claim ID
+- 구조화 verification의 verifier registry·method·note 및 legacy parity 정합성
+- supersession 대상·날짜 순서와 미종료 기간 advisory
 - Typed relation의 허용 어휘와 target ID
 - Case 자체 원문 또는 `unavailable_official` 공식 검색 증거
 - Rule의 issue/elements/exceptions/conclusion/temporal 구조

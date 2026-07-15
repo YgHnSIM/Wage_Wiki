@@ -30,6 +30,7 @@ class SchemaContract:
     required_by_entity_type: Mapping[str, frozenset[str]]
     string_list_fields: frozenset[str]
     controlled_fields: Mapping[str, frozenset[str]]
+    verification_methods: frozenset[str]
     relation_types: frozenset[str]
     vocabulary: Mapping[str, Any]
     problems: tuple[ContractProblem, ...]
@@ -88,6 +89,11 @@ def _schema_controlled_values(
     if field == "relation_type":
         try:
             definition = definitions["relation"]["properties"]["relation_type"]
+        except (KeyError, TypeError):
+            return None
+    if field == "verification_method":
+        try:
+            definition = definitions["verificationMetadata"]["properties"]["methods"]
         except (KeyError, TypeError):
             return None
     if not isinstance(definition, dict):
@@ -186,6 +192,7 @@ def load_schema_contract(root: Path) -> SchemaContract:
         required_by_entity_type=required_by_type,
         string_list_fields=_string_list_fields(properties),
         controlled_fields=MappingProxyType(controlled),
+        verification_methods=controlled.get("verification_method", frozenset()),
         relation_types=controlled.get("relation_type", frozenset()),
         vocabulary=MappingProxyType(vocabulary),
         problems=tuple(problems),

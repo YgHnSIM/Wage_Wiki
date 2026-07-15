@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "verifiers": {
+    "codex": {
+      "display_name": "Codex",
+      "kind": "ai_agent",
+      "description": "Codex가 원문 또는 교차 자료를 대조한 검증 기록"
+    }
+  }
+}

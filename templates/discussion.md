@@ -46,6 +46,10 @@ last_checked: ""
 last_verified: ""
 last_updated: "{{date}}"
 verified_by: []
+verification:
+  verifier_ids: []
+  methods: []
+  note: ""
 ---
 
 # {{title}}

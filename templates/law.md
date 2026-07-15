@@ -50,6 +50,10 @@ last_checked: ""
 last_verified: ""
 last_updated: "{{date}}"
 verified_by: []
+verification:
+  verifier_ids: []
+  methods: []
+  note: ""
 law_version: ""
 law_revision_date: ""
 promulgation_date: ""
@@ -59,6 +63,8 @@ enforcement_date: ""
 # {{title}}
 
 ## Provision
+
+법령 조문을 작성한다. ^law-provision-001
 
 ## Scope
 

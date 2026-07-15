@@ -37,6 +37,7 @@
   "interpretation_type": ["guideline", "official_reply", "directive", "notice", "manual"],
   "legal_effect": ["binding_internal", "persuasive", "informational"],
   "enforcement_weight": ["critical", "high", "medium", "low"],
+  "verification_method": ["official_source_review", "source_cross_check"],
   "relation_type": [
     "establishes",
     "applies",

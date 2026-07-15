@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any, Iterator
 
@@ -55,6 +56,33 @@ def registry_ids(root: Path) -> set[str]:
         for record in tolerant_source_records(root)
         if (source_id := scalar_text(record.get("source_id")))
     }
+
+
+def manifest_ids(root: Path) -> set[str]:
+    """Return valid source IDs from the generated manifest without raising."""
+
+    path = root / "sources" / "raw-manifest.jsonl"
+    try:
+        lines = path.read_text(encoding="utf-8-sig").splitlines()
+    except (OSError, UnicodeError):
+        return set()
+    result: set[str] = set()
+    for line in lines:
+        if not line.strip():
+            continue
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(record, dict) and (source_id := scalar_text(record.get("source_id"))):
+            result.add(source_id)
+    return result
+
+
+def known_source_ids(root: Path) -> set[str]:
+    """Unify registry and manifest source identity for read-only generators."""
+
+    return registry_ids(root) | manifest_ids(root)
 
 
 def registry_path_map(root: Path) -> dict[str, str]:
