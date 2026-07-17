@@ -6,7 +6,7 @@
   --line: #d8d8dc;
   --line-strong: #111111;
   --blue: #002fa7;
-  --page: min(100% - 40px, 1440px);
+  --page: min(100% - 40px, 1520px);
   --reading: 72ch;
   font-family: "Helvetica Neue", Helvetica, Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
   color: var(--ink);
@@ -1476,6 +1476,20 @@ th {
   margin: 3rem 0 0;
   font-size: clamp(2rem, 5vw, 5rem);
   letter-spacing: -0.06em;
+}
+
+@media (min-width: 1025px) {
+  .wordmark {
+    grid-column: 1 / -1;
+    justify-self: start;
+    width: calc(50% - var(--page) / 4);
+  }
+
+  .site-header nav {
+    position: absolute;
+    grid-column: 1 / -1;
+    inset: 0 0 0 calc(25% + var(--page) / 4 + var(--page) / 8);
+  }
 }
 
 @media (max-width: 1024px) {
