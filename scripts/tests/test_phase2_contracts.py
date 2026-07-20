@@ -465,7 +465,7 @@ Bad.
         )
         entities, _ = load_entities(ROOT)
         structured = [entity for entity in entities if isinstance(entity.data.get("verification"), dict)]
-        self.assertEqual(len(structured), 64)
+        self.assertEqual(len(structured), 66)
         problems = [
             problem
             for entity in structured
