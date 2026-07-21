@@ -34,6 +34,7 @@ related_concepts:
   - "[[포괄임금약정]]"
   - "[[고정OT 약정]]"
 related_rules:
+  - "[[포괄임금약정 종합 판단 로드맵]]"
   - "[[포괄임금약정 성립 판단 규칙]]"
   - "[[포괄임금 최저임금 비교대상 시급 산정 규칙]]"
 related_cases:
@@ -85,9 +86,9 @@ relations:
     target_id: "interpretation-moel-inclusive-wage-guideline-2026-04-09"
     target: "[[고용노동부 2026. 4. 9. 포괄임금 오남용 방지 지도 지침]]"
     note: "판례상 계약 유형과 행정상 시정 대상 분류 사이의 해석상 긴장을 표시한다."
-last_checked: "2026-07-21"
-last_verified: "2026-07-21"
-last_updated: "2026-07-21"
+last_checked: "2026-07-22"
+last_verified: "2026-07-22"
+last_updated: "2026-07-22"
 verified_by:
   - "codex-official-source-review"
 verification:

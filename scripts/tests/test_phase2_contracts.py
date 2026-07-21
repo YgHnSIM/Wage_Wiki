@@ -920,13 +920,13 @@ Missing.
         )
 
     def test_default_lint_keeps_anchor_rollout_nonblocking(self) -> None:
-        report = lint_repository(ROOT, today=dt.date(2026, 7, 21), strict_v13=True)
+        report = lint_repository(ROOT, today=dt.date(2026, 7, 22), strict_v13=True)
         self.assertEqual(report["summary"]["by_severity"]["high"], 0)
         self.assertEqual(report["summary"]["by_severity"]["critical"], 0)
         self.assertNotIn("EVIDENCE_CLAIM_UNRESOLVED", {item["code"] for item in report["issues"]})
         strict = lint_repository(
             ROOT,
-            today=dt.date(2026, 7, 21),
+            today=dt.date(2026, 7, 22),
             strict_v13=True,
             require_claim_anchors=True,
         )
