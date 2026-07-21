@@ -12,6 +12,7 @@ from typing import Any
 
 from kg_common import SCHEMA_VERSION, load_entities, scalar_text
 from lint_wiki import lint_repository
+from temporal_policy import repository_today
 
 
 def _table(headers: list[str], rows: list[list[Any]]) -> list[str]:
@@ -22,7 +23,7 @@ def _table(headers: list[str], rows: list[list[Any]]) -> list[str]:
 
 def build_dashboard(root: Path, today: dt.date | None = None) -> str:
     root = root.resolve()
-    today = today or dt.date.today()
+    today = today or repository_today()
     entities, _ = load_entities(root)
     report = lint_repository(root, today=today)
     by_type = Counter(scalar_text(entity.data.get("entity_type")) for entity in entities)

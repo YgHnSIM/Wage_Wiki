@@ -41,7 +41,7 @@ from migrate_verification_metadata import main as migrate_verification_main, mig
 from plan_claim_anchors import plan_entity
 from schema_contract import load_schema_contract
 from site_markdown import _summary, render_markdown
-from temporal_policy import supersession_diagnostics
+from temporal_policy import repository_today, supersession_diagnostics
 from verification_contract import (
     VerifierRegistryError,
     has_verifier_identity,
@@ -714,6 +714,10 @@ class EvidenceSchemaParityTests(unittest.TestCase):
 
 
 class MetadataPolicyTests(unittest.TestCase):
+    def test_repository_date_uses_seoul_day_at_utc_boundary(self) -> None:
+        utc_now = dt.datetime(2026, 7, 21, 16, 0, tzinfo=dt.timezone.utc)
+        self.assertEqual(repository_today(utc_now), dt.date(2026, 7, 22))
+
     def test_supersession_policy_diagnoses_without_choosing_an_end_date(self) -> None:
         data = {
             "id": "case-old",

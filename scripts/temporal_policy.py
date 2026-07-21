@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import datetime as dt
 from dataclasses import dataclass
 from typing import Any, Mapping
 
@@ -11,6 +12,16 @@ from kg_common import parse_date, scalar_text
 
 OPEN_ENDED_DATE = "9999-12-31"
 TERMINATED_LEGAL_STATUSES = frozenset({"superseded", "overruled"})
+REPOSITORY_TIMEZONE = dt.timezone(dt.timedelta(hours=9), name="Asia/Seoul")
+
+
+def repository_today(now: dt.datetime | None = None) -> dt.date:
+    """Return the repository's calendar date, independent of the host timezone."""
+
+    current = now or dt.datetime.now(dt.timezone.utc)
+    if current.tzinfo is None:
+        raise ValueError("now must be timezone-aware")
+    return current.astimezone(REPOSITORY_TIMEZONE).date()
 
 
 @dataclass(frozen=True)

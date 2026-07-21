@@ -42,7 +42,7 @@ from log_contract import LOG_ACTIONS
 from qa_catalog import validate_qa_catalog
 from review_policy import review_deadline_passed
 from schema_contract import SchemaContractError, load_schema_contract
-from temporal_policy import supersession_diagnostics
+from temporal_policy import repository_today, supersession_diagnostics
 from verification_contract import (
     VerifierRegistryError,
     has_verifier_identity,
@@ -397,7 +397,7 @@ def lint_repository(
     require_claim_anchors: bool = False,
 ) -> dict[str, Any]:
     root = root.resolve()
-    today = today or dt.date.today()
+    today = today or repository_today()
     entities, issues = load_entities(root)
     contract = None
     try:
