@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import mimetypes
 import sys
@@ -20,12 +21,59 @@ from source_catalog import (
 )
 
 
+LF_NORMALIZED_SUFFIXES = frozenset({
+    ".css",
+    ".html",
+    ".js",
+    ".json",
+    ".jsonl",
+    ".md",
+    ".py",
+    ".svg",
+    ".txt",
+    ".xml",
+    ".yaml",
+    ".yml",
+})
+
+
 def _registry_paths(root: Path) -> dict[str, str]:
     return registry_path_map(root)
 
 
 def _is_control_or_temporary(path: Path, raw_root: Path, include_hidden: bool) -> bool:
     return is_control_or_temporary(path, raw_root, include_hidden=include_hidden)
+
+
+def _manifest_digest_and_size(path: Path) -> tuple[str, int]:
+    """Hash the canonical Git representation of a raw source.
+
+    Text formats covered by ``.gitattributes`` are committed with LF endings.
+    Normalizing CRLF here keeps manifests identical when a Windows working tree
+    still contains CRLF or mixed endings before Git writes the index.
+    """
+
+    if path.suffix.casefold() not in LF_NORMALIZED_SUFFIXES:
+        return sha256_file(path), path.stat().st_size
+
+    digest = hashlib.sha256()
+    size = 0
+    pending_cr = b""
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            chunk = pending_cr + chunk
+            if chunk.endswith(b"\r"):
+                pending_cr = b"\r"
+                chunk = chunk[:-1]
+            else:
+                pending_cr = b""
+            canonical = chunk.replace(b"\r\n", b"\n")
+            digest.update(canonical)
+            size += len(canonical)
+    if pending_cr:
+        digest.update(pending_cr)
+        size += 1
+    return digest.hexdigest(), size
 
 
 def build_manifest(root: Path, include_hidden: bool = False) -> list[dict[str, Any]]:
@@ -35,14 +83,14 @@ def build_manifest(root: Path, include_hidden: bool = False) -> list[dict[str, A
     records: list[dict[str, Any]] = []
     for path in iter_raw_files(root, include_hidden=include_hidden):
         relative = path.relative_to(root).as_posix()
-        digest = sha256_file(path)
+        digest, size = _manifest_digest_and_size(path)
         category = path.relative_to(raw_root).parts[0] if len(path.relative_to(raw_root).parts) > 1 else "_root"
         records.append({
             "source_id": registry.get(normalized_ref(relative), f"raw-sha256-{digest[:16]}"),
             "path": relative,
             "category": category,
             "media_type": mimetypes.guess_type(path.name)[0] or "application/octet-stream",
-            "size_bytes": path.stat().st_size,
+            "size_bytes": size,
             "sha256": digest,
         })
     return records

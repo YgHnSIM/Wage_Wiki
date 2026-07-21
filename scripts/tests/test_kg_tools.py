@@ -11,7 +11,7 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from build_manifest import build_manifest
+from build_manifest import LF_NORMALIZED_SUFFIXES, build_manifest
 from kg_common import FrontmatterError, dump_subset_yaml, parse_frontmatter_text
 from migrate_schema_v13 import _recommended_cycle
 
@@ -65,6 +65,32 @@ temporal:
 
 
 class ManifestTests(unittest.TestCase):
+    def test_text_normalization_suffixes_match_gitattributes(self) -> None:
+        attributes = (SCRIPTS.parent / ".gitattributes").read_text(encoding="utf-8")
+        declared = {
+            fields[0].removeprefix("*")
+            for line in attributes.splitlines()
+            if len(fields := line.split()) >= 3
+            and fields[0].startswith("*.")
+            and "text" in fields[1:]
+            and "eol=lf" in fields[1:]
+        }
+        self.assertEqual(LF_NORMALIZED_SUFFIXES, declared)
+
+    def test_text_hashes_match_git_lf_normalization(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "raw" / "cases" / "decision.html"
+            source.parent.mkdir(parents=True)
+            source.write_bytes(b"<p>one\r\ntwo\nthree</p>\r\n")
+
+            mixed_endings = build_manifest(root)
+            source.write_bytes(b"<p>one\ntwo\nthree</p>\n")
+            lf_endings = build_manifest(root)
+
+            self.assertEqual(mixed_endings, lf_endings)
+            self.assertEqual(mixed_endings[0]["size_bytes"], len(source.read_bytes()))
+
     def test_registry_id_overrides_hash_fallback(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
