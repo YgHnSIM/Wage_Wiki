@@ -1,0 +1,149 @@
+{
+  "schema_version": "1.0",
+  "history_mode": "all",
+  "format": "<type>(<scope>): <한국어 요약>",
+  "max_subject_length": 72,
+  "require_korean_summary": true,
+  "forbidden_summary_terms": [
+    "업데이트"
+  ],
+  "forbidden_terminal_characters": [
+    ".",
+    "。"
+  ],
+  "allow_merge_commits": true,
+  "scope_groups": {
+    "entity": [
+      "case",
+      "rule",
+      "concept",
+      "law",
+      "interpretation",
+      "history",
+      "discussion",
+      "fact-pattern"
+    ],
+    "legal-topic": [
+      "wage",
+      "ordinary-wage",
+      "average-wage",
+      "minimum-wage",
+      "wage-arrears",
+      "performance-pay"
+    ],
+    "system": [
+      "raw",
+      "sources",
+      "schema",
+      "validation",
+      "graph",
+      "search",
+      "site",
+      "ci",
+      "repo",
+      "agent",
+      "templates"
+    ]
+  },
+  "types": {
+    "init": {
+      "description": "저장소 최초 초기화",
+      "allowed_scopes": ["repo"]
+    },
+    "ingest": {
+      "description": "외부 원문 추가와 지식 그래프 편입",
+      "allowed_scope_groups": ["entity", "legal-topic"]
+    },
+    "create": {
+      "description": "새 raw 없이 Wiki 엔티티 생성",
+      "allowed_scope_groups": ["entity"]
+    },
+    "update": {
+      "description": "기존 지식 엔티티의 실질 내용 보강",
+      "allowed_scope_groups": ["entity", "legal-topic"]
+    },
+    "link": {
+      "description": "지식 그래프 관계와 역링크 변경",
+      "allowed_scope_groups": ["entity", "legal-topic"]
+    },
+    "fix": {
+      "description": "법적 내용, 메타데이터, 링크 또는 코드 오류 정정",
+      "allowed_scope_groups": ["entity", "legal-topic", "system"]
+    },
+    "verify": {
+      "description": "검증 결과와 검증 메타데이터 확정",
+      "allowed_scope_groups": ["entity", "legal-topic", "system"]
+    },
+    "deprecate": {
+      "description": "superseded 또는 overruled 법적 상태 처리",
+      "allowed_scope_groups": ["entity", "legal-topic"]
+    },
+    "remove": {
+      "description": "잘못 편입되었거나 범위 밖인 자료 제거",
+      "allowed_scope_groups": ["entity", "legal-topic", "system"]
+    },
+    "route": {
+      "description": "raw 바이트를 바꾸지 않는 보존 경로 변경",
+      "allowed_scopes": ["raw"]
+    },
+    "migrate": {
+      "description": "스키마, ID 또는 메타데이터 구조의 일괄 이관",
+      "allowed_scopes": ["sources", "schema", "validation", "graph", "repo"]
+    },
+    "feat": {
+      "description": "새로운 사이트 또는 도구 기능 추가",
+      "allowed_scope_groups": ["system"]
+    },
+    "refactor": {
+      "description": "기능 변화 없는 내부 구조 개선",
+      "allowed_scope_groups": ["system"]
+    },
+    "style": {
+      "description": "CSS, 배치 또는 표현 형식만 변경",
+      "allowed_scopes": ["site"]
+    },
+    "test": {
+      "description": "테스트만 추가하거나 변경",
+      "allowed_scope_groups": ["system"]
+    },
+    "build": {
+      "description": "빌드 방식 또는 산출 절차 변경",
+      "allowed_scopes": ["site", "ci", "repo"]
+    },
+    "ci": {
+      "description": "GitHub Actions 등 자동화 변경",
+      "allowed_scopes": ["ci"]
+    },
+    "docs": {
+      "description": "README, AGENT 또는 운영 설명 변경",
+      "allowed_scopes": ["agent", "repo", "templates"]
+    },
+    "chore": {
+      "description": "지식, 기능 또는 동작 변화가 없는 관리 작업",
+      "allowed_scope_groups": ["system"]
+    },
+    "revert": {
+      "description": "기존 커밋의 변경 복구",
+      "allowed_scope_groups": ["entity", "legal-topic", "system"]
+    }
+  },
+  "body": {
+    "required_types": [
+      "ingest",
+      "migrate",
+      "deprecate",
+      "remove",
+      "revert"
+    ],
+    "required_sections": [
+      "Source",
+      "Changes",
+      "Verify"
+    ],
+    "required_when_files_changed_at_least": 10,
+    "required_path_prefixes": [
+      "raw/",
+      "schemas/"
+    ]
+  }
+}

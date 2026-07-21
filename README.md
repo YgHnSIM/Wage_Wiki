@@ -62,6 +62,8 @@ python -m http.server 8000 --directory build/site
 ```text
 python scripts/lint_wiki.py --output build/lint-report.json --strict-v13 --fail-on high
 python scripts/check_qa_regression.py
+python scripts/check_commit_messages.py --all --output build/commit-message-report.json
+python scripts/check_commit_messages.py --all --audit --output build/commit-message-history-audit.json
 python scripts/plan_claim_anchors.py --output build/claim-anchor-plan.json
 python scripts/migrate_verification_metadata.py --output build/verification-plan.json
 python scripts/build_manifest.py --output sources/raw-manifest.jsonl
@@ -74,6 +76,8 @@ python scripts/build_site.py --output build/site --site-url "https://example.inv
 python scripts/check_site.py build/site --output build/site-check.json
 python -m unittest discover -s scripts/tests -v
 ```
+
+커밋 메시지는 `schemas/commit-message-v1.json`의 type·scope 조합과 `<type>(<scope>): <한국어 요약>` 형식을 따른다. 전체 이력은 `--all`로 엄격 검사하고, `--audit`을 함께 사용하면 위반 보고를 생성하되 종료 코드를 실패로 만들지 않는다. `ingest`·`migrate`·`deprecate`·`remove`·`revert`, raw 또는 schema 변경, 10개 이상 파일 변경에는 `Source`, `Changes`, `Verify` 본문이 필요하다.
 
 Lint JSON에는 심각도별 집계와 모든 문제의 `code`, `path`, `field`, `message`가 담긴다. 최종 CI 기준은 `--strict-v13 --fail-on high`다. 이관 작업 중 임시 진단에만 `--fail-on critical`을 사용할 수 있으며 완료 판정에는 사용할 수 없다. QA 회귀셋은 `check_qa_regression.py`와 lint 양쪽에서 JSONL 구문, 중복 test ID, 날짜, `required_authority_ids`, `required_rule_ids`의 실제 존재와 Rule 유형을 검사한다.
 

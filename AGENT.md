@@ -651,48 +651,139 @@ canonical `id`는 오역·로마자 혼용이 있어도 변경하지 않는다. 
 
 ### 13.2 Git Commit Message Protocol
 
-커밋 메시지는 지식 그래프 변경 이력을 검색하고 감사할 수 있도록 다음 형식을 따른다.
+커밋 메시지는 지식 그래프 변경 이력을 검색하고 감사할 수 있도록 다음 형식을 따른다. 기계 판독 기준은 `schemas/commit-message-v1.json`이며 전체 Git 이력에 동일하게 적용한다.
 
 ```text
-<type>(<scope>): <한국어 요약>
+<type>(<scope>): <대상> <변경 결과>
 ```
 
 **필수 규칙:**
 
 - 제목은 한 줄로 작성한다.
-- 제목은 한국어로 작성하되, `type`과 `scope`는 아래 허용 어휘를 사용한다.
+- `type`과 `scope`는 생략할 수 없으며 소문자 통제 어휘를 사용한다.
+- 요약에는 한국어를 포함하고 전체 제목은 72자 이하로 작성한다.
 - 제목 끝에 마침표를 붙이지 않는다.
+- `업데이트`, `Improve`처럼 변경 내용을 특정하지 못하는 포괄적 표현을 사용하지 않는다.
 - 하나의 커밋은 하나의 작업 단위를 표현한다.
-- raw 소스 추가, wiki 엔티티 생성, 링크 보강, 규약 변경이 한 커밋에 함께 들어가면 가장 상위 작업 의도를 `type`으로 선택한다.
-- 커밋 본문은 큰 변경에만 사용한다. 본문을 쓸 때는 `Source`, `Changes`, `Verify` 항목을 우선 사용한다.
+- raw 소스 추가와 Wiki 엔티티 편입이 함께 이루어지면 `ingest`를 사용한다.
+- Wiki 엔티티는 문서 형식이더라도 `docs`가 아니라 `create`, `update`, `link`, `fix` 중 실제 작업을 나타내는 type을 사용한다.
+- `repo`는 저장소 전반이 실제 작업 대상일 때만 사용하고 더 구체적인 scope가 있으면 이를 우선한다.
+- 자동 생성된 merge commit은 검사 대상에서 제외한다.
 
-**허용 type:**
+**type 선택 순서:**
+
+1. 외부 원문을 추가하고 그래프에 편입하면 `ingest`
+2. 스키마·ID·메타데이터를 일괄 변환하면 `migrate`
+3. 새 raw 없이 Wiki 엔티티를 만들면 `create`
+4. 기존 지식을 보강하면 `update`, 오류를 고치면 `fix`, 관계만 바꾸면 `link`
+5. 사이트·도구의 새 기능은 `feat`, 동작 변화 없는 구조 개선은 `refactor`, 표현만 바꾸면 `style`
+6. README·AGENT·운영 설명만 바꾸면 `docs`
+
+**허용 type — 지식 그래프:**
 
 | type | 의미 |
 |------|------|
-| `init` | 저장소, 폴더, 템플릿 등 기본 구조 초기화 |
 | `ingest` | raw 소스와 해당 지식 그래프 엔티티 편입 |
-| `route` | raw 파일의 보존 경로 정리 |
-| `create` | 새 wiki 엔티티 생성 |
+| `create` | 새 raw 없이 Wiki 엔티티 생성 |
 | `link` | 기존 엔티티 간 링크 추가 또는 보강 |
 | `update` | 기존 엔티티 내용 수정 |
 | `deprecate` | superseded 또는 overruled 법적 상태 처리 |
-| `verify` | lint, 링크 검증, 무결성 점검 |
-| `docs` | 운영 규약, 템플릿, 설명 문서 변경 |
-| `fix` | 잘못된 링크, 메타데이터, 오탈자 등 오류 수정 |
-| `chore` | 의미 있는 지식 변화가 없는 관리 작업 |
+| `remove` | 잘못 편입되었거나 범위 밖인 자료 제거 |
+| `verify` | 검증 결과와 검증 메타데이터 확정 |
+| `fix` | 법적 내용, 메타데이터 또는 링크 오류 정정 |
 
-**권장 scope:**
+**허용 type — 원문·구조 변환:**
 
-`repo`, `raw`, `ordinary-wage`, `case`, `rule`, `concept`, `fact-pattern`, `history`, `discussion`, `logs`, `templates`, `agent`
+| type | 의미 |
+|------|------|
+| `route` | raw 바이트를 바꾸지 않는 보존 경로 변경 |
+| `migrate` | 스키마·ID·메타데이터 구조의 일괄 이관 |
+
+**허용 type — 사이트·도구:**
+
+| type | 의미 |
+|------|------|
+| `feat` | 새로운 사이트 또는 도구 기능 추가 |
+| `refactor` | 기능 변화 없는 내부 구조 개선 |
+| `style` | CSS·배치·표현 형식만 변경 |
+| `test` | 테스트만 추가 또는 변경 |
+| `build` | 빌드 방식 또는 산출 절차 변경 |
+| `ci` | GitHub Actions 등 자동화 변경 |
+| `docs` | README·AGENT·운영 설명 변경 |
+| `chore` | 지식·기능·동작 변화가 없는 관리 작업 |
+| `revert` | 기존 커밋의 변경 복구 |
+| `init` | 저장소 최초 초기화에만 사용 |
+
+**scope 선택 순서:**
+
+1. 하나의 엔티티 유형이 중심이면 엔티티 scope를 사용한다.
+2. 여러 엔티티를 하나의 법률 주제로 편입하면 법률 주제 scope를 사용한다.
+3. 코드·사이트 작업이면 시스템 scope를 사용한다.
+4. 저장소 전체가 작업 대상일 때만 `repo`를 사용한다.
+
+**허용 scope:**
+
+| 분류 | scope |
+|------|-------|
+| 엔티티 | `case`, `rule`, `concept`, `law`, `interpretation`, `history`, `discussion`, `fact-pattern` |
+| 법률 주제 | `wage`, `ordinary-wage`, `average-wage`, `minimum-wage`, `wage-arrears`, `performance-pay` |
+| 시스템 | `raw`, `sources`, `schema`, `validation`, `graph`, `search`, `site`, `ci`, `repo`, `agent`, `templates` |
+
+`research`는 자료 형식이므로 scope로 사용하지 않는다. `raw`는 원문 편입의 주제가 아니라 경로·무결성 자체가 작업 대상인 경우에만 사용한다. type별 허용 scope 조합은 `schemas/commit-message-v1.json`을 따른다.
+
+**요약 동사:**
+
+| 표현 | 사용 기준 |
+|------|-----------|
+| `편입` | 외부 자료를 지식 그래프에 수용 |
+| `생성` | 새 엔티티 작성 |
+| `보강` | 기존 설명 확대 |
+| `정정` | 잘못된 내용 수정 |
+| `연결` | 관계만 변경 |
+| `이관` | 스키마·구조 전환 |
+| `제거` | 자료 삭제 |
+| `구축` | 새 기능·시스템 완성 |
+
+**커밋 본문:**
+
+다음 중 하나에 해당하면 본문을 필수로 작성한다.
+
+- type이 `ingest`, `migrate`, `deprecate`, `remove`, `revert`인 경우
+- raw 또는 schema 파일을 변경하는 경우
+- 변경 파일이 10개 이상인 경우
+
+본문은 다음 세 항목을 모두 포함한다.
+
+```text
+Source:
+- 근거 자료 또는 사용자 요청
+
+Changes:
+- 핵심 변경 내용
+
+Verify:
+- 실제 수행한 검사와 결과
+```
+
+**검사 명령:**
+
+```text
+python scripts/check_commit_messages.py --all --output build/commit-message-report.json
+python scripts/check_commit_messages.py --all --audit --output build/commit-message-history-audit.json
+```
+
+첫 번째 명령은 전체 이력을 엄격 검사하며 실패 시 비정상 종료한다. 두 번째 명령은 같은 위반을 보고하되 종료 코드를 실패로 만들지 않는 진단 모드다. GitHub Actions는 첫 번째 검사를 수행한다.
 
 **예시:**
 
 ```text
 init(repo): 법률 지식그래프 기본 구조 생성
-ingest(ordinary-wage): 2013·2024 전합 판례 그래프 편입
+ingest(performance-pay): 경영성과급 판례리뷰 편입
 route(raw): 판결 원문을 cases 폴더로 이동
-link(ordinary-wage): 재직조건부 임금 Rule 연결 보강
+create(concept): 노동관행의 규범적 효력 문서 생성
+fix(concept): 고정성 적용 종료일 정정
+refactor(validation): 데이터·스키마 검증 계약 통합
+style(site): 데스크톱 헤더와 문서 그리드 정렬
 docs(agent): 커밋 메시지 규칙 추가
 ```
 
@@ -832,4 +923,4 @@ GitHub Pages 사이트는 `wiki/`와 `schemas/`를 source of truth로 삼아 빌
 
 ---
 
-*본 규약은 v1.3이며, 변경 시 Log에 `UPDATE` 액션으로 기록하고 버전을 갱신한다.*
+*본 규약은 v1.4이며, 변경 시 Log에 `UPDATE` 액션으로 기록하고 버전을 갱신한다.*
