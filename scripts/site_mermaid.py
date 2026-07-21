@@ -15,6 +15,12 @@ MERMAID_LABELLED_EDGE_RE = re.compile(r'^(.+?)\s+--\s*"([^"]+)"\s*-->\s*(.+?)\s*
 MERMAID_EDGE_RE = re.compile(r"^(.+?)\s*-->\s*(.+?)\s*;?\s*$")
 
 
+def _edge_label_width(value: str) -> float:
+    """Return the SVG background width used for an edge label."""
+
+    return max(34.0, len(value) * 12.0 + 14.0)
+
+
 def _parse_mermaid_node(token: str) -> tuple[str, str, str, bool]:
     """Parse the small, explicit Mermaid node subset used by wiki flowcharts."""
 
@@ -160,6 +166,48 @@ def render_mermaid_flowchart(source: str, chart_seed: str) -> str:
     ordered_ranks = sorted(groups)
     margin = 20.0
     horizontal_gap = 28.0
+    # Labels on sibling branches sit halfway between their common source and
+    # their targets. Widen the row when those label backgrounds would overlap.
+    for rank in ordered_ranks:
+        rank_nodes = groups[rank]
+        for left_index, left_id in enumerate(rank_nodes):
+            for right_id in rank_nodes[left_index + 1 :]:
+                left_edges = {
+                    edge["source"]: edge
+                    for edge in edges
+                    if edge["target"] == left_id and edge["label"]
+                }
+                right_edges = {
+                    edge["source"]: edge
+                    for edge in edges
+                    if edge["target"] == right_id and edge["label"]
+                }
+                for common_source in left_edges.keys() & right_edges.keys():
+                    required_target_distance = (
+                        _edge_label_width(left_edges[common_source]["label"])
+                        + _edge_label_width(right_edges[common_source]["label"])
+                        + 16.0
+                    )
+                    node_half_widths = (
+                        float(nodes[left_id]["width"]) + float(nodes[right_id]["width"])
+                    ) / 2
+                    horizontal_gap = max(horizontal_gap, required_target_distance - node_half_widths)
+    # A labelled long edge between centered rows can travel through the gap in
+    # an intermediate branch row. Reserve enough room for the complete label.
+    for edge in edges:
+        source_rank = ranks[edge["source"]]
+        target_rank = ranks[edge["target"]]
+        has_branch_row = any(
+            len(groups.get(rank, [])) > 1 for rank in range(source_rank + 1, target_rank)
+        )
+        if (
+            edge["label"]
+            and target_rank - source_rank > 1
+            and len(groups[source_rank]) == 1
+            and len(groups[target_rank]) == 1
+            and has_branch_row
+        ):
+            horizontal_gap = max(horizontal_gap, _edge_label_width(edge["label"]) + 16.0)
     vertical_gap = 72.0
     row_widths = {
         rank: sum(float(nodes[node_id]["width"]) for node_id in groups[rank])
@@ -182,6 +230,29 @@ def render_mermaid_flowchart(source: str, chart_seed: str) -> str:
             x_cursor += width + horizontal_gap
         y_cursor += row_height + vertical_gap
 
+    def lane_is_clear(lane_x: float, source_rank: int, target_rank: int) -> bool:
+        clearance = 8.0
+        for intermediate_rank in range(source_rank + 1, target_rank):
+            for intermediate_id in groups.get(intermediate_rank, []):
+                intermediate = nodes[intermediate_id]
+                half_width = float(intermediate["width"]) / 2
+                if (
+                    float(intermediate["x"]) - half_width - clearance
+                    <= lane_x
+                    <= float(intermediate["x"]) + half_width + clearance
+                ):
+                    return False
+        return True
+
+    used_long_lanes: list[tuple[float, float, float]] = []
+
+    def lane_is_available(lane_x: float, start_y: float, end_y: float) -> bool:
+        for used_x, used_start, used_end in used_long_lanes:
+            vertically_overlaps = max(start_y, used_start) < min(end_y, used_end)
+            if vertically_overlaps and abs(lane_x - used_x) < 10.0:
+                return False
+        return True
+
     edge_markup: list[str] = []
     for edge in edges:
         source_node = nodes[edge["source"]]
@@ -192,14 +263,28 @@ def render_mermaid_flowchart(source: str, chart_seed: str) -> str:
         y2 = float(target_node["y"]) - float(target_node["height"]) / 2
         rank_distance = ranks[edge["target"]] - ranks[edge["source"]]
         if rank_distance > 1:
-            lane_x = 8.0 if x1 <= canvas_width / 2 else canvas_width - 8.0
+            candidate_lanes = [x2, x1, (x1 + x2) / 2, margin / 2, canvas_width - margin / 2]
+            lane_x = next(
+                (
+                    candidate
+                    for candidate in candidate_lanes
+                    if lane_is_clear(candidate, ranks[edge["source"]], ranks[edge["target"]])
+                    and lane_is_available(candidate, y1, y2)
+                ),
+                margin / 2 if x2 <= canvas_width / 2 else canvas_width - margin / 2,
+            )
+            used_long_lanes.append((lane_x, y1, y2))
             path = (
                 f"M {x1:.1f} {y1:.1f} C {x1:.1f} {y1 + 18:.1f}, {lane_x:.1f} {y1 + 18:.1f}, "
                 f"{lane_x:.1f} {y1 + 38:.1f} L {lane_x:.1f} {y2 - 38:.1f} "
                 f"C {lane_x:.1f} {y2 - 18:.1f}, {x2:.1f} {y2 - 18:.1f}, {x2:.1f} {y2:.1f}"
             )
-            label_x = lane_x
-            label_y = (y1 + y2) / 2
+            if abs(lane_x - x1) < 1.0 and abs(x1 - x2) < 1.0:
+                label_x = lane_x
+                label_y = (y1 + y2) / 2
+            else:
+                label_x = (x1 + lane_x) / 2
+                label_y = y1 + 18.0
         else:
             delta = max(20.0, (y2 - y1) * 0.45)
             path = f"M {x1:.1f} {y1:.1f} C {x1:.1f} {y1 + delta:.1f}, {x2:.1f} {y2 - delta:.1f}, {x2:.1f} {y2:.1f}"
@@ -209,7 +294,7 @@ def render_mermaid_flowchart(source: str, chart_seed: str) -> str:
             f'<path d="{path}" marker-end="url(#{marker_id})"></path>'
         )
         if edge["label"]:
-            label_width = max(34.0, len(edge["label"]) * 12.0 + 14.0)
+            label_width = _edge_label_width(edge["label"])
             label_x = min(max(label_x, label_width / 2 + 2.0), canvas_width - label_width / 2 - 2.0)
             edge_markup.append(
                 f'<g class="flowchart__edge-label" transform="translate({label_x:.1f} {label_y:.1f})">'
