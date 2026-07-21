@@ -81,11 +81,18 @@ sources:
     path: "raw/laws/근로기준법 제20조 위약 예정의 금지.html"
     authority_level: 1
   - source_id: "raw-law-minimum-wage-2026"
-    title: "2026년 적용 최저임금 고시(고용노동부고시 제2025-47호)"
+    title: "2026년 적용 최저임금 고시(확정, 고용노동부고시 제2025-47호)"
     publisher: "고용노동부"
     source_type: "law_notice"
     jurisdiction: "KR"
-    path: "raw/laws/2026년 적용 최저임금 고시 고용노동부고시 제2025-47호.pdf"
+    path: "raw/laws/2026년 적용 최저임금 고시(확정) 고용노동부고시 제2025-47호.pdf"
+    authority_level: 1
+  - source_id: "raw-law-minimum-wage-proposal-2027"
+    title: "2027년 적용 최저임금안 고시(미확정, 고용노동부고시 제2026-55호)"
+    publisher: "고용노동부"
+    source_type: "law_notice"
+    jurisdiction: "KR"
+    path: "raw/laws/2027년 적용 최저임금안 고시(미확정) 고용노동부고시 제2026-55호.pdf"
     authority_level: 1
   - source_id: "raw-law-lsa-21533-amendment-text"
     title: "근로기준법 법률 제21533호 2026. 4. 7. 제정·개정문"
