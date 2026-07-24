@@ -1,0 +1,259 @@
+
+
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=euc-kr" />
+<meta name="viewport" content="initial-scale=1.0; maximum-scale=1.0; minimum-scale=1.0; user-scalable=no;" />
+<title> :: 고용노동부 모바일페이지 고객센터 :: </title>
+<link rel="stylesheet" type="text/css" href="/css/common.css"/>
+<script type="text/javascript" src="/js/menulayer.js"></script>
+<script type="text/javaScript" language="javascript" defer="defer">
+<!--
+	window.addEventListener('load', function() { setTimeout(scrollTo, 0, 0, 1); }, false);
+	
+	/* 글 등록 function */
+	function fn_regist() {
+	   	document.viewForm.action = "rtmregist.do";
+	   	document.viewForm.submit();		
+	}
+	
+	/* 답변알림 */
+	function fn_channel() {
+		if(document.getElementsByName("channel")[0].checked) {
+			document.viewForm.phn1.style.display = "";
+			document.viewForm.phn2.style.display = "";
+			document.viewForm.phn3.style.display = "";
+		} else {
+			document.viewForm.phn1.style.display = "none";
+			document.viewForm.phn2.style.display = "none";
+			document.viewForm.phn3.style.display = "none";
+		}
+	}
+	
+	/* 숫자체크 */
+	function isNum(obj) {
+		var sValue = obj.value;
+		var idx = sValue.length;
+		var ValidChars = "0123456789";
+		var isNumber = true;
+		var Char;
+		for(i = 0; i < idx && isNumber == true; i++) {
+			Char = sValue.charAt(i);
+			if(ValidChars.indexOf(Char) == -1) {
+				alert("전화번호를 정확히 입력해주세요");
+				obj.value = "";
+				obj.focus();
+				isNumber = false;
+			}
+		}
+		
+		return isNumber;
+	}
+	
+	function fn_valid() {
+		if(!fc_chk_byte3(200)) {
+			alert( "입력 길이 제한을 초과하였습니다.\r\n" + "(한글 100자, 영문 200자 이하)");
+			return;
+		}
+
+		if(document.viewForm.askcntn.value == "추가 질문을 남겨주세요") {
+			alert("상담 내용을 입력해주세요");
+			return;
+		}
+
+		if(document.viewForm.mblphn1.value == "" ||
+		   document.viewForm.mblphn2.value == "" ||
+		   document.viewForm.mblphn3.vaule == "") {
+		   	alert("전화번호를 정확히 입력해주세요");
+		   	return;
+		} 
+		if(document.viewForm.askcntn.value == "") {
+			alert("상담 내용을 입력해주세요");
+			return;
+		}				
+		
+		fn_regist();
+	}
+	
+	var clr = "true";
+	
+	function fn_clear() {
+		if(clr == "true") {
+			document.viewForm.askcntn.value = "";
+			clr = "false";
+		}
+	}
+
+	function fc_chk_byte2(aro_name,ari_max) {
+		var ls_str     = aro_name.value; // 이벤트가 일어난 컨트롤의 value 값
+		var li_str_len = ls_str.length;  // 전체길이
+
+		// 변수초기화
+		var li_max      = ari_max; // 제한할 글자수 크기
+		var i           = 0;  // for문에 사용
+		var li_byte     = 0;  // 한글일경우는 2 그밗에는 1을 더함
+		var li_len      = 0;  // substring하기 위해서 사용
+		var ls_one_char = ""; // 한글자씩 검사한다
+		var ls_str2     = ""; // 글자수를 초과하면 제한할수 글자전까지만 보여준다.
+
+		for(i=0; i< li_str_len; i++)
+		{
+		// 한글자추출
+		ls_one_char = ls_str.charAt(i);
+
+		// 한글이면 2를 더한다.
+		if (escape(ls_one_char).length > 4)
+		{
+		li_byte += 2;
+		}
+		// 그밗의 경우는 1을 더한다.
+		else
+		{
+		li_byte++;
+		}
+
+		// 전체 크기가 li_max를 넘지않으면
+		if(li_byte <= li_max)
+		{
+		li_len = i + 1;
+		}
+		}
+
+		// 전체길이를 초과하면
+		if(li_byte > li_max)
+		{
+		alert( "입력 길이 제한을 초과하였습니다.\r\n" + "(한글 " + (ari_max / 2) + "자, 영문 " + ari_max + "자 이하)");
+		ls_str2 = ls_str.substr(0, li_len);
+		aro_name.value = ls_str2;
+
+		}
+		aro_name.focus();   
+	}
+
+	function fc_chk_byte3(ari_max) {
+		var ls_str     = document.viewForm.askcntn.value; // 이벤트가 일어난 컨트롤의 value 값
+		var li_str_len = ls_str.length;  // 전체길이
+
+		// 변수초기화
+		var li_max      = ari_max; // 제한할 글자수 크기
+		var i           = 0;  // for문에 사용
+		var li_byte     = 0;  // 한글일경우는 2 그밗에는 1을 더함
+		var li_len      = 0;  // substring하기 위해서 사용
+		var ls_one_char = ""; // 한글자씩 검사한다
+		var ls_str2     = ""; // 글자수를 초과하면 제한할수 글자전까지만 보여준다.
+
+		for(i=0; i< li_str_len; i++)
+		{
+		// 한글자추출
+		ls_one_char = ls_str.charAt(i);
+
+		// 한글이면 2를 더한다.
+		if (escape(ls_one_char).length > 4)
+		{
+		li_byte += 2;
+		}
+		// 그밗의 경우는 1을 더한다.
+		else
+		{
+		li_byte++;
+		}
+
+		// 전체 크기가 li_max를 넘지않으면
+		if(li_byte <= li_max)
+		{
+		li_len = i + 1;
+		}
+		}
+
+		// 전체길이를 초과하면
+		if(li_byte > li_max) return false;
+		
+		return true;
+	}
+-->
+</script>    
+</head>
+<body class="mainbg">
+<form name="viewForm" method="post" action="" onsubmit="return false;">
+<input type="hidden" name="id" value="1000277357"/>
+<input type="hidden" name="hrnkcnslid" value="1000277357"/>
+<span id="menulayer"></span>
+<div class="top">
+       <h1 class="top_h1"><img src="/images/tit_counc.gif" alt="상담신청"/></h1>
+       <p class="top_li"><img src="/images/bt_layermenu.gif" alt="전체메뉴" onclick="fn_menu()"/><img src="/images/bt_tohome.gif" alt="홈" onclick="location.href='faqlist.do'"/></p>
+</div>
+<div id="tab">
+	<!-- tab1 -->
+	<p class="tab01"><img src="/images/tab_tit_counc01_on.gif" alt="실시간상담" onclick="location.href='rtmlist.do'"/></p>
+	<!-- tab2 -->
+	<!-- 2015.03.23 상담예약 변경--> 
+	<!-- <p class="tab02"><img src="/images/tab_tit_counc02.gif" alt="상담예약" onclick="location.href='rsvform.do'"/></p> -->
+</div>
+
+
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_quest.gif" alt="질의"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" alt="사용자사진"/></div>
+			연차촉진을 시행하려고 하는데, 잔여 연차일수 공지만 해도 연차촉진을 한 것이라고 볼 수 있을까요?
+		</dd>
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			<!-- 신청인 : null&nbsp;/&nbsp; -->
+			신청일 : 2024.07.08 16:33
+			</div>
+		</dd>
+	</dl>
+</div>
+
+<p style="height:15px"></p>
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_answ.gif" alt="답변"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" width="40px" height="40px" alt="상담사사진"/></div>1. 연차사용촉진은  근로기준법 제61조에 의한 연차유급휴가 청구권이 소멸하기 6개월 전(2012.8.2. 이전에는 3개월)에만 가능하며, 그 이전인 7개월전(구법의 경우 4개월 전 등) 등 법에 명시된 기간 훨씬 이전에 촉진조치를 하는 것은 효력이 없으니 참고바랍니다. 
+
+가. 사용자가 ⅰ) 휴가사용기간 만료 6개월 전을 기준으로 10일 이내에 사용하지 않은 휴가일수를 알려주고, 근로자가 그 사용 시기를 정하여 사용자에게 통보하도록 서면으로 촉구하며, ⅱ) 근로자가 촉구를 받은 때부터 10일 이내에 사용하지 않은 휴가의 전부 또는 일부의 사용 시기를 정하여 사용자에게 통보하지 아니하면 휴가사용기간 만료 2개월 전까지 사용자가 사용하지 않은 휴가의 사용 시기를 정하여 근로자에게 서면으로 통보하였음에도 근로자가 휴가를 사용하지 않은 경우에는 미사용한 휴가에 대하여 보상할 의무가 없습니다.
+
+나. 연차휴가 사용촉진조치는 연차휴가 청구권이 소멸하기 전 법에 명시된 기간에 따라 하여야 하며, 이에 따르지 않았다면 사용촉진의 효력을 인정받을 수 없으므로 근로자가 휴가를 사용하지 않은 경우에는 미사용수당을 지급해야 할 것입니다.
+
+2. 질의와 관련하여 노사간 이견이 있다면 노동사건에 대한 실질적 지도감독 권한이 있는 관할 지방노동관서로 질의하여 근로감독관의 조력을 받아보시길 바랍니다.
+◆ 사업장 관할 지방고용노동(지)청 찾기 : 고용노동부 홈페이지(www.moel.go.kr) → 상단의 &#039;기관소개&#039; 에서 지방청/고용센터 찾기 → 관할지역별 지방노동관서 홈페이지 바로가기 → 상단 ‘지청소개’에서 찾아오시는길(본청)에서 주소 및 연락처 확인.</dd> 
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			답변일 : 2024.07.08 17:22
+			</div>
+		</dd>
+	</dl>
+	<!-- <div class="btn_right"><img src="/images/bt_recomm.gif" alt="추천"/></div> -->
+</div>
+
+<p style="height:15px"></p>
+
+
+<p style="height:20px"></p>
+<div align="center" id="test" style="display:block">
+
+<p><textarea class="put01" name="askcntn" onclick="fn_clear()" cols="" rows="" style="color:gray" onkeyup="fc_chk_byte2(this,200);">실시간 상담 질문 내용을 입력하세요. 실시간 상담은 모두에게 공개되며, 글자 수 제한이 있으니 100자 이내로 작성하여 주시기 바랍니다.</textarea></p>
+
+</div> 
+<p style="height:20px"></p>
+<div>&nbsp;&nbsp;
+	<img src="/images/timg_mblphn.gif" height="11px" alt="전화번호"/>&nbsp;
+	<input type="text" size="7" maxlength="3" class="put02" name="mblphn1" onblur="isNum(this)" id="phn1" value=""/>
+	<input type="text" size="7" maxlength="4" class="put02" name="mblphn2" onblur="isNum(this)" id="phn2" value=""/>
+	<input type="text" size="7" maxlength="4" class="put02" name="mblphn3" onblur="isNum(this)" id="phn3" value=""/>
+</div>
+<hr/>
+<div><p style="height:5px"></p></div>
+<div align="center"><input type="image" class="put_btn" src="/images/bbtn_quickque.gif" alt="빠른질문" onclick="fn_valid();"/></div>
+<div><p style="height:25px"></p></div>
+
+<p style="height:20px"></p>
+
+</form>
+</body>
+</html>

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta http-equiv="X-UA-Compatible"  content="IE=edge">
+<meta charset="UTF-8">
+<title>보수총액통보서</title>
+<script type="text/javascript" src="/static/js/wbdbf/jquery-1.9.1.min.js"></script>
+<script src="/static/js/wbdbf/crownix-viewer.min.js"></script>
+<script src="/static/js/wbdbf/wbdbf1001.js"></script>
+<script src="/static/js/wbdbf/commom.js"></script>
+<link rel="stylesheet" type="text/css"  href="/static/css/wbdbf/crownix-viewer.min.css"/>
+<link rel="stylesheet" type="text/css"  href="/static/css/wbdbf/commom.css"/>
+<link rel="stylesheet" type="text/css"  href="/static/css/wbdbf/wbdbf1001.css"/>
+<script type="text/javascript">
+	$(document).ready(function(){
+		$("#right_menu").load("wbdbf_right.html");
+	});
+</script>
+</head>
+<body>
+
+<header>
+	<div id="skipnavigation">
+		<ul>
+			<li><a href="#main">본문 바로가기</a></li>
+			<li><a href="#rnb">주 메뉴 바로가기</a></li>
+		</ul>
+	</div>
+	<div class="header_box">
+		<div class="logo1"><a href="wbdbf.html"><img class="img3" src="/static/images/wbdbf/logo.png" alt="h-well 국민건강보험 로고"/></a></div>
+		<div class="logo2 "><a class="logo2_a">건강보험 웹 민원 서식 작성</a></div>
+		<div class="main">
+			<div class="title" style="color: black;" id="right_menu">
+				
+			</div>
+		</div>	
+	</div>
+</header>
+ <div style="overflow-y:scroll; width:71%; height:791px;">
+
+<form id="testForm" >
+<br/>
+ <table>
+ 	<tr>
+ 		<td class="border fonts">■국민건강보험법 시행규칙 [별지 제26호서식]</td>
+ 		<td class="border"><input type="button"  id="restart" class="restart" src="/static/images/wbdbf/f5.png" /></td>
+ 	</tr>
+ </table>
+      
+<table>
+      <tr>
+         <td class="td2">
+         	<p>직장가입자 보수 총액 통보서<br></p>
+        </td>
+      </tr>
+</table>
+
+<table>
+	<tr>
+         <td class="hh1">
+         	※ 작성방법은 뒤쪽을 참고하시기 바라며, 바탕색이 어두운 난은 통보인이 적지 않습니다.
+        </td>         
+      </tr>
+</table>
+
+<table>      
+      <tr>
+         <td class="back border" style="width:8%;">
+         	<p>&nbsp;접수번호</p>
+       	</td>
+         <td class="back border" style="width:20%;">
+         	<input type="text" class="input" id="b01" title="접수번호" readonly>
+        </td>
+         <td class="back border_r" style="width:8%;">
+         	<p>&nbsp;접수일</p>
+        </td>
+         <td class="back border" style="width:38%;">
+         	<input type="text" class="input" id="b02" title="접수일" readonly>
+       	</td>
+         <td class="back border_r" style="width:8%;">
+         	<p>&nbsp;처리기간</p>
+       	</td>
+         <td class="back border" style="width:20%;">
+         	<input type="text" class="input" title="처리기간" readonly>
+       	</td>
+      </tr>
+</table>         
+
+   <table>
+      <tr>
+         <td rowspan="3" class="center border_r3" style="width:100px;height: 80px;">
+         	사업장
+        </td>
+         <td class="border_r2" style="width:450px;">&nbsp; 
+         	단위사업장명
+         	<input type="text" class="input1" id="b03" title="사업장/ 단위사업장명" oninput="value = this.value.replace('&','＆');/>
+       	</td>
+         <td colspan="2" class="border_r2">&nbsp;
+         	회계
+         	<input type="text" class="input1" id="b04" title="사업장/ 회계"/>
+       	</td>
+     </tr>
+      
+      <tr>
+         <td class="border_r2" style="width:300px;"> &nbsp;
+         	사업장 관리번호 
+         	<input type="text" class="input1 numberOnly" maxlength="11" id="b05" title="사업장/ 사업장 관리번호"/>
+       	</td>
+         <td colspan="2" class="border_r2"> &nbsp;
+        	 명칭
+         	<input type="text" class="input1" id="b06" title="사업장/ 명칭"  oninput="value = this.value.replace('&','＆');"/>
+       	</td>
+      </tr>
+   
+      <tr>
+         <td class="border_r2"> &nbsp;
+         	전화번호
+         	<input type="text" class="input1" id="b07" title="사업장/ 전화번호"/>
+       	</td>
+         <td class="border_r2" style="width:250px;">&nbsp;
+         	팩스번호
+         	<input type="text" class="input1" id="b08" title="사업장/ 팩스번호"/>
+       	</td>
+         <td class="border_r2" style="width:279px;">
+         	&nbsp;작성자 성명
+         	<input type="text" class="input1" id="b09" title="사업장/ 작성자 성명"/>
+         </td>
+      </tr>
+      
+      <tr>
+       	<td class="br" colspan="4">
+       		<p style="line-height: 130%;"></p>
+   		</td>
+      </tr>
+   </table>   
+   
+   <table  id="inputTable">
+   <caption>
+   	직장가입자 보수 총액 통보서,
+   	일련번호, 건강보험증 번호, 성명, 주민등록번호(외국인등록번호),
+   	 자격 취득일(변동일), 전년도 보험료 부과총액, 전년도 보수 총앨, 근무개월수
+   </caption>
+   <thead>
+   <tr>
+      <th scope="row" class="center" style="width:90px; height:50px;; border: none;">
+      	① 일련<br>번호
+   	  </th>
+      <th scope="row" class="center border_r" style="width:170px;">
+      	② 건강보험증<br> 번호
+      </th>
+      <th scope="row" class="center border_r" style="width:120px;">
+      	③ 성명 
+      </th>
+      <th scope="row" class="center border_r" style="width:340px;">
+      	④ 주민등록번호 (외국인등록번호)
+      </th>
+      <th scope="row" class="center border_r" style="width:190px;">
+      	⑤ 자격 취득일<br>(변동일)<br>년 월 일<br/><p style="font-size: 0.8em; color: #0000FF;">YYYY.MM.DD</p>
+     </th>
+      <th scope="row" class="center border_r" style="width:280px;">
+      	⑥ 전년도 보험료 부과 총액
+      </th>
+      <th scope="row" class="center border_r" style="width:280px;">
+      	⑦ 전년도 보수 총액
+      	</th>
+      <th scope="row" class="center border_r" style="width:200px;">
+      	⑧ 근무<br>개월 수
+      </th>
+   </tr>
+   </thead>
+   
+   <tbody>
+   <tr class="row">
+      <th scope="row" class="border_r3">
+      <input type="text" class="input put01" title="일련번호_1" value="1"/></th>
+      <td class="border_r2"><input type="text" class="input put02" title="건강보험증번호_1"/></td>
+      <td class="border_r2"><input type="text" class="input put03" title="성명_1"/></td>
+      <td class="border_r2"><input type="text" class="input put04 numberOnly" maxlength="13" title="주민등록번호(외국인등록번호)_1"/></td>
+      <td class="border_r2"><input type="text" class="input put05" onkeyup="auto_date_format(event ,this)" onKeyPress="auto_date_format(event ,this)" maxlength="10" title="자격취득일(변동일)_1"/></td>
+      <td class="border_r2"><input type="text" class="input put06 numberOnly comma" maxlength="11" title="전년도 보험료 부과 총액_1"/></td>
+      <td class="border_r2"><input type="text" class="input put07 numberOnly comma" maxlength="11" title="전년도 보수 총액_1"/></td>
+      <td class="border_r2"><input type="text" class="input put08" onkeyup="auto_date_format(event ,this)" onKeyPress="auto_date_format(event ,this)" maxlength="10" title="근무 개월 수_1"/></td>
+   </tr>
+   <tr class="row">
+      <th scope="row" class="border_r3">
+      <input type="text" class="input put01" title="일련번호_2" value="2"/></th>
+      <td class="border_r2"><input type="text" class="input put02" title="건강보험증번호_2"/></td>
+      <td class="border_r2"><input type="text" class="input put03" title="성명_2"/></td>
+      <td class="border_r2"><input type="text" class="input put04 numberOnly" maxlength="13" title="주민등록번호(외국인등록번호)_2"/></td>
+      <td class="border_r2"><input type="text" class="input put05" onkeyup="auto_date_format(event ,this)" onKeyPress="auto_date_format(event ,this)" maxlength="10" title="자격취득일(변동일)_2"/></td>
+      <td class="border_r2"><input type="text" class="input put06 numberOnly comma" maxlength="11" title="전년도 보험료 부과 총액_2"/></td>
+      <td class="border_r2"><input type="text" class="input put07 numberOnly comma" maxlength="11"  title="전년도 보수 총액_2"/></td>
+      <td class="border_r2"><input type="text" class="input put08" onkeyup="auto_date_format(event ,this)" onKeyPress="auto_date_format(event ,this)" maxlength="10" title="근무 개월 수_2"/></td>
+   </tr>
+   <tr class="row">
+      <th scope="row" class="border_r3">
+      <input type="text" class="input put01" title="일련번호_3" value="3"/></th>
+      <td class="border_r2"><input type="text" class="input put02" title="건강보험증번호_3"/></td>
+      <td class="border_r2"><input type="text" class="input put03" title="성명_3"/></td>
+      <td class="border_r2"><input type="text" class="input put04 numberOnly" maxlength="13" title="주민등록번호(외국인등록번호)_3"/></td>
+      <td class="border_r2"><input type="text" class="input put05" onkeyup="auto_date_format(event ,this)" onKeyPress="auto_date_format(event ,this)" maxlength="10" title="자격취득일(변동일)_3"/></td>
+      <td class="border_r2"><input type="text" class="input put06 numberOnly comma" maxlength="11" title="전년도 보험료 부과 총액_3"/></td>
+      <td class="border_r2"><input type="text" class="input put07 numberOnly comma" maxlength="11"  title="전년도 보수 총액_3"/></td>
+      <td class="border_r2"><input type="text" class="input put08" onkeyup="auto_date_format(event ,this)" onKeyPress="auto_date_format(event ,this)" maxlength="10" title="근무 개월 수_3"/></td>
+   </tr>
+   <tr class="row">
+      <th scope="row" class="border_r3">
+      <input type="text" class="input put01" title="일련번호_4" value="4"/></th>
+      <td class="border_r2"><input type="text" class="input put02" title="건강보험증번호_4"/></td>
+      <td class="border_r2"><input type="text" class="input put03" title="성명_4"/></td>
+      <td class="border_r2"><input type="text" class="input put04 numberOnly" maxlength="13" title="주민등록번호(외국인등록번호)_4"/></td>
+      <td class="border_r2"><input type="text" class="input put05" onkeyup="auto_date_format(event ,this)" onKeyPress="auto_date_format(event ,this)" maxlength="10" title="자격취득일(변동일)_4"/></td>
+      <td class="border_r2"><input type="text" class="input put06 numberOnly comma" maxlength="11" title="전년도 보험료 부과 총액_4"/></td>
+      <td class="border_r2"><input type="text" class="input put07 numberOnly comma" maxlength="11"  title="전년도 보수 총액_4"/></td>
+      <td class="border_r2"><input type="text" class="input put08" onkeyup="auto_date_format(event ,this)" onKeyPress="auto_date_format(event ,this)" maxlength="10" title="근무 개월 수_4"/></td>
+   </tr>
+   <tr class="row">
+      <th scope="row" class="border_r3">
+      <input type="text" class="input put01" title="일련번호_5" value="5"/></th>
+      <td class="border_r2"><input type="text" class="input put02" title="건강보험증번호_5"/></td>
+      <td class="border_r2"><input type="text" class="input put03" title="성명_5"/></td>
+      <td class="border_r2"><input type="text" class="input put04 numberOnly" maxlength="13" title="주민등록번호(외국인등록번호)_5"/></td>
+      <td class="border_r2"><input type="text" class="input put05" onkeyup="auto_date_format(event ,this)" onKeyPress="auto_date_format(event ,this)" maxlength="10" title="자격취득일(변동일)_5"/></td>
+      <td class="border_r2"><input type="text" class="input put06 numberOnly comma" maxlength="11" title="전년도 보험료 부과 총액_5"/></td>
+      <td class="border_r2"><input type="text" class="input put07 numberOnly comma" maxlength="11"  title="전년도 보수 총액_5"/></td>
+      <td class="border_r2"><input type="text" class="input put08" onkeyup="auto_date_format(event ,this)" onKeyPress="auto_date_format(event ,this)" maxlength="10" title="근무 개월 수_5"/></td>
+   </tr>
+   <tr class="row">
+      <th scope="row" class="border_r3">
+      <input type="text" class="input put01" title="일련번호_6" value="6"/></th>
+      <td class="border_r2"><input type="text" class="input put02" title="건강보험증번호_6"/></td>
+      <td class="border_r2"><input type="text" class="input put03" title="성명_6"/></td>
+      <td class="border_r2"><input type="text" class="input put04 numberOnly" maxlength="13" title="주민등록번호(외국인등록번호)_6"/></td>
+      <td class="border_r2"><input type="text" class="input put05" onkeyup="auto_date_format(event ,this)" onKeyPress="auto_date_format(event ,this)" maxlength="10" title="자격취득일(변동일)_6"/></td>
+      <td class="border_r2"><input type="text" class="input put06 numberOnly comma" maxlength="11" title="전년도 보험료 부과 총액_6"/></td>
+      <td class="border_r2"><input type="text" class="input put07 numberOnly comma" maxlength="11"  title="전년도 보수 총액_6"/></td>
+      <td class="border_r2"><input type="text" class="input put08" onkeyup="auto_date_format(event ,this)" onKeyPress="auto_date_format(event ,this)" maxlength="10" title="근무 개월 수_6"/></td>
+   </tr>
+   <tr class="row">
+      <th scope="row" class="border_r3">
+      <input type="text" class="input put01" title="일련번호_7" value="7"/></th>
+      <td class="border_r2"><input type="text" class="input put02" title="건강보험증번호_7"/></td>
+      <td class="border_r2"><input type="text" class="input put03" title="성명_7"/></td>
+      <td class="border_r2"><input type="text" class="input put04 numberOnly" maxlength="13" title="주민등록번호(외국인등록번호)_7"/></td>
+      <td class="border_r2"><input type="text" class="input put05" onkeyup="auto_date_format(event ,this)" onKeyPress="auto_date_format(event ,this)" maxlength="10" title="자격취득일(변동일)_7"/></td>
+      <td class="border_r2"><input type="text" class="input put06 numberOnly comma" maxlength="11" title="전년도 보험료 부과 총액_7"/></td>
+      <td class="border_r2"><input type="text" class="input put07 numberOnly comma" maxlength="11"  title="전년도 보수 총액_7"/></td>
+      <td class="border_r2"><input type="text" class="input put08" onkeyup="auto_date_format(event ,this)" onKeyPress="auto_date_format(event ,this)" maxlength="10" title="근무 개월 수_7"/></td>
+   </tr>
+  <tr class="row">
+      <th scope="row" class="border_r3">
+      <input type="text" class="input put01" title="일련번호_8" value="8"/></th>
+      <td class="border_r2"><input type="text" class="input put02" title="건강보험증번호_8"/></td>
+      <td class="border_r2"><input type="text" class="input put03" title="성명_8"/></td>
+      <td class="border_r2"><input type="text" class="input put04 numberOnly" maxlength="13" title="주민등록번호(외국인등록번호)_8"/></td>
+      <td class="border_r2"><input type="text" class="input put05" onkeyup="auto_date_format(event ,this)" onKeyPress="auto_date_format(event ,this)" maxlength="10" title="자격취득일(변동일)_8"/></td>
+      <td class="border_r2"><input type="text" class="input put06 numberOnly comma" maxlength="11" title="전년도 보험료 부과 총액_8"/></td>
+      <td class="border_r2"><input type="text" class="input put07 numberOnly comma" maxlength="11"  title="전년도 보수 총액_8"/></td>
+      <td class="border_r2"><input type="text" class="input put08" onkeyup="auto_date_format(event ,this)" onKeyPress="auto_date_format(event ,this)" maxlength="10" title="근무 개월 수_8"/></td>
+   </tr>
+  <tr class="row">
+      <th scope="row" class="border_r3">
+      <input type="text" class="input put01" title="일련번호_9" value="9"/></th>
+      <td class="border_r2"><input type="text" class="input put02" title="건강보험증번호_9"/></td>
+      <td class="border_r2"><input type="text" class="input put03" title="성명_9"/></td>
+      <td class="border_r2"><input type="text" class="input put04 numberOnly" maxlength="13" title="주민등록번호(외국인등록번호)_9"/></td>
+      <td class="border_r2"><input type="text" class="input put05" onkeyup="auto_date_format(event ,this)" onKeyPress="auto_date_format(event ,this)" maxlength="10" title="자격취득일(변동일)_9"/></td>
+      <td class="border_r2"><input type="text" class="input put06 numberOnly comma" maxlength="11" title="전년도 보험료 부과 총액_9"/></td>
+      <td class="border_r2"><input type="text" class="input put07 numberOnly comma" maxlength="11"  title="전년도 보수 총액_9"/></td>
+      <td class="border_r2"><input type="text" class="input put08" onkeyup="auto_date_format(event ,this)" onKeyPress="auto_date_format(event ,this)" maxlength="10" title="근무 개월 수_9"/></td>
+   </tr>
+   <tr class="row">
+      <th scope="row" class="br">
+      <input type="text" class="input put01" title="일련번호_10" value="10"/></th>
+      <td class="border_r5"><input type="text" class="input put02" title="건강보험증번호_10"/></td>
+      <td class="border_r5"><input type="text" class="input put03" title="성명_10"/></td>
+      <td class="border_r5"><input type="text" class="input put04 numberOnly" maxlength="13" title="주민등록번호(외국인등록번호)_10"/></td>
+      <td class="border_r5"><input type="text" class="input put05" onkeyup="auto_date_format(event ,this)" onKeyPress="auto_date_format(event ,this)" maxlength="10" title="자격취득일(변동일)_10"/></td>
+      <td class="border_r5"><input type="text" class="input put06 numberOnly comma" maxlength="11" title="전년도 보험료 부과 총액_10"/></td>
+      <td class="border_r5"><input type="text" class="input put07 numberOnly comma" maxlength="11" title="전년도 보수 총액_10"/></td>
+      <td class="border_r5"><input type="text" class="input put08" onkeyup="auto_date_format(event ,this)" onKeyPress="auto_date_format(event ,this)" maxlength="10" title="근무 개월 수_10"/></td>
+   </tr>
+   </tbody>
+   </table>
+   
+   <table style="font-size:10pt;">
+       <tr>
+           <td style="border:none;"><br>
+           	「국민건강보험법 시행규칙」 제40조에 따라 위와 같이 직장가입자의 보수 총액 등을 통보합니다.
+           </td>
+       </tr>
+      
+   </table>
+   
+   <table style="font-size:10pt;">
+      <tr>   
+         <td style="text-align:right; border:none;"><br>
+         	<input type="text" id="b10" class="alignR dateD numberOnly" maxlength="4" title="년"/>년
+          	<input type="text" id="b11" class="alignR dateD numberOnly" maxlength="2"  title="월"/>월 
+          	<input type="text" id="b12" class="alignR dateD numberOnly" maxlength="2"  title="일"/>일
+         </td> 
+      </tr>
+   </table>
+   
+   <table style="font-size:10pt; border:none;">   
+      <tr>
+         <td style="text-align:center; border:none; width:780px;"><br>
+         	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+         	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+         	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+         	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+         	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+         	<!-- <input type="text" id="b13" style="border:none; height:28px; width:220px;" title="통보인" readonly="readonly"/> -->
+         	통보인(사용자)
+        </td>
+         <td style="text-align:right; border:none;"><br>
+         	<input type="text" id="b14" style="border:none; height:28px; width:220px;" title="서명"/>
+        	(서명 또는 인)
+       	</td>
+      </tr>
+      
+      <tr>
+         <td colspan="2" class="border_r4" style="font-size:13pt; font-weight:bold;"> &nbsp;&nbsp;&nbsp; 
+         	국민건강보험공단 이사장 귀하
+         </td>
+      </tr>
+    </table>
+    <br>
+    <table class="center2">  
+         <tr><td class="centerR border"><input type="button" id="printBtn" class="img-button" title="인쇄" src="/static/images/wbdbf/submit.PNG" value="&nbsp;"/></td></tr>
+   </table>
+   <br><br>
+</form>
+</div>
+</body>
+</html>

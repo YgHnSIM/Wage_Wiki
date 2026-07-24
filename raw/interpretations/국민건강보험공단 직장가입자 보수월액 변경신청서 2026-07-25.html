@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta http-equiv="X-UA-Compatible"  content="IE=edge">
+<meta charset="UTF-8">
+<title>직장가입자 보수월액변경신청서</title>
+<script type="text/javascript" src="/static/js/wbdbf/jquery-1.9.1.min.js"></script>
+<script src="/static/js/wbdbf/crownix-viewer.min.js"></script>
+<script src="/static/js/wbdbf/wbdbf0501.js"></script>
+<script src="/static/js/wbdbf/commom.js"></script>
+<link rel="stylesheet" type="text/css"  href="/static/css/wbdbf/crownix-viewer.min.css"/>
+<link rel="stylesheet" type="text/css"  href="/static/css/wbdbf/commom.css"/>
+<link rel="stylesheet" type="text/css"  href="/static/css/wbdbf/wbdbf0501.css"/>
+<script type="text/javascript">
+	$(document).ready(function(){
+		$("#right_menu").load("wbdbf_right.html");
+	});
+</script>
+</head>
+<body>
+
+<header>
+	<div id="skipnavigation">
+		<ul>
+			<li><a href="#main">본문 바로가기</a></li>
+			<li><a href="#rnb">주 메뉴 바로가기</a></li>
+		</ul>
+	</div>
+	<div class="header_box">
+	<div class="logo1"><a href="wbdbf.html"><img class="img3" src="/static/images/wbdbf/logo.png" alt="h-well 국민건강보험 로고"/></a></div>
+		<div class="logo2 "><a class="logo2_a">건강보험 웹 민원 서식 작성</a></div>
+		<div class="main">
+			<div class="title" style="color: black;" id="right_menu">
+				
+			</div>
+		</div>	
+	</div>
+</header>
+ <div style="overflow-y:scroll; width:71%; height:791px;">
+ 
+<form id="testForm">
+	<br/>	
+		<table>
+			<tr>
+				<td class="border fonts">■국민건강보험법 시행규칙 [별지 제27호 서식]</td>
+				<td class="border"><input type="button"  id="restart" class="restart" src="/static/images/wbdbf/f5.png" /></td>
+			</tr>
+		</table>
+		
+<table>
+		<tr>
+			<td class="td2">
+				      국민연금 사업장가입자 기준소득월액 변경신청서[<input type="checkbox" class="checkbox toptitle" name="b01" id="b01" title="국민연금 사업장가입자 준수득월액 변경신청서"/>]<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			              국민건강보험 직장가입자 보수월액 변경신청서[<input type="checkbox" class="checkbox toptitle" name="b02" id="b02" title="국민건강보험 직장가입자 보수월액 변경신청서"/>]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+            	      고용·산재보험 월평균보수 변경신고서(근로자 종사 사업장)[<input type="checkbox" class="checkbox toptitle" id="b03" name="b03" title="고용·산재보험 월평균보수 변경신고서"/>]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            </td>
+		</tr>
+</table>
+
+<table>
+	<tr>
+		<td class="hh1">
+			※ 유의사항 및 작성방법은 뒤쪽을 참고하시기 바라며, 바탕색이 어두운 난은 신고인(신청인)이 적지 않습니다.
+		</td>			
+	</tr>
+</table>
+
+<table>
+		<tr>
+			<td class="back border_r02" style="width:8.1%;">
+				<p>&nbsp;접수번호</p>
+			</td>
+			<td class="back border_r3" style="width:20%;">
+			   <input type="text" class="input" id="c01" name="c01" title="접수번호" readonly/>
+		    </td>
+			<td class="back border_r2" style="width:8%;">
+			   <p>&nbsp;접수일</p>
+			</td>
+			<td class="back border_r2" style="width:38%;">
+			   <input type="text" class="input" id="c02" name="c02" title="접수일" readonly/>
+		    </td>
+			<td class="back border_r2" style="width:8%;">
+			   <p>&nbsp;처리기간</p>
+			</td>
+			<td class="back border_r02" style="width:20%;">
+			   <input type="text" class="input" id="c03" name="c03" title="처리기간" readonly/>
+			</td>
+		</tr>
+</table>	
+
+	<table> 
+		<tr>
+			<td rowspan="3" class="border_r3 center2" style="width:84px;">
+				<p>사업장</p>
+			</td>
+			<td class="border_r2">
+				<p style="width:100px;">&nbsp;사업장관리번호</p>
+			</td>
+			<td class="border_r2">
+				<p style="width:100px;">&nbsp;명칭</p>
+			</td>
+			<td class="border_r2">
+				<p style="width:100px;">&nbsp;전화번호</p>
+			</td>
+			<td class="border_r2">
+				<p style="width:100px;">&nbsp;팩스번호</p>
+			</td>
+			<td class="border_r2">
+				<p style="width:100px;">&nbsp;전자우편주소</p>
+			</td>
+			<td class="border_r2">
+				<p style="width:100px;">&nbsp;휴대폰번호</p>
+			</td>
+		</tr>
+		
+		<tr>
+			<td class="border_r"><input type="text" class="input numberOnly" maxlength="11" name="c04" id="c04" title="사업장관리번호"/></td>
+			<td class="border_r"><input type="text" class="input" name="c05" id="c05" title="명 칭"  oninput="value = this.value.replace('&','＆');"/></td>
+			<td class="border_r"><input type="text" class="input" name="c06" id="c06" title="전화번호"/></td>
+			<td class="border_r"><input type="text" class="input" name="c07" id="c07" title="팩스번호"/></td>
+			<td class="border_r"><input type="text" class="input" name="c08" id="c08" title="전자우편번호"/></td>
+			<td class="border_r"><input type="text" class="input" name="c09" id="c09" title="휴대폰번호"/></td>
+		</tr>
+		
+		<tr>
+			<td class="border_r2">
+				<p>&nbsp;소재지</p>
+			</td>
+			<td colspan="5" class="border_r2">
+				<input type="text" class="input" name="c10" id="c10" title="소재지"/>
+			</td>
+		</tr>
+		
+		<tr>
+        	 <td class="br" colspan="7">
+        	 	<p style='line-height: 130%;'></p>
+       	 	</td>
+      	</tr>
+	</table>
+	
+<table id="inputTable">
+<caption>
+직장가입자 보수월액변경신청서 신청인 정보 입력 표 – 성명, 주민등록번호, 국민연금(현재 기준소득월액, 변경 기준소득월액, 근로자동의),
+ 국민건강보험(변경 후 보수월액, 보수 변경 월, 변경사유), 고용보험 및 산재보험(고용보험 변경 후 월평균보수, 산재보험 변경 후 월평균보수, 변경사유), 일자리안정자금 지원 신청 유무로 구성
+</caption>
+	<tr>
+		<td scope="col" rowspan="3" class="center2 border_r" style="width:53px; border: none;">
+			성명
+		</td>
+		<td scope="col" rowspan="3" class="center border_r" style="width:113px;">
+			주민등록번호<br>(외국인등록번호<br>국내거소신고번호)
+		</td>
+		<td scope="col" colspan="3" class="center2 border_r" style="width:25%; height:47px;text-align:center;">
+			국민연금<br>(소득이 보건복지부 장관이 고시하는 <br>비율이상 변동된 자만 신청)
+		</td>
+		<td scope="col" colspan="3" class="center2 border_r" style="width:93px; text-align:center;">
+			국민건강보험
+		</td>
+		<td scope="col" colspan="3" class="center2 border_r" style="width:93px; text-align:center;">
+			고용보험 및 산재보험
+		</td>
+<!-- 		2022.12.5. 고객지원실 요청으로 삭제 -->
+<!-- 		<td scope="col" rowspan="3" class="center2 border_r" style="width:93px; text-align:center;" > -->
+<!-- 			일자리안정<br>자금 지원 신청 -->
+<!-- 		</td> -->
+	</tr>
+	
+	<tr>
+		<td scope="col" rowspan="2" class="center2 border_r2" style="width:73px;">
+			현재 <br>기준소득월액
+		</td>
+		<td scope="col" rowspan="2" class="center2 border_r2" style="width:73px;">
+			변경 <br>기준소득월액
+		</td>
+		<td scope="col" rowspan="2" class="center2 border_r2" style="width:73px;">
+			근로자 동의 <br>(서명 또는 인)
+		</td>
+		<td scope="col" rowspan="2" class="center2 border_r2" style="width:73px;">
+			변경 후 <br>보수월액
+		</td>
+		<td scope="col" rowspan="2" class="center2 border_r2" style="width:60px; height:60px;">
+<!-- 			보수 <br>년 월 일<p style="font-size: 0.8em; color: #0000FF; margin-top: 2px;">YYYY.MM</p> -->
+			보수 <br />변경 월
+		</td>
+		<td scope="col" rowspan="2" class="center2 border_r2" style="width:60px;">
+			변경사유
+		</td>
+		<td scope="col" colspan="2" class="center2 border_r2" style="width:133px; height:30px; text-align:center;">
+			변경 후 월평균보수
+		</td>
+		<!-- <td scope="col" rowspan="2" class="center2 border_r2">
+			보수 변경 월
+		</td> -->
+		<td scope="col" rowspan="2" class="center2 border_r2">
+			변경사유
+		</td>
+	</tr>
+	
+	<tr>
+		<td scope="col" class="center2 border_r2">
+			고용보험
+		</td>
+		<td scope="col" class="center2 border_r2">
+			산재보험
+		</td>
+	</tr>
+
+<tbody>	
+	<tr class="row1">
+		<td class="border_r3"><input type="text" class="input put01" name="put01" title="성명"/></td>
+		<td class="border_r2 essential0"><input type="text" class="input put02 numberOnly" maxlength="13" name="put02" title="주민등록번호(외국인등록번호, 국내거소신고번호)"/></td>
+		<td class="border_r2"><input type="text" class="input put03 numberOnly comma" maxlength="11" name="put03" title="국민연금/ 현재 기준소득월액"/></td>
+		<td class="border_r2"><input type="text" class="input put04 numberOnly comma" maxlength="11" name="put04" title="국민연금/ 변경 기준소득월액"/></td> 
+		<td class="border_r2"><input type="text" class="input put05" name="put05" title="국민연금 근로자 동의(서명 또는 인)"/></td>
+		<td class="border_r2 essential1"><input type="text" class="input put06 numberOnly comma" maxlength="11" name="put06" title="국민건강보험/ 변경 후 보수월액"/></td> 
+		<td class="border_r2 essential2"><input type="text" class="input put07" onkeyup="auto_date_format2(event ,this)" onKeyPress="auto_date_format2(event ,this)" maxlength="7" name="put07" title="국민건강보험/ 보수 변경 월"/></td>
+		<td class="border_r2"><input type="text" class="input put08" name="put08" title="국민건강보험/ 변경사유"/></td>
+		<td class="border_r2"><input type="text" class="input put09 numberOnly comma" maxlength="11" name="put09" title="변경 후 월평균보수/ 고용보험"/></td>
+		<td class="border_r2"><input type="text" class="input put10 numberOnly comma" maxlength="11" name="put10" title="변경 후 월편균보수/ 산재보험"/></td>
+		<!-- <td class="border_r2"><input type="text" class="input put13" name="put13" title="고용보험 및 산재보험/ 보수 변경 월"/></td> -->
+		<td class="border_r2"><input type="text" class="input put11" name="put11" title="고용보험 및 산재보험/ 변경사유"/></td>
+<!-- 		2022.12.5. 고객지원실 요청으로 삭제 -->
+<!-- 		<td class="border_r2" style="border-left-width:1px; width:97px;"><input type="radio" name="put12_01" class="put12 put-01" id="put12_1" value="y" title="일자리안정자금 지원 신청_예"/><label for="put12_1">예</label> -->
+<!-- 			<input type="radio" name="put12_01" class="put12 put-02" id="put12_2" value="n" title="일자리안정자금 지원 신청_아니오"/><label for="put12_2">아니오</label></td> -->
+	</tr>
+	
+	<tr class="row2">
+		<td class="border_r3"><input type="text" class="input put01" name="put01" title="성명"/></td>
+		<td class="border_r2  essential0"><input type="text" class="input put02 numberOnly" maxlength="13" name="put02" title="주민등록번호(외국인등록번호, 국내거소신고번호)"/></td>
+		<td class="border_r2"><input type="text" class="input put03 numberOnly comma" maxlength="11" name="put03" title="국민연금/ 현재 기준소득월액"/></td>
+		<td class="border_r2"><input type="text" class="input put04 numberOnly comma" maxlength="11" name="put04" title="국민연금/ 변경 기준소득월액"/></td> 
+		<td class="border_r2"><input type="text" class="input put05" name="put05" title="국민연금 근로자 동의(서명 또는 인)"/></td>
+		<td class="border_r2 essential1"><input type="text" class="input put06 numberOnly comma" maxlength="11" name="put06" title="국민건강보험/ 변경 후 보수월액"/></td> 
+		<td class="border_r2 essential2"><input type="text" class="input put07" onkeyup="auto_date_format2(event ,this)" onKeyPress="auto_date_format2(event ,this)" maxlength="7" name="put07" title="국민건강보험/ 보수 변경 월"/></td>
+		<td class="border_r2"><input type="text" class="input put08" name="put08" title="국민건강보험/ 변경사유"/></td>
+		<td class="border_r2"><input type="text" class="input put09 numberOnly comma" maxlength="11" name="put09" title="변경 후 월평균보수/ 고용보험"/></td>
+		<td class="border_r2"><input type="text" class="input put10 numberOnly comma" maxlength="11" name="put10" title="변경 후 월편균보수/ 산재보험"/></td>
+		<!-- <td class="border_r2"><input type="text" class="input put13" name="put13" title="고용보험 및 산재보험/ 보수 변경 월"/></td> -->
+		<td class="border_r2"><input type="text" class="input put11" name="put11" title="고용보험 및 산재보험/ 변경사유"/></td>
+<!-- 		2022.12.5. 고객지원실 요청으로 삭제 -->
+<!-- 		<td class="border_r2" style="border-left-width:1px; width:97px;"><input type="radio" name="put12_02" class="put12 put-01" id="put12_3" value="y" title="일자리안정자금 지원 신청_예"/><label for="put12_3">예</label> -->
+<!-- 			<input type="radio" name="put12_02" class="put12 put-02" id="put12_4" value="n" title="일자리안정자금 지원 신청_아니오"/><label for="put12_4">아니오</label></td> -->
+	</tr>
+	
+	<tr class="row3">
+		<td class="border_r3"><input type="text" class="input put01" name="put01" title="성명"/></td>
+		<td class="border_r2 essential0"><input type="text" class="input put02 numberOnly" maxlength="13" name="put02" title="주민등록번호(외국인등록번호, 국내거소신고번호)"/></td>
+		<td class="border_r2"><input type="text" class="input put03 numberOnly comma" maxlength="11" name="put03" title="국민연금/ 현재 기준소득월액"/></td>
+		<td class="border_r2"><input type="text" class="input put04 numberOnly comma" maxlength="11" name="put04" title="국민연금/ 변경 기준소득월액"/></td> 
+		<td class="border_r2"><input type="text" class="input put05" name="put05" title="국민연금 근로자 동의(서명 또는 인)"/></td>
+		<td class="border_r2 essential1"><input type="text" class="input put06 numberOnly comma" maxlength="11" name="put06" title="국민건강보험/ 변경 후 보수월액"/></td> 
+		<td class="border_r2 essential2"><input type="text" class="input put07" onkeyup="auto_date_format2(event ,this)" onKeyPress="auto_date_format2(event ,this)" maxlength="7" name="put07" title="국민건강보험/ 보수 변경 월"/></td>
+		<td class="border_r2"><input type="text" class="input put08" name="put08" title="국민건강보험/ 변경사유"/></td>
+		<td class="border_r2"><input type="text" class="input put09 numberOnly comma" maxlength="11" name="put09" title="변경 후 월평균보수/ 고용보험"/></td>
+		<td class="border_r2"><input type="text" class="input put10 numberOnly comma" maxlength="11" name="put10" title="변경 후 월편균보수/ 산재보험"/></td>
+		<!-- <td class="border_r2"><input type="text" class="input put13" name="put13" title="고용보험 및 산재보험/ 보수 변경 월"/></td> -->
+		<td class="border_r2"><input type="text" class="input put11" name="put11" title="고용보험 및 산재보험/ 변경사유"/></td>
+<!-- 		2022.12.5. 고객지원실 요청으로 삭제 -->
+<!-- 		<td class="border_r2" style="border-left-width:1px; width:97px;"><input type="radio" name="put12_03" class="put12 put-01" id="put12_5" value="y" title="일자리안정자금 지원 신청_예"/><label for="put12_5">예</label> -->
+<!-- 			<input type="radio" name="put12_03" class="put12 put-02" id="put12_6" value="n" title="일자리안정자금 지원 신청_아니오"/><label for="put12_6">아니오</label></td> -->
+	</tr>
+	
+	<tr class="row4">
+		<td class="border_r3"><input type="text" class="input put01" name="put01" title="성명"/></td>
+		<td class="border_r2 essential0"><input type="text" class="input put02 numberOnly" maxlength="13" name="put02" title="주민등록번호(외국인등록번호, 국내거소신고번호)"/></td>
+		<td class="border_r2"><input type="text" class="input put03 numberOnly comma" maxlength="11" name="put03" title="국민연금/ 현재 기준소득월액"/></td>
+		<td class="border_r2"><input type="text" class="input put04 numberOnly comma" maxlength="11" name="put04" title="국민연금/ 변경 기준소득월액"/></td> 
+		<td class="border_r2"><input type="text" class="input put05" name="put05" title="국민연금 근로자 동의(서명 또는 인)"/></td>
+		<td class="border_r2 essential1"><input type="text" class="input put06 numberOnly comma" maxlength="11" name="put06" title="국민건강보험/ 변경 후 보수월액"/></td> 
+		<td class="border_r2 essential2"><input type="text" class="input put07" onkeyup="auto_date_format2(event ,this)" onKeyPress="auto_date_format2(event ,this)" maxlength="7" name="put07" title="국민건강보험/ 보수 변경 월"/></td>
+		<td class="border_r2"><input type="text" class="input put08" name="put08" title="국민건강보험/ 변경사유"/></td>
+		<td class="border_r2"><input type="text" class="input put09 numberOnly comma" maxlength="11" name="put09" title="변경 후 월평균보수/ 고용보험"/></td>
+		<td class="border_r2"><input type="text" class="input put10 numberOnly comma" maxlength="11" name="put10" title="변경 후 월편균보수/ 산재보험"/></td>
+		<!-- <td class="border_r2"><input type="text" class="input put13" name="put13" title="고용보험 및 산재보험/ 보수 변경 월"/></td> -->
+		<td class="border_r2"><input type="text" class="input put11" name="put11" title="고용보험 및 산재보험/ 변경사유"/></td>
+<!-- 		2022.12.5. 고객지원실 요청으로 삭제 -->
+<!-- 		<td class="border_r2" style="border-left-width:1px; width:97px;"><input type="radio" name="put12_04" class="put12 put-01" id="put12_7" value="y" title="일자리안정자금 지원 신청_예"/><label for="put12_7">예</label> -->
+<!-- 			<input type="radio" name="put12_04" class="put12 put-02" id="put12_8" value="n" title="일자리안정자금 지원 신청_아니오"/><label for="put12_8">아니오</label></td> -->
+	</tr>
+	
+
+</tbody>
+</table>
+
+<table style="font-size:10pt;">
+   <tr>
+      <td class="border_r3"><br>
+      	위와 같이 신고(신청)합니다.
+      </td>
+   </tr>
+ 
+	<tr>
+		<td class="border">
+			「국민연금법 시행령」 제9조제5항 및 같은 법 시행규칙 제2조제1항제3호,「국민건강보험법 시행령」 제36조제2항 및 같은 법 시행규칙 제41조,
+			「고용보험 및 산업재해보상 보험의 보험료징수 등에 관한 법률 시행령」제19조의3제7항ㆍ같은 법 시행규칙 제16조의3에 따라 위와 같이 기준소득월액(보수월액, 월평균보수)의 변경을 신청(신고)합니다.
+			<br>&nbsp;<br>&nbsp;
+		</td>
+	</tr>
+		
+	<tr>
+		<td style="font-size:9pt; font-weight: bold; border:none;">
+			* 국민연금 사업장가입자 기준소득월액 변경 요건
+		</td>
+	</tr>
+	
+	<tr>
+		<td class="border">&nbsp;&nbsp;
+			- 기준소득월액 대비 실제 소득이 보건복지부장관이 고시하는 비율 이상 변동(상승ㆍ하락)된 사업장가입자만 가능(근로자의 동의 필요)
+		</td>
+	</tr>
+	
+	<tr>
+		<td class="border">&nbsp;&nbsp;
+			- 변경된 기준소득월액은 신청일이 속하는 달의 다음달부터 다음 연도 6월까지 적용하며, 변경된 기준소득월액이 과세 자료 등을 통해 확인되는실제 
+			<br>&nbsp;&nbsp;&nbsp;&nbsp;소득과 일치하는지 확인하여 과부족분에 대해서는 사후정산
+		</td>
+	</tr>		
+ </table>
+ 
+ <table style="font-size:10pt;">
+   <tr>
+      <td class="alignR border" style="width:60%;"></td>
+      <td class="alignR" style="border:none;"><br>
+      	<input type="text" name="c11" id="c11" class="alignR dateD numberOnly" maxlength="4" title="년"/> 년 
+      	<input type="text" name="c12" id="c12" class="alignR dateD numberOnly" maxlength="2" title="월"/> 월 
+      	<input type="text" name="c13" id="c13" class="alignR dateD numberOnly" maxlength="2" title="일"/> 일 
+      </td>
+   </tr>
+ 
+   <tr>
+      <td class="alignR border" style="width:220px;"><br>
+      	<!-- <input type="text" name="c14" id="c14" style="border:none; height:28px; width:220px;" title="신청인"/> -->
+      		신청인(신고인)(사용자 · 대표자)
+  	  </td>
+      <td class="alignR" style="border:none;"><br>
+      	<input type="text" name="c15" id="c15" style="border:none; height:28px; width:220px;" title="서명"/>
+      		(서명 또는 인)
+   	  </td>
+   </tr>
+   
+   <tr>
+      <td class="alignR" style="border:none;">
+      	[<input type="checkbox" name="c16" id="c16" title="보험사무대행기관"/><label for="c16">] 보험사무대행기관(고용보험 및 산재보험)</label>
+      </td>
+      <td class="alignR" style="border:none;">
+      	<input type="text" name="c17" id="c17" style="border:none; height:28px; width:220px;" title="서명_2"/> (서명 또는 인)
+      </td>
+   </tr>
+   
+   <tr>
+      <td colspan="2" class="border_r4" style="font-size:12pt; font-weight:bold;"><br>
+      	국민연금공단 이사장 / 국민건강보험공단 이사장 / 근로복지공단 00지역본부(지사)장 귀하
+      </td>
+   </tr>
+</table>   
+<br>
+<table class="center2">
+	<tr><td class="centerR border"><input type="button" id="printBtn" class="img-button" title="인쇄" src="/static/images/wbdbf/submit.PNG" value="&nbsp;"/></td></tr>
+</table>
+
+</form>
+</div>
+<br><br>
+</body>
+</html>

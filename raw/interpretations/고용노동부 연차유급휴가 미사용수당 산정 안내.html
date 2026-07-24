@@ -1,0 +1,739 @@
+
+
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=euc-kr" />
+<meta name="viewport" content="initial-scale=1.0; maximum-scale=1.0; minimum-scale=1.0; user-scalable=no;" />
+<title> :: 고용노동부 모바일페이지 고객센터 :: </title>
+<link rel="stylesheet" type="text/css" href="/css/common.css"/>
+<script type="text/javascript" src="/js/menulayer.js"></script>
+<script type="text/javaScript" language="javascript" defer="defer">
+<!--
+	window.addEventListener('load', function() { setTimeout(scrollTo, 0, 0, 1); }, false);
+	
+	/* 글 등록 function */
+	function fn_regist() {
+	   	document.viewForm.action = "rtmregist.do";
+	   	document.viewForm.submit();		
+	}
+	
+	/* 답변알림 */
+	function fn_channel() {
+		if(document.getElementsByName("channel")[0].checked) {
+			document.viewForm.phn1.style.display = "";
+			document.viewForm.phn2.style.display = "";
+			document.viewForm.phn3.style.display = "";
+		} else {
+			document.viewForm.phn1.style.display = "none";
+			document.viewForm.phn2.style.display = "none";
+			document.viewForm.phn3.style.display = "none";
+		}
+	}
+	
+	/* 숫자체크 */
+	function isNum(obj) {
+		var sValue = obj.value;
+		var idx = sValue.length;
+		var ValidChars = "0123456789";
+		var isNumber = true;
+		var Char;
+		for(i = 0; i < idx && isNumber == true; i++) {
+			Char = sValue.charAt(i);
+			if(ValidChars.indexOf(Char) == -1) {
+				alert("전화번호를 정확히 입력해주세요");
+				obj.value = "";
+				obj.focus();
+				isNumber = false;
+			}
+		}
+		
+		return isNumber;
+	}
+	
+	function fn_valid() {
+		if(!fc_chk_byte3(200)) {
+			alert( "입력 길이 제한을 초과하였습니다.\r\n" + "(한글 100자, 영문 200자 이하)");
+			return;
+		}
+
+		if(document.viewForm.askcntn.value == "추가 질문을 남겨주세요") {
+			alert("상담 내용을 입력해주세요");
+			return;
+		}
+
+		if(document.viewForm.mblphn1.value == "" ||
+		   document.viewForm.mblphn2.value == "" ||
+		   document.viewForm.mblphn3.vaule == "") {
+		   	alert("전화번호를 정확히 입력해주세요");
+		   	return;
+		} 
+		if(document.viewForm.askcntn.value == "") {
+			alert("상담 내용을 입력해주세요");
+			return;
+		}				
+		
+		fn_regist();
+	}
+	
+	var clr = "true";
+	
+	function fn_clear() {
+		if(clr == "true") {
+			document.viewForm.askcntn.value = "";
+			clr = "false";
+		}
+	}
+
+	function fc_chk_byte2(aro_name,ari_max) {
+		var ls_str     = aro_name.value; // 이벤트가 일어난 컨트롤의 value 값
+		var li_str_len = ls_str.length;  // 전체길이
+
+		// 변수초기화
+		var li_max      = ari_max; // 제한할 글자수 크기
+		var i           = 0;  // for문에 사용
+		var li_byte     = 0;  // 한글일경우는 2 그밗에는 1을 더함
+		var li_len      = 0;  // substring하기 위해서 사용
+		var ls_one_char = ""; // 한글자씩 검사한다
+		var ls_str2     = ""; // 글자수를 초과하면 제한할수 글자전까지만 보여준다.
+
+		for(i=0; i< li_str_len; i++)
+		{
+		// 한글자추출
+		ls_one_char = ls_str.charAt(i);
+
+		// 한글이면 2를 더한다.
+		if (escape(ls_one_char).length > 4)
+		{
+		li_byte += 2;
+		}
+		// 그밗의 경우는 1을 더한다.
+		else
+		{
+		li_byte++;
+		}
+
+		// 전체 크기가 li_max를 넘지않으면
+		if(li_byte <= li_max)
+		{
+		li_len = i + 1;
+		}
+		}
+
+		// 전체길이를 초과하면
+		if(li_byte > li_max)
+		{
+		alert( "입력 길이 제한을 초과하였습니다.\r\n" + "(한글 " + (ari_max / 2) + "자, 영문 " + ari_max + "자 이하)");
+		ls_str2 = ls_str.substr(0, li_len);
+		aro_name.value = ls_str2;
+
+		}
+		aro_name.focus();   
+	}
+
+	function fc_chk_byte3(ari_max) {
+		var ls_str     = document.viewForm.askcntn.value; // 이벤트가 일어난 컨트롤의 value 값
+		var li_str_len = ls_str.length;  // 전체길이
+
+		// 변수초기화
+		var li_max      = ari_max; // 제한할 글자수 크기
+		var i           = 0;  // for문에 사용
+		var li_byte     = 0;  // 한글일경우는 2 그밗에는 1을 더함
+		var li_len      = 0;  // substring하기 위해서 사용
+		var ls_one_char = ""; // 한글자씩 검사한다
+		var ls_str2     = ""; // 글자수를 초과하면 제한할수 글자전까지만 보여준다.
+
+		for(i=0; i< li_str_len; i++)
+		{
+		// 한글자추출
+		ls_one_char = ls_str.charAt(i);
+
+		// 한글이면 2를 더한다.
+		if (escape(ls_one_char).length > 4)
+		{
+		li_byte += 2;
+		}
+		// 그밗의 경우는 1을 더한다.
+		else
+		{
+		li_byte++;
+		}
+
+		// 전체 크기가 li_max를 넘지않으면
+		if(li_byte <= li_max)
+		{
+		li_len = i + 1;
+		}
+		}
+
+		// 전체길이를 초과하면
+		if(li_byte > li_max) return false;
+		
+		return true;
+	}
+-->
+</script>    
+</head>
+<body class="mainbg">
+<form name="viewForm" method="post" action="" onsubmit="return false;">
+<input type="hidden" name="id" value="1000244622"/>
+<input type="hidden" name="hrnkcnslid" value="1000244622"/>
+<span id="menulayer"></span>
+<div class="top">
+       <h1 class="top_h1"><img src="/images/tit_counc.gif" alt="상담신청"/></h1>
+       <p class="top_li"><img src="/images/bt_layermenu.gif" alt="전체메뉴" onclick="fn_menu()"/><img src="/images/bt_tohome.gif" alt="홈" onclick="location.href='faqlist.do'"/></p>
+</div>
+<div id="tab">
+	<!-- tab1 -->
+	<p class="tab01"><img src="/images/tab_tit_counc01_on.gif" alt="실시간상담" onclick="location.href='rtmlist.do'"/></p>
+	<!-- tab2 -->
+	<!-- 2015.03.23 상담예약 변경--> 
+	<!-- <p class="tab02"><img src="/images/tab_tit_counc02.gif" alt="상담예약" onclick="location.href='rsvform.do'"/></p> -->
+</div>
+
+
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_quest.gif" alt="질의"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" alt="사용자사진"/></div>
+			중도 자발적 퇴사시 연차수당 계산 방법이 궁금합니다. 
+입사 20.08.25
+연차수당은 8월 기준으로 1년 계산해서 매년 9-10월쯤 1년치 정산 받았음(마지막 정산일 22년 9?10?월)
+퇴사 22.11.12
+22년 8월 이후 3개 연차
+		</dd>
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			<!-- 신청인 : null&nbsp;/&nbsp; -->
+			신청일 : 2022.12.06 15:06
+			</div>
+		</dd>
+	</dl>
+</div>
+
+<p style="height:15px"></p>
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_answ.gif" alt="답변"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" width="40px" height="40px" alt="상담사사진"/></div>1. 상시 근로자 5인 이상 사업장에서  4주 동안을 평균하여 1주간 소정근로시간이 15시간 이상인 근로자인 경우라면 연차유급휴가가 발생할 것입니다. 제60조(연차 유급휴가)1년 미만 기간에 월 개근 시, 1년간 80%미만 출근한 근로자에게 1일의 연차휴가(최대 11일, 2017.5.30. 입사자부터 적용)과, 1년간 80% 이상 출근율에 따라 15일에 대하여 연차유급휴가가 발생할 것입니다. 또한, 사용자는 3년 이상 계속하여 근로한 근로자에게는 최초 1년을 초과하는 계속 근로 연수 매 2년에 대하여 1일을 가산한 유급휴가를 주어야 하며, 이 경우 가산휴가를 포함한 총 휴가 일수는 25일을 한도로 합니다.
+
+2. 대법원(대법원 2005. 5. 27., 2003다48549, 48556 판결 참조)은 근로자가 일단 연차유급휴가권을 취득한 후에 연차유급휴가를 사용하기 전에 퇴직 등의 사유로 근로관계가 종료되는 경우, 근로자는 이로 인해 사용하지 못하는 미사용 연차휴가일수에 해당하는 수당을 사용자에 대하여 청구할 수 있다고 판시하였습니다.
+- 우리부 행정해석(근로개선정책과-4218, 2013-07-19)은 연차유급휴가미사용수당은 연차유급휴가권이 소멸된 날의 다음 날에 발생하며(대법원 1995.6.30., 94다47155 등 참조), 그 지급액은 취업규칙 등에서 정한 바에 따라 통상임금 또는 평균임금으로 지급하고, 별도의 규정이 없으면 통상임금으로 지급하되 휴가청구권이 있는 마지막 달의 통상임금으로 지급해야 한다고 판단하고 있습니다.
+
+3. 근로기준법 시행령 제6조제2항에 따라 통상임금을 시간급 금액으로 산정할 경우에, ① 시간급 금액으로 정한 임금은 그 금액, ② 일급 금액으로 정한 임금은 그 금액을 1일의 소정근로시간 수로 나눈 금액, ③ 주급 금액으로 정한 임금은 그 금액을 1주의 통상임금 산정 기준시간 수(1주의 소정근로시간과 소정근로시간 외에 유급으로 처리되는 시간을 합산한 시간)로 나눈 금액, ④ 월급 금액으로 정한 임금은 그 금액을 월의 통상임금 산정 기준시간 수(1주의 통상임금 산정 기준시간 수에 1년 동안의 평균 주의 수를 곱한 시간을 12로 나눈 시간)로 나눈 금액 등의 방법으로 하도록 규정하고 있습니다.
+
+4. 보다 자세한 사항은 다소 불편하시더라도, 관할노동청 민원실로 직접 유선으로 확인하여 주시기 바랍니다.
+참고로, 업무집중시간대(10:00~16:00)에는 전화연결이 다소 어려우니, 동 시간 이후에 연결하시길 권유드립니다. 
+고용노동부 홈페이지&gt;기관소개&gt;조직안내&gt;소속기관&gt; 관할 노동청 클릭&gt;직원,연락처 에서 업무담당자 및 연락처 확인할 수 있습니다.</dd> 
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			답변일 : 2022.12.06 15:28
+			</div>
+		</dd>
+	</dl>
+	<!-- <div class="btn_right"><img src="/images/bt_recomm.gif" alt="추천"/></div> -->
+</div>
+
+<p style="height:15px"></p>
+
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_quest.gif" alt="질의"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" alt="사용자사진"/></div>
+			실시간 상담 질문 내용을 입력하세요. 실시간 상담은 모두에게 공개되며, 글자 수 제한이 있으니 100자 이내로 작성하여 주시기 바랍니다.
+		</dd>
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			<!-- 신청인 : null&nbsp;/&nbsp; -->
+			신청일 : 2025.12.26 09:41
+			</div>
+		</dd>
+	</dl>
+</div>
+
+<p style="height:15px"></p>
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_answ.gif" alt="답변"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" width="40px" height="40px" alt="상담사사진"/></div>질의내용을 정리하여 100자 이내로 문의하여 주시면 답변드리겠습니다.</dd> 
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			답변일 : 2025.12.26 10:49
+			</div>
+		</dd>
+	</dl>
+	<!-- <div class="btn_right"><img src="/images/bt_recomm.gif" alt="추천"/></div> -->
+</div>
+
+<p style="height:15px"></p>
+
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_quest.gif" alt="질의"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" alt="사용자사진"/></div>
+			2024년3월26일 입사후 2026년1월현재근무중이며 급여지급일은 매월30일입니다. 입사후1년되는시기인 3월급여일에 1년치 연차수당을 지급받지못했는데 통상 1년마다 지급하는것인지 퇴직시 지급하는것인지궁금합니다
+		</dd>
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			<!-- 신청인 : null&nbsp;/&nbsp; -->
+			신청일 : 2026.01.29 13:16
+			</div>
+		</dd>
+	</dl>
+</div>
+
+<p style="height:15px"></p>
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_answ.gif" alt="답변"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" width="40px" height="40px" alt="상담사사진"/></div>고용노동부 1350모바일 상담입니다.
+
+- 연차유급휴가는 산정기간의 출근율에 따라 발생하고, 차년도(법 제 60조제2항에 따른 휴가는 입사일로부터 1년간)에 사용할 수 있으며, 미사용한 연차휴가에 대해서는 연차휴가 사용기간이 종료된 후 연차수당이 발생하게 되는 것이 원칙입니다.
+- 다만, 퇴직으로 연차휴가를 전부 사용하지 못하였다면 미사용일수에 대해서는 퇴직시에 수당청구권으로 발생하게 되므로 미사용수당을 지급하여야 할 것으로 사료됩니다. 
+- 모바일 상담은 질의한 사실에 한정하여 법령과 행정해석 등을 참조하여 작성하는 것으로 별도의 법적인 효력을 부여하는 결정이나 판단은 아니므로 귀 질의에 대해 법적판단이 필요하거나, 심층적인 상담을 원하시는 경우에는 실질적 지도감독권이 있는 관할 노동관서를 통해 근로감독관의 노무관리지도를 구하시길 권고드립니다.</dd> 
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			답변일 : 2026.01.29 16:15
+			</div>
+		</dd>
+	</dl>
+	<!-- <div class="btn_right"><img src="/images/bt_recomm.gif" alt="추천"/></div> -->
+</div>
+
+<p style="height:15px"></p>
+
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_quest.gif" alt="질의"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" alt="사용자사진"/></div>
+			20/5/1입사 26/2/11일 현재 근무 중, 매월 30일 급여 기준으로 26년 3월 말 퇴사시 연차 수당에 대한 문의 드립니다. 현재까지 잔여 연차 17일
+퇴사 시 17일 잔여연차 유지시 적용 되는 계산 법을 확인 요함
+		</dd>
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			<!-- 신청인 : null&nbsp;/&nbsp; -->
+			신청일 : 2026.02.11 10:42
+			</div>
+		</dd>
+	</dl>
+</div>
+
+<p style="height:15px"></p>
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_answ.gif" alt="답변"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" width="40px" height="40px" alt="상담사사진"/></div>고용노동부 1350 모바일 상담을 이용해 주셔서 감사합니다.
+
+연차휴가는 원칙적으로 발생일로부터 1년간(계속하여 근로한 기간이 1년 미만인 근로자의 근로기준법 제60조제2항에 따른 유급휴가는 최초 1년의 근로가 끝날 때까지의 기간을 말함) 행사하지 아니하면 소멸되며 이후 미사용한 연차에 대해서는 사용자가 근로기준법 제61조에 따라 연차휴가사용촉진조치를 하지 않은 이상 금전으로 보상해야 합니다. 
+
+한편, 당사자간 합의에 의하여 연차휴가미사용수당 지급 대신 연차휴가를 다음 연도로 이월하여 사용토록 하는 것은 가능하나 근로자의 의사에 반해 사용자가 일방적으로 강제할수는 없으며, 또한 이월된 휴가를 사용하기로 동의한 시기가 경과된 후 근로자가 미사용한 연차휴가에 대한 금전보상을 요구하면 사용자가 이를 거절할 법적 근거가 없다고 봅니다. (근로조건지도과-1046, 2009.2.20)
+
+연차휴가미사용수당은 연차휴가권이 소멸된 날의 다음날에 발생하며(대판94다47155, 1995.6.30 등) 그 지급액은 취업규칙 등에서 정한 바에 따라 통상임금 또는 평균임금으로 지급하고 별도의 규정이 없으면 통상임금으로 지급하되 휴가청구권이 있는 마지막 달의 통상임금으로 지급하여야 합니다. (근로개선정책과-4218, 2013.7.19)
+
+따라서, 퇴직근로자의 경우 퇴직연도에 발생한 연차유급휴가 청구권이 근로관계가 종료됨에 따라 그 다음날에 연차유급휴가 미사용수당 청구권이 발생하며 사용자는 미사용한 연차휴가일수에 대하여 퇴직일로부터 14일 이내에 연차유급휴가 미사용수당을 지급하여야 합니다.
+
+</dd> 
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			답변일 : 2026.02.11 13:47
+			</div>
+		</dd>
+	</dl>
+	<!-- <div class="btn_right"><img src="/images/bt_recomm.gif" alt="추천"/></div> -->
+</div>
+
+<p style="height:15px"></p>
+
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_quest.gif" alt="질의"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" alt="사용자사진"/></div>
+			2024년3월26일 입사후 2026년1월현재근무중이며 급여지급일은 매월30일입니다. 입사후1년되는시기인 3월급여일에 1년치 연차수당을 지급받지못했는데 통상 1년마다 지급하는것인지 퇴직시 지급하는것인지궁금합니다
+		</dd>
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			<!-- 신청인 : null&nbsp;/&nbsp; -->
+			신청일 : 2026.02.12 14:58
+			</div>
+		</dd>
+	</dl>
+</div>
+
+<p style="height:15px"></p>
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_answ.gif" alt="답변"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" width="40px" height="40px" alt="상담사사진"/></div>1350모바일상담입니다
+연차 유급휴가는 5인이상 사업장에 적용되며, 연차유급휴가미사용수당을 청구할 수 있는 권리는 원칙적으로 연차유급휴가를 청구할 수 있는 권리가 소멸한 날의 다음날에 발생한다고 할 것이며,
+- 그 지급시기는 단체협약, 취업규칙 등에 정함이 있는 경우에는 그에 따라야 하나, 정함이 없는 경우에는 연차유급휴가를 실시할 수 있는 1년의 기간이 만료된 후 최초의 임금 정기지급일을 지급시기로 보아야 할 것입니다.(중도 퇴직하는 경우에는 퇴직일로부터 14일 이내 지급)
+- 또한, 그 지급액은 취업규칙 등에서 정한 바에 따라 통상임금 또는 평균임금으로 지급하고 별도의 규정이 없으면 통상임금으로 지급하되 휴가청구권이 있는 마지막 달의 통상임금으로 지급하여야 할 것으로 사료됩니다.(근로개선정책과-4218, 2013.07.19.)</dd> 
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			답변일 : 2026.02.12 15:51
+			</div>
+		</dd>
+	</dl>
+	<!-- <div class="btn_right"><img src="/images/bt_recomm.gif" alt="추천"/></div> -->
+</div>
+
+<p style="height:15px"></p>
+
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_quest.gif" alt="질의"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" alt="사용자사진"/></div>
+			2025년 11월 1일 입사해서
+2026년 2월 28일 까지 근무 하면 연차수당이 몇개가 발생하나요??
+		</dd>
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			<!-- 신청인 : null&nbsp;/&nbsp; -->
+			신청일 : 2026.02.25 13:43
+			</div>
+		</dd>
+	</dl>
+</div>
+
+<p style="height:15px"></p>
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_answ.gif" alt="답변"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" width="40px" height="40px" alt="상담사사진"/></div>고용노동부 빠른 인터넷 상담입니다.
+
+상시 근로자 5인 이상 사업장에서 4주 동안을 평균하여 1주간 소정근로시간이 15시간 이상인 근로자인 경우라면 연차유급휴가가 발생할 것입니다.
+- 근로기준법 제60조제1항에 따라 사용자는 1년간 80퍼센트 이상 출근한 근로자에게 1년이 지난 다음날 15일의 유급휴가를 주어야 하며,
+- 제2항에 따라 사용자는 계속하여 근로한 기간이 1년 미만인 근로자 또는 1년간 80퍼센트 미만 출근한 근로자에게 1개월 개근 시 그 다음날 1일의 유급휴가를 주어야 합니다.
+- 또한, 사용자는 3년 이상 계속하여 근로한 근로자에게는 최초 1년을 초과하는 계속 근로 연수 매 2년에 대하여 1일을 가산한 유급휴가를 주어야 하며, 이 경우 가산휴가를 포함한 총 휴가 일수는 25일을 한도로 합니다.
+* 근속년수별 연차유급휴가 산정례를 살펴보면 근무연수(휴가일수)가 1년미만(최대 11일, 2017.5.30. 입사자부터 적용), 1년(15일), 2년(15일), 3년(16일), 4년(16일), 5년(17일)
+
+25.11.1. 입사일기준으로 매월 개근시 총 3일(발생일: 12.1,  1.1,  2.1) 유급휴가가 발생할 것으로 사료됩니다.</dd> 
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			답변일 : 2026.02.25 13:46
+			</div>
+		</dd>
+	</dl>
+	<!-- <div class="btn_right"><img src="/images/bt_recomm.gif" alt="추천"/></div> -->
+</div>
+
+<p style="height:15px"></p>
+
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_quest.gif" alt="질의"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" alt="사용자사진"/></div>
+			실시간 상담 질문 내용을 입력하세요. 실시간 상담은 모두에게 공개되며, 글자 수 제한이 있으니 100자 이내로 작성하여 주시기 바랍니다.
+		</dd>
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			<!-- 신청인 : null&nbsp;/&nbsp; -->
+			신청일 : 2026.03.09 15:06
+			</div>
+		</dd>
+	</dl>
+</div>
+
+<p style="height:15px"></p>
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_answ.gif" alt="답변"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" width="40px" height="40px" alt="상담사사진"/></div>실시간 상담 질문 내용을 입력하세요. 실시간 상담은 모두에게 공개되며, 글자 수 제한이 있으니 100자 이내로 작성하여 주시기 바랍니다.</dd> 
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			답변일 : 2026.03.09 16:22
+			</div>
+		</dd>
+	</dl>
+	<!-- <div class="btn_right"><img src="/images/bt_recomm.gif" alt="추천"/></div> -->
+</div>
+
+<p style="height:15px"></p>
+
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_quest.gif" alt="질의"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" alt="사용자사진"/></div>
+			2024년3월26일 입사후 2026년1월현재근무중이며 급여지급일은 매월30일입니다. 입사후1년되는시기인 3월급여일에 1년치 연차수당을 지급받지못했는데 통상 1년마다 지급하는것인지 퇴직시 지급하는것인지궁금합니다
+		</dd>
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			<!-- 신청인 : null&nbsp;/&nbsp; -->
+			신청일 : 2026.03.13 11:40
+			</div>
+		</dd>
+	</dl>
+</div>
+
+<p style="height:15px"></p>
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_answ.gif" alt="답변"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" width="40px" height="40px" alt="상담사사진"/></div>1350모바일상담입니다.
+--연차휴가는 원칙적으로 발생일로부터 1년간(계속하여 근로한 기간이 1년 미만인 근로자의 근로기준법 제60조제2항에 따른 유급휴가는 최초 1년의 근로가 끝날 때까지의 기간을 말함) 행사하지 아니하면 소멸되며 이후 미사용한 연차에 대해서는 사용자가 근로기준법 제61조에 따라 연차휴가사용촉진조치를 하지 않은 이상 금전으로 보상해야 합니다. 
+
+ - 연차휴가미사용수당은 연차휴가권이 소멸된 날의 다음날에 발생하며(대판94다47155, 1995.6.30 등) 그 지급액은 취업규칙 등에서 정한 바에 따라 통상임금 또는 평균임금으로 지급하고 별도의 규정이 없으면 통상임금으로 지급하되 휴가청구권이 있는 마지막 달의 통상임금으로 지급하여야 합니다. (근로개선정책과-4218, 2013.7.19)</dd> 
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			답변일 : 2026.03.13 12:03
+			</div>
+		</dd>
+	</dl>
+	<!-- <div class="btn_right"><img src="/images/bt_recomm.gif" alt="추천"/></div> -->
+</div>
+
+<p style="height:15px"></p>
+
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_quest.gif" alt="질의"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" alt="사용자사진"/></div>
+			안녕하세요 25년 3월 24일 입사 26년 4월 30일 퇴사 예정  --&amp;gt; 25년 12월까지 연차 6개 사용, 26년 1월~3월까지 3개 사용했습니다. 그렇다면 퇴사시 남은 연차는 몇 개로 봐야하나요?
+		</dd>
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			<!-- 신청인 : null&nbsp;/&nbsp; -->
+			신청일 : 2026.04.23 15:55
+			</div>
+		</dd>
+	</dl>
+</div>
+
+<p style="height:15px"></p>
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_answ.gif" alt="답변"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" width="40px" height="40px" alt="상담사사진"/></div>고용노동부 1350모바일 상담을 이용해 주셔서 감사합니다. 
+
+(연차휴가) 상시 근로자 5인 이상 사업장에서 4주 동안을 평균하여 1주간 소정근로시간이 15시간 이상인 근로자인 경우라면 연차유급휴가가 발생합니다. 
+- 근로기준법 제60조제1항에 따라 사용자는 1년간 80퍼센트 이상 출근한 근로자에게 1년이 지난 다음날 15일의 유급휴가를 주어야 하며, 
+- 같은 법 제2항에 따라 사용자는 계속하여 근로한 기간이 1년 미만인 근로자 또는 1년간 80퍼센트 미만 출근한 근로자에게 1개월 개근 시 그 다음날 1일의 유급휴가를 주어야 합니다. 
+- 또한, 사용자는 3년 이상 계속하여 근로한 근로자에게는 최초 1년을 초과하는 계속 근로 연수 매 2년에 대하여 1일을 가산한 유급휴가를 주어야 하며, 이 경우 가산휴가를 포함한 총 휴가 일수는 25일을 한도로 합니다.
+
+- 근로기준법 제60조에 따른 연차유급휴가는 ”근로자의 입사일“을 기준으로 산정하는 것이 원칙이나, 노무관리 편의상 단체협약·취업규칙 등에 의하여 회계연도 기준으로 모든 근로자에게 일괄 부여하는 것도 가능합니다. 
+- 다만, 회계연도를 기준으로 연차유급휴가를 계산할 경우 퇴직시점에서 총 휴가일수가 근로자의 입사일을 기준으로 산정한 법정휴가일수에 미달하는 경우 미달하는 일수에 대하여 연차휴가미사용수당으로 정산해야 합니다.  
+(산정예) 22.5.10. 입사자의 연차유급휴가 계산법 
+* 회계연도 기준  
+22.5.10. ~ 23.5.9. 11개 연차휴가 부여(1년 미만 연차)
+22.5.10. ~ 22.12.31.: 23.1.1. 9.7개 연차휴가 부여(=15일 * 236일 / 365일)
+- 첫해 비례 휴가일수는 &quot;15일*출근일수/연간소정근로일수&quot;로 산정
+23.1.1. ~ 23.12.31.: 24.1.1. 15개 연차휴가 부여
+24.1.1. ~ 24.12.31.: 25.1.1. 15개 연차휴가 부여
+* 입사일기준
+22.5.10. ~ 23.5.9. 11개 연차휴가 부여(1년 미만 연차)
+22.5.10. ~ 23.5.9.: 23.5.10. 15개 연차휴가 부여
+23.5.10. ~ 24.5.9.: 24.5.10. 15개 연차휴가 부여
+24.5.10. ~ 25.5.9.: 25.5.10. 16개 연차휴가 부여
+
+(연차수당) 퇴직근로자의 경우 퇴직연도에 발생한 연차유급휴가 청구권이 근로관계가 종료됨에 따라 그 다음날에 연차유급휴가 미사용수당 청구권이 발생하며 사용자는 미사용한 연차휴가일수에 대하여 퇴직일로부터 14일 이내에 연차유급휴가 미사용수당을 지급하여야 합니다. 
+
+ ※ 연차유급휴가 미사용수당은 연차유급휴가권이 소멸된 날의 다음날 발생하며, 그 지급액은 취업규칙 등에서 정한 바에 따라 통상임금 또는 평균임금으로 지급하고, 별도의 규정이 없으면 통상임금으로 지급하되 휴가청구권이 있는 마지막 달의 통상임금으로 지급합니다.
+
+우리부 모바일 상담은 노동관계법령에 명시된 간단하고 단순한 사항에 대하여 실시간 답변하는 창구로서, 노동기준 분야에 대하여는 법적용 및 개별사항 안내가 어려운점 양해구합니다. 번거로우시더라도 국민신문고(www.epeople.go.kr)로 질의(민원신청) 하시거나, 사업장 소재지 관할 지방노동관서 노동기준조사과로 문의하여 안내를 받으실 수 있습니다. *고용노동부홈페이지&gt;기관소개&gt;조직안내&gt;소속기관&gt; 관할 노동청 클릭&gt;직원,연락처</dd> 
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			답변일 : 2026.04.23 16:25
+			</div>
+		</dd>
+	</dl>
+	<!-- <div class="btn_right"><img src="/images/bt_recomm.gif" alt="추천"/></div> -->
+</div>
+
+<p style="height:15px"></p>
+
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_quest.gif" alt="질의"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" alt="사용자사진"/></div>
+			안녕하세요.
+24년 2월 21일에 입사하여 26년 4월 17일 퇴사시, 연차갯수 궁금합니다.
+연차사용을 한번도 안했을경우, 연차수당은 몇개 지급해야 하나요?
+		</dd>
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			<!-- 신청인 : null&nbsp;/&nbsp; -->
+			신청일 : 2026.05.12 15:37
+			</div>
+		</dd>
+	</dl>
+</div>
+
+<p style="height:15px"></p>
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_answ.gif" alt="답변"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" width="40px" height="40px" alt="상담사사진"/></div>고용노동부 빠른 인터넷 상담을 이용해 주셔서 감사합니다. 
+
+(연차일수) 사용자는 계속하여 근로한 기간이 1년 미만인 근로자 또는 1년간 80퍼센트 미만 출근한 근로자에게 1개월 개근 시 그 다음날 1일의 유급휴가를 주어야 합니다.
+- 또한, 사용자는 3년 이상 계속하여 근로한 근로자에게는 최초 1년을 초과하는 계속 근로 연수 매 2년에 대하여 1일을 가산한 유급휴가를 주어야 하며, 이 경우 가산휴가를 포함한 총 휴가 일수는 25일을 한도로 합니다.
+
+근속년수별 연차유급휴가 산정례를 살펴보면 근무연수(휴가일수)가 1년미만(최대 11일, 2017.5.30. 입사자부터 적용), 1년(15일), 2년(15일), 3년(16일), 4년(16일), 5년(17일)
+- 근로기준법 제60조에 따른 연차유급휴가는 ”근로자의 입사일“을 기준으로 산정하는 것이 원칙이나, 노무관리 편의상 단체협약·취업규칙 등에 의하여 회계연도 기준으로 모든 근로자에게 일괄 부여하는 것도 가능합니다. 
+- 다만, 회계연도를 기준으로 연차유급휴가를 계산할 경우 퇴직시점에서 총 휴가일수가 근로자의 입사일을 기준으로 산정한 법정휴가일수에 미달하는 경우 미달하는 일수에 대하여 연차휴가미사용수당으로 정산해야 합니다.  
+(산정례) 22.5.10. 입사자의 연차유급휴가 계산법 
+* 회계연도 기준  
+22.5.10. ~ 23.5.9. 11개 연차휴가 부여(1년 미만 연차)
+22.5.10. ~ 22.12.31.: 23.1.1. 9.7개 연차휴가 부여(=15일 * 236일 / 365일)
+- 첫해 비례 휴가일수는 &quot;15일*출근일수/연간소정근로일수&quot;로 산정
+23.1.1. ~ 23.12.31.: 24.1.1. 15개 연차휴가 부여
+24.1.1. ~ 24.12.31.: 25.1.1. 15개 연차휴가 부여
+* 입사일기준
+22.5.10. ~ 23.5.9. 11개 연차휴가 부여(1년 미만 연차)
+22.5.10. ~ 23.5.9.: 23.5.10. 15개 연차휴가 부여
+23.5.10. ~ 24.5.9.: 24.5.10. 15개 연차휴가 부여
+24.5.10. ~ 25.5.9.: 25.5.10. 16개 연차휴가 부여
+
+우리부 모바일 상담은 노동관계법령에 명시된 간단하고 단순한 사항에 대하여 실시간 답변하는 창구로서, 노동기준 분야에 대하여는 법적용 및 개별사항 안내가 어려운점 양해구합니다. 번거로우시더라도 자세한 답변을 원하실 경우 국민신문고(www.epeople.go.kr)로 질의(민원신청) 하시거나, 사업장 소재지 관할 지방노동관서 노동기준조사과로 문의하여 안내를 받으실 수 있습니다. *고용노동부홈페이지&gt;기관소개&gt;조직안내&gt;소속기관&gt; 관할 노동청 클릭&gt;직원,연락처</dd> 
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			답변일 : 2026.05.12 18:20
+			</div>
+		</dd>
+	</dl>
+	<!-- <div class="btn_right"><img src="/images/bt_recomm.gif" alt="추천"/></div> -->
+</div>
+
+<p style="height:15px"></p>
+
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_quest.gif" alt="질의"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" alt="사용자사진"/></div>
+			안녕하세요 연차수당 관련하여 문의드립니다 입사 : 2022.03.21 퇴사 : 2026.07.31 2023년 or 2024년부터  연차 미사용에 대해 하반기에 사용촉진을 시작하였습니다 총 연차 일수와 수당을 받을 수 있나요?
+		</dd>
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			<!-- 신청인 : null&nbsp;/&nbsp; -->
+			신청일 : 2026.07.21 11:34
+			</div>
+		</dd>
+	</dl>
+</div>
+
+<p style="height:15px"></p>
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_answ.gif" alt="답변"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" width="40px" height="40px" alt="상담사사진"/></div>1350모바일상담입니다.
+연차휴가미사용수당은 연차휴가권이 소멸된 날의 다음날에 발생하며(대판94다47155, 1995.6.30 등) 연차그 지급액은 취업규칙 등에서 정한 바에 따라 통상임금 또는 평균임금으로 지급하고 별도의 규정이 없으면 통상임금으로 지급하되 휴가청구권이 있는 마지막 달의 통상임금으로 지급하여야 합니다. (근로개선정책과-4218, 2013.7.19)
+
+다만, 연차촉진제 등을 사용하여 연차유급휴가가 소멸된 경우에는 사용자는 그 사용하지 아니한 휴가에 대하여 보상할 의무가 없고, 사용자의 귀책사유로 사용하지 못한 경우에 해당하지 아니하는 것으로 봅니다.</dd> 
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			답변일 : 2026.07.21 13:26
+			</div>
+		</dd>
+	</dl>
+	<!-- <div class="btn_right"><img src="/images/bt_recomm.gif" alt="추천"/></div> -->
+</div>
+
+<p style="height:15px"></p>
+
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_quest.gif" alt="질의"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" alt="사용자사진"/></div>
+			위의 질문에 대한 추가 질문입니다 사용촉진 이전인 2022년도 연차 미사용분에 대해 연차수당을 받을 수 있나요?
+		</dd>
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			<!-- 신청인 : null&nbsp;/&nbsp; -->
+			신청일 : 2026.07.21 15:22
+			</div>
+		</dd>
+	</dl>
+</div>
+
+<p style="height:15px"></p>
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_answ.gif" alt="답변"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" width="40px" height="40px" alt="상담사사진"/></div>고용노동부 1350모바일 상담입니다.
+
+근로기준법 제49조에 따라 임금채권의 소멸시효는 3년이므로, 연차유급휴가 미사용수당청구권이 발생한 날을 기준으로 3년 이내 미지급받은 연차수당에 대해 지급청구가 가능합니다.
+
+</dd> 
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			답변일 : 2026.07.21 16:36
+			</div>
+		</dd>
+	</dl>
+	<!-- <div class="btn_right"><img src="/images/bt_recomm.gif" alt="추천"/></div> -->
+</div>
+
+<p style="height:15px"></p>
+
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_quest.gif" alt="질의"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" alt="사용자사진"/></div>
+			2003년 입사자입니다. 올해 6월 30일부로 퇴사했고 미사용 잔여연차가 10개 이상이었는데, 회사에서 연차는 선지급이라고 미사용연차급여 없다는데 이게 무슨 말인지 모르겠어요. 보통 작년 미사용연차수당만 지급
+		</dd>
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			<!-- 신청인 : null&nbsp;/&nbsp; -->
+			신청일 : 2026.07.22 14:47
+			</div>
+		</dd>
+	</dl>
+</div>
+
+<p style="height:15px"></p>
+<div style="padding-top:0px">
+	<dl> 
+		<dt class="body02"><img src="/images/img_answ.gif" alt="답변"/></dt> 
+		<dd class="body03_g"><div class="pic_right"><img src="/images/photo/0/1000000000.gif" width="40px" height="40px" alt="상담사사진"/></div>고용노동부 1350모바일 상담입니다.
+
+가. 근로기준법 제60조 제1항에 따라 사용자는 1년간 80퍼센트 이상 출근한 근로자에게 15일의 유급휴가를 주어야하며, 같은 조 제2항에 따라 사용자는 계속하여 근로한 기간이 1년 미만인 근로자 또는 80퍼센트 미만 출근한 근로자에게 1개월 개근 시 1일의 유급휴가를 주어야 합니다.
+
+- 근로기준법 제60조에 따른 연차유급휴가는 산정기간의 출근율(연간 출근율 80% 이상 출근)에 따라 발생하고, 차년도에 사용할 수 있으며, 차년도에 미사용한 연차휴가에 대해서는 연차휴가 사용기간이 종료된 후 연차수당이 발생하게 되는 것이 원칙입니다.
+
+나. 한편, 우리부는 연차유급휴가 미사용수당을 월급에 포함하여 미리 지급하는 근로계약을 체결한 경우에 그 수당을 지급한 이후에도 해당 근로자가 연차유급휴가를 사용할 수 있도록 허용하는 때에는 근로계약의 효력은 인정되며,
+
+- 근로자가 연차유급휴가 미사용수당을 미리 지급받은 경우, 사용한 연차유급휴가에 대해서는 선지급한 미사용수당을 해당월의 임금에서 공제할 수 있을 것이나, 미사용수당은 원칙적으로 연차유급휴가 발생일로부터 1년 후에 지급되는 임금으로 그 지급기준은 최종휴가청구권이 있는 달의 임금을 기준으로 산정되어야 하므로 선지급한 월 이후에 통상임금의 변동이 발생하게 되면 그 차액은 휴가청구권이 있는 다음달 임금지급일에 추가로 지급하여야 한다는 입장입니다
+
+- 따라서 연차유급휴가 미사용수당을 선지급하기로 근로계약을 체결하고 취업규칙이나 근로계약서상 연차수당에 해당하는 금액, 휴가 일수 등을 명확하게 기재하여 월급에 포함하여 지급받아 왔고, 수당으로 지급받은 이후에도 근로자가 휴가를 사용할 수 있도록 하였다면 유효한 근로계약으로 보아야 할 것입니다.
+
+- 연차수당을 선지급한 경우라도 근로자의 휴가 사용청구권은 보장해야 하므로 연차휴가를 사용하지 못하게 한다면 법 위반에 해당하며, 연차수당을 선지급하였다고 하여 사용가능한 연차휴가가 없는 것이 아닙니다.
+
+- 다만, 근로자가 연차휴가를 사용할 경우 임금에서 해당 휴가일수만큼 공제할 수 있으며, 임금공제에 대해서는 취업규칙이나 근로계약서상 명시하시면 됩니다.
+
+</dd> 
+		<dd>
+			<div align="left" class="title_count1" style="color:gray;font-weight:bold">
+			답변일 : 2026.07.22 15:49
+			</div>
+		</dd>
+	</dl>
+	<!-- <div class="btn_right"><img src="/images/bt_recomm.gif" alt="추천"/></div> -->
+</div>
+
+<p style="height:15px"></p>
+
+
+<p style="height:20px"></p>
+<div align="center" id="test" style="display:block">
+
+<p><textarea class="put01" name="askcntn" onclick="fn_clear()" cols="" rows="" style="color:gray" onkeyup="fc_chk_byte2(this,200);">실시간 상담 질문 내용을 입력하세요. 실시간 상담은 모두에게 공개되며, 글자 수 제한이 있으니 100자 이내로 작성하여 주시기 바랍니다.</textarea></p>
+
+</div> 
+<p style="height:20px"></p>
+<div>&nbsp;&nbsp;
+	<img src="/images/timg_mblphn.gif" height="11px" alt="전화번호"/>&nbsp;
+	<input type="text" size="7" maxlength="3" class="put02" name="mblphn1" onblur="isNum(this)" id="phn1" value=""/>
+	<input type="text" size="7" maxlength="4" class="put02" name="mblphn2" onblur="isNum(this)" id="phn2" value=""/>
+	<input type="text" size="7" maxlength="4" class="put02" name="mblphn3" onblur="isNum(this)" id="phn3" value=""/>
+</div>
+<hr/>
+<div><p style="height:5px"></p></div>
+<div align="center"><input type="image" class="put_btn" src="/images/bbtn_quickque.gif" alt="빠른질문" onclick="fn_valid();"/></div>
+<div><p style="height:25px"></p></div>
+
+<p style="height:20px"></p>
+
+</form>
+</body>
+</html>
