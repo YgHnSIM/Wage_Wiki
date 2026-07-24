@@ -62,6 +62,7 @@ class SchemaContractTests(unittest.TestCase):
         self.assertIn("source_availability", contract.required_by_entity_type["case"])
         self.assertIn("case_numbers", contract.string_list_fields)
         self.assertIn("", contract.controlled_fields["conflict_resolution"])
+        self.assertIn("guide", contract.controlled_fields["entity_type"])
 
 
 class RepositoryGraphContractTests(unittest.TestCase):
@@ -177,6 +178,7 @@ class ReviewPolicyTests(unittest.TestCase):
             "monthly",
         )
         self.assertEqual(recommended_review_cycle("rule", "규칙", {}, as_of), "quarterly")
+        self.assertEqual(recommended_review_cycle("guide", "실무 가이드", {}, as_of), "quarterly")
         self.assertFalse(review_deadline_passed(as_of - dt.timedelta(days=31), "monthly", as_of))
         self.assertTrue(review_deadline_passed(as_of - dt.timedelta(days=32), "monthly", as_of))
         self.assertFalse(review_deadline_passed(as_of - dt.timedelta(days=999), "unknown", as_of))

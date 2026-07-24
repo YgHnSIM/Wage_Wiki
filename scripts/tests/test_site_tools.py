@@ -39,6 +39,7 @@ class SiteBuildTests(unittest.TestCase):
             self.assertIn('id="search-input"', home)
             self.assertIn('class="search-panel"', home)
             self.assertIn('class="type-filters"', home)
+            self.assertIn('data-type="guide" data-label="실무 가이드"', home)
             self.assertIn('<main id="main" tabindex="-1">', home)
             self.assertIn(f"전체 문서 {expected_entities}개", home)
             for removed_control in (
@@ -58,6 +59,8 @@ class SiteBuildTests(unittest.TestCase):
             self.assertEqual(len(list((output / "entities").glob("*/index.html"))), expected_entities)
             records = json.loads((output / "assets" / "entities.json").read_text(encoding="utf-8"))
             self.assertEqual(len(records), expected_entities)
+            self.assertEqual(records[0]["type"], "guide")
+            self.assertEqual(records[0]["number"], "GU-01")
             self.assertTrue(all(record.get("searchText") for record in records))
             self.assertTrue(all("aliases" in record and "caseNumber" in record for record in records))
             self.assertLessEqual(max(len(record["summary"]) for record in records), 161)

@@ -155,6 +155,7 @@ Conclusion
 └── _triage
 
 /wiki
+├── guides
 ├── concepts
 ├── rules
 ├── cases
@@ -302,7 +303,7 @@ Knowledge Graph 편입
 schema_version: "1.3"
 id: ""                          # 변경하지 않는 canonical ID
 id_aliases: []                  # 교정·한글화 ID가 canonical ID로 해소되는 별칭
-entity_type: ""                 # concept / rule / case / law / interpretation / history / discussion / fact_pattern
+entity_type: ""                 # guide / concept / rule / case / law / interpretation / history / discussion / fact_pattern
 title: ""
 aliases: []                     # 제목·검색 별칭
 jurisdiction: KR
@@ -446,7 +447,7 @@ legal_effect: persuasive        # binding_internal / persuasive / informational
 ## 9. Controlled Vocabulary
 
 ### entity_type
-`concept` / `rule` / `case` / `law` / `interpretation` / `history` / `discussion` / `fact_pattern`
+`guide` / `concept` / `rule` / `case` / `law` / `interpretation` / `history` / `discussion` / `fact_pattern`
 
 ### status
 `draft` / `review` / `verified`
@@ -582,6 +583,7 @@ evidence:
 | 소멸시효 | `extinction_period` | Rule |
 | 정기성 / 일률성 / 고정성 등 판단 요소 | `wage_criteria` | Rule |
 | 전형 사실유형 (명절상여금 등) | Fact Pattern 본문 | fact_pattern |
+| 여러 규칙·사실유형을 잇는 실무 절차 | Guide 본문과 기존 `related_*`·`relations` | guide |
 
 ---
 
@@ -725,7 +727,7 @@ canonical `id`는 오역·로마자 혼용이 있어도 변경하지 않는다. 
 
 | 분류 | scope |
 |------|-------|
-| 엔티티 | `case`, `rule`, `concept`, `law`, `interpretation`, `history`, `discussion`, `fact-pattern` |
+| 엔티티 | `guide`, `case`, `rule`, `concept`, `law`, `interpretation`, `history`, `discussion`, `fact-pattern` |
 | 법률 주제 | `wage`, `ordinary-wage`, `average-wage`, `minimum-wage`, `wage-arrears`, `performance-pay` |
 | 시스템 | `raw`, `sources`, `schema`, `validation`, `graph`, `search`, `site`, `ci`, `repo`, `agent`, `templates` |
 
@@ -869,6 +871,7 @@ Concept 문서에 `related_rules`가 없는 경우.
 |------|----------------|--------------------|
 | 법령·시행령 | 매일 변경 탐지, 분기 검증 | quarterly |
 | 대법원·고용노동부 | 매주 변경 탐지, 분기 검증 | quarterly |
+| Guide | 분기 또는 연결 근거 변경 시 | quarterly |
 | `최신 동향` Discussion | 매월 | monthly |
 | 일반 Discussion | 분기 | quarterly |
 | 최근 2년 Case | 분기 또는 trigger 발생 시 | quarterly |

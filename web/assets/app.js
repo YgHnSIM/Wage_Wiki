@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const TYPE_ORDER = ["rule", "case", "law", "interpretation", "fact_pattern", "concept", "discussion", "history"];
+  const TYPE_ORDER = ["guide", "rule", "case", "law", "interpretation", "fact_pattern", "concept", "discussion", "history"];
 
   function initDocumentMeta() {
     const details = Array.from(document.querySelectorAll(".document-meta__more"));

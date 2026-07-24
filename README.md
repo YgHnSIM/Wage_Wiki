@@ -10,6 +10,7 @@
 - `evidence`는 `source_id`, 정확한 `locator`, 짧은 `excerpt`, 근거가 되는 문서 로컬 claim ID인 `supports`를 한 레코드로 묶는다. claim ID는 본문 블록 끝의 `^claim-id`로 해소한다.
 - `verification`은 안정적인 `verifier_ids`와 통제된 `methods`, 자유형 `note`를 분리한다. 기존 `verified_by`는 v1.3 호환 필드로 유지하되 값이 있으면 구조화 metadata와 의미가 일치해야 한다.
 - `relations`는 `relation_type`과 `target_id`로 법적 의미가 있는 간선을 표현한다. 기존 `related_*` 링크는 Obsidian 탐색과 v1.2 호환을 위해 유지한다.
+- `guide`는 여러 Rule·Fact Pattern·Law를 하나의 실무 절차로 엮는 탐색 허브다. 독립적인 법적 결론은 Rule과 근거 엔티티에 두고 Guide는 이를 재사용한다.
 - 행정해석·지침은 `interpretation` 엔티티로 모델링한다.
 - Rule은 `issue → elements → exceptions → conclusion`과 `temporal` 적용기간을 명시한다.
 - canonical `id`는 변경하지 않는다. 교정 ID와 한글 사건번호는 `id_aliases` 및 `schemas/id-aliases.json`으로 해소한다. 그래프 내부 namespace인 `claim:`, `evidence:`, `source:` 접두사는 엔티티 ID에 사용할 수 없다.
@@ -21,7 +22,7 @@
 | 경로 | 역할 |
 |---|---|
 | `raw/` | 수정하지 않는 원문 자료 |
-| `wiki/` | Rule, Case, Law, Interpretation 등 그래프 엔티티 |
+| `wiki/` | Guide, Rule, Case, Law, Interpretation 등 그래프 엔티티 |
 | `templates/` | v1.3 신규 문서 템플릿 |
 | `schemas/` | JSON Schema, 통제 어휘, ID alias |
 | `sources/` | source registry, 과거 경로 alias, raw manifest |
@@ -128,7 +129,7 @@ python scripts/lint_wiki.py --require-claim-anchors --fail-on high
 
 v1.2에는 검증자 식별자가 없으므로 기본 이관은 기존 `verified`를 `review`로 내려 재검증을 요구한다. 이번 작업에서 실제 법률 내용까지 재검증한 경우에만 `--verified-by <검증자-ID>`를 사용한다. 이 옵션은 해당 문서의 ingestion, `last_verified`, `last_checked`를 이관 기준일로 갱신하므로 단순 형식 변환에는 사용하지 않는다.
 
-기본 review 주기는 Rule·Law·Interpretation과 일반 Discussion이 `quarterly`, 제목에 `최신 동향`이 있는 Discussion이 `monthly`다. Case는 기준일로부터 최근 2년 이내 선고분을 `quarterly`, 그 이전 판례를 `annual`로 두고, Concept·History·Fact Pattern은 `annual`로 둔다. 기존 명시값을 자동으로 덮어쓰지 않는다. 계획을 검토한 후 아래 옵션을 명시해야 기존 값을 정책값으로 바꾼다.
+기본 review 주기는 Guide·Rule·Law·Interpretation과 일반 Discussion이 `quarterly`, 제목에 `최신 동향`이 있는 Discussion이 `monthly`다. Case는 기준일로부터 최근 2년 이내 선고분을 `quarterly`, 그 이전 판례를 `annual`로 두고, Concept·History·Fact Pattern은 `annual`로 둔다. 기존 명시값을 자동으로 덮어쓰지 않는다. 계획을 검토한 후 아래 옵션을 명시해야 기존 값을 정책값으로 바꾼다.
 
 ```text
 python scripts/migrate_schema_v13.py --write --apply-review-policy

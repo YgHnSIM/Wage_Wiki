@@ -82,16 +82,18 @@ TOPIC_LINKS = (
 )
 
 TYPE_ORDER = {
-    "rule": 0,
-    "case": 1,
-    "law": 2,
-    "interpretation": 3,
-    "fact_pattern": 4,
-    "concept": 5,
-    "discussion": 6,
-    "history": 7,
+    "guide": 0,
+    "rule": 1,
+    "case": 2,
+    "law": 3,
+    "interpretation": 4,
+    "fact_pattern": 5,
+    "concept": 6,
+    "discussion": 7,
+    "history": 8,
 }
 TYPE_LABELS = {
+    "guide": "실무 가이드",
     "rule": "판단 규칙",
     "case": "판례",
     "law": "법령",
@@ -102,6 +104,7 @@ TYPE_LABELS = {
     "history": "연혁",
 }
 TYPE_PREFIXES = {
+    "guide": "GU",
     "rule": "RU",
     "case": "CA",
     "law": "LA",

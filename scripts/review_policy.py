@@ -27,7 +27,7 @@ def recommended_review_cycle(
 
     if entity_type == "discussion":
         return "monthly" if "최신 동향" in title else "quarterly"
-    if entity_type in {"rule", "law", "interpretation"}:
+    if entity_type in {"guide", "rule", "law", "interpretation"}:
         return "quarterly"
     if entity_type == "case":
         decision_date = parse_date(data.get("decision_date"))

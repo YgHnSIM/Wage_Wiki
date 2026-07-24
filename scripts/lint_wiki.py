@@ -633,7 +633,7 @@ def lint_repository(
             for field in ("court_name", "case_number", "decision_date", "case_role"):
                 if not scalar_text(data.get(field)):
                     issues.append(issue("high", "CASE_FIELD_EMPTY", entity.relative_path, f"case field is required: {field}", field))
-        if entity_type in {"concept", "fact_pattern"} and not as_list(data.get("related_rules")):
+        if entity_type in {"concept", "fact_pattern", "guide"} and not as_list(data.get("related_rules")):
             issues.append(issue("medium", "RULE_LINK_MISSING", entity.relative_path, f"{entity_type} requires a related rule"))
         if entity_type == "rule" and version == SCHEMA_VERSION:
             for field in ("issue", "elements", "exceptions", "conclusion", "temporal", "decision_factors"):
