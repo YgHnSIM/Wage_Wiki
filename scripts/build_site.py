@@ -510,31 +510,25 @@ def _home_page(
     formatted_as_of = html.escape(_format_date(as_of))
     body = f"""{_site_header('./', repository_url)}
 <main id="main" tabindex="-1">
-  <section class="hero" aria-labelledby="hero-title">
-    <div class="hero__copy">
-      <p class="section-label">임금법 지식베이스</p>
-      <h1 id="hero-title">판례와 규칙을<br>한 흐름으로 읽습니다.</h1>
-      <p class="hero__description">통상임금·평균임금, 성과급, 지급조건, 최저임금 쟁점을 사실관계·판단 규칙·근거 권위·결론의 흐름으로 탐색합니다.</p>
-      <a class="text-link" href="#explore">문서 탐색 시작</a>
-    </div>
-    <section class="hero__explore" aria-labelledby="explore-title">
-      <p class="section-label">전체 지식베이스</p>
-      <h2 id="explore-title">문서 탐색</h2>
-      <fieldset class="type-filters"><legend>문서 유형</legend><div>{''.join(type_buttons)}</div></fieldset>
-      <p class="result-status" id="result-status" aria-live="polite">전체 문서 {len(records)}개 · {len(initial)}개 표시</p>
-    </section>
-  </section>
-
-  <section class="explorer" id="explore" aria-label="문서 검색 결과" data-index-url="assets/entities.json?v={ASSET_VERSION}">
-    <form class="search-panel" id="search-form" role="search" action="./" method="get">
-      <label for="search-input">문서 검색</label>
-      <div class="search-panel__control">
-        <input id="search-input" name="q" type="search" autocomplete="off" placeholder="제목, 사건번호, 쟁점을 검색하세요" aria-describedby="search-help">
-        <button type="button" id="clear-search" hidden>지우기</button>
+  <section class="explorer" id="explore" aria-labelledby="explore-title" data-index-url="assets/entities.json?v={ASSET_VERSION}">
+    <div class="explorer-console">
+      <div class="explore-panel">
+        <p class="section-label">전체 지식베이스</p>
+        <h1 id="explore-title">문서 탐색</h1>
+        <fieldset class="type-filters"><legend>문서 유형</legend><div>{''.join(type_buttons)}</div></fieldset>
+        <p class="result-status" id="result-status" role="status" aria-live="polite" aria-atomic="true">전체 문서 {len(records)}개 · {len(initial)}개 표시</p>
       </div>
-      <p id="search-help">제목·별칭·사건번호·본문을 검색합니다. 슬래시(/) 또는 Ctrl+K로 검색창에 이동할 수 있습니다.</p>
-    </form>
-    <div class="search-sorting">
+      <div class="search-workspace">
+        <form class="search-panel" id="search-form" role="search" aria-label="문서 검색" action="./" method="get">
+          <label class="visually-hidden" for="search-input">문서 검색</label>
+          <div class="search-panel__control">
+            <input id="search-input" name="q" type="search" autocomplete="off" placeholder="제목·사건번호·쟁점 검색">
+            <button type="button" id="clear-search" hidden>지우기</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="results-toolbar">
       <div class="sort-control">
         <label class="visually-hidden" for="sort-select">정렬 기준</label>
         <select id="sort-select" name="sort">

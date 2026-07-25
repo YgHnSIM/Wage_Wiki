@@ -38,7 +38,7 @@ class SiteBuildTests(unittest.TestCase):
             self.assertIn('id="search-input"', home)
             self.assertIn('<form class="search-panel" id="search-form"', home)
             self.assertIn('class="type-filters"', home)
-            self.assertIn('class="search-sorting"', home)
+            self.assertIn('class="results-toolbar"', home)
             self.assertIn('id="sort-select"', home)
             self.assertIn('<option value="latest">최신 적용일순</option>', home)
             self.assertIn('id="pagination"', home)
@@ -67,14 +67,27 @@ class SiteBuildTests(unittest.TestCase):
             self.assertTrue(all('aria-pressed="false"' in button for button in type_buttons[1:]))
             self.assertIn('<main id="main" tabindex="-1">', home)
             self.assertIn(f"전체 문서 {expected_entities}개", home)
-            hero = home[home.index('<section class="hero"'):home.index('<section class="explorer"')]
-            self.assertNotIn('class="hero__folio"', hero)
-            self.assertIn('class="hero__explore"', hero)
-            self.assertIn('class="type-filters"', hero)
-            self.assertNotIn('class="search-panel"', hero)
             explorer = home[home.index('<section class="explorer"'):home.index('<section class="recent-documents"')]
+            self.assertNotIn('class="hero"', home)
+            self.assertNotIn('id="hero-title"', home)
+            self.assertNotIn("판례와 규칙을", home)
+            self.assertIn('class="explorer-console"', explorer)
+            self.assertIn('class="explore-panel"', explorer)
+            self.assertIn('<h1 id="explore-title">문서 탐색</h1>', explorer)
+            self.assertIn('class="type-filters"', explorer)
+            self.assertIn('class="search-workspace"', explorer)
             self.assertIn('<form class="search-panel" id="search-form"', explorer)
-            self.assertIn('class="search-sorting"', explorer)
+            self.assertIn('aria-label="문서 검색"', explorer)
+            self.assertIn('class="results-toolbar"', explorer)
+            self.assertNotIn('id="search-title"', explorer)
+            self.assertNotIn('id="search-help"', explorer)
+            self.assertLess(explorer.index('class="explore-panel"'), explorer.index('class="search-workspace"'))
+            self.assertLess(explorer.index('class="explorer-console"'), explorer.index('<div class="results"'))
+            search_workspace = explorer[explorer.index('<div class="search-workspace">'):explorer.index('<div class="results-toolbar">')]
+            self.assertEqual(search_workspace.count("<form"), 1)
+            self.assertEqual(search_workspace.count("<input"), 1)
+            self.assertNotIn("<h2", search_workspace)
+            self.assertNotIn("<p", search_workspace)
             for removed_control in (
                 "filter-grid",
                 "status-filter",
