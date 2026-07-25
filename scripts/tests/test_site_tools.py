@@ -36,9 +36,9 @@ class SiteBuildTests(unittest.TestCase):
             home = (output / "index.html").read_text(encoding="utf-8")
             self.assertIn('class="recent-documents"', home)
             self.assertIn('id="search-input"', home)
-            self.assertIn('class="search-panel hero__search"', home)
+            self.assertIn('<form class="search-panel" id="search-form"', home)
             self.assertIn('class="type-filters"', home)
-            self.assertIn('class="filter-controls"', home)
+            self.assertIn('class="search-sorting"', home)
             self.assertIn('id="sort-select"', home)
             self.assertIn('<option value="latest">최신 적용일순</option>', home)
             self.assertIn('id="pagination"', home)
@@ -69,7 +69,12 @@ class SiteBuildTests(unittest.TestCase):
             self.assertIn(f"전체 문서 {expected_entities}개", home)
             hero = home[home.index('<section class="hero"'):home.index('<section class="explorer"')]
             self.assertNotIn('class="hero__folio"', hero)
-            self.assertIn('class="search-panel hero__search"', hero)
+            self.assertIn('class="hero__explore"', hero)
+            self.assertIn('class="type-filters"', hero)
+            self.assertNotIn('class="search-panel"', hero)
+            explorer = home[home.index('<section class="explorer"'):home.index('<section class="recent-documents"')]
+            self.assertIn('<form class="search-panel" id="search-form"', explorer)
+            self.assertIn('class="search-sorting"', explorer)
             for removed_control in (
                 "filter-grid",
                 "status-filter",

@@ -517,7 +517,16 @@ def _home_page(
       <p class="hero__description">통상임금·평균임금, 성과급, 지급조건, 최저임금 쟁점을 사실관계·판단 규칙·근거 권위·결론의 흐름으로 탐색합니다.</p>
       <a class="text-link" href="#explore">문서 탐색 시작</a>
     </div>
-    <form class="search-panel hero__search" id="search-form" role="search" action="./" method="get">
+    <section class="hero__explore" aria-labelledby="explore-title">
+      <p class="section-label">전체 지식베이스</p>
+      <h2 id="explore-title">문서 탐색</h2>
+      <fieldset class="type-filters"><legend>문서 유형</legend><div>{''.join(type_buttons)}</div></fieldset>
+      <p class="result-status" id="result-status" aria-live="polite">전체 문서 {len(records)}개 · {len(initial)}개 표시</p>
+    </section>
+  </section>
+
+  <section class="explorer" id="explore" aria-label="문서 검색 결과" data-index-url="assets/entities.json?v={ASSET_VERSION}">
+    <form class="search-panel" id="search-form" role="search" action="./" method="get">
       <label for="search-input">문서 검색</label>
       <div class="search-panel__control">
         <input id="search-input" name="q" type="search" autocomplete="off" placeholder="제목, 사건번호, 쟁점을 검색하세요" aria-describedby="search-help">
@@ -525,17 +534,9 @@ def _home_page(
       </div>
       <p id="search-help">제목·별칭·사건번호·본문을 검색합니다. 슬래시(/) 또는 Ctrl+K로 검색창에 이동할 수 있습니다.</p>
     </form>
-  </section>
-
-  <section class="explorer" id="explore" aria-labelledby="explore-title" data-index-url="assets/entities.json?v={ASSET_VERSION}">
-    <div class="section-heading section-heading--split">
-      <div><p class="section-label">전체 지식베이스</p><h2 id="explore-title">문서 탐색</h2></div>
-      <p class="result-status" id="result-status" aria-live="polite">전체 문서 {len(records)}개 · {len(initial)}개 표시</p>
-    </div>
-    <div class="filter-controls">
-      <fieldset class="type-filters"><legend>문서 유형</legend><div>{''.join(type_buttons)}</div></fieldset>
+    <div class="search-sorting">
       <div class="sort-control">
-        <label for="sort-select">정렬</label>
+        <label class="visually-hidden" for="sort-select">정렬 기준</label>
         <select id="sort-select" name="sort">
           <option value="latest">최신 적용일순</option>
           <option value="oldest">오래된 적용일순</option>

@@ -223,28 +223,39 @@ svg {
   line-height: 1.6;
 }
 
-.home-page .hero__search {
+.home-page .hero__explore {
   grid-column: 8 / 13;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  align-content: center;
-  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   padding: clamp(2rem, 3.5vw, 3.5rem) max(20px, calc((100vw - 1440px) / 2 + 20px));
   background: var(--surface);
 }
 
-.home-page .hero__search > label {
-  padding: 0 0 0.9rem;
-  border-right: 0;
+.home-page .hero__explore .section-label {
+  margin-bottom: 0.7rem;
 }
 
-.home-page .hero__search .search-panel__control {
+.home-page .hero__explore h2 {
+  margin: 0 0 1.5rem;
+  font-size: clamp(2.4rem, 4.2vw, 4.25rem);
+  font-weight: 800;
+  letter-spacing: -0.07em;
+  line-height: 0.9;
+}
+
+.home-page .hero__explore .type-filters {
+  margin: 0;
+}
+
+.home-page .hero__explore .result-status {
+  margin: 0.85rem 0 0;
   padding: 0;
-}
-
-.home-page .hero__search > p {
-  grid-column: auto;
-  padding: 0.7rem 0 0;
+  color: var(--blue);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.4;
+  text-align: left;
 }
 
 .explorer,
@@ -503,9 +514,10 @@ svg {
 
 .type-filters > div {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
-  grid-template-rows: auto;
+  grid-auto-flow: row;
+  grid-auto-rows: minmax(56px, auto);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-rows: none;
   border-top: 1px solid var(--ink);
   border-left: 1px solid var(--ink);
 }
@@ -539,39 +551,39 @@ svg {
   font-variant-numeric: tabular-nums;
 }
 
-.filter-controls {
+.search-sorting {
   display: grid;
   grid-template-columns: repeat(10, minmax(0, 1fr));
-  row-gap: 0.75rem;
   margin: 0 0 2rem;
 }
 
-.filter-controls .type-filters {
-  grid-column: 1 / -1;
+.search-sorting .sort-control {
+  grid-column: 9 / -1;
+  margin: 0;
 }
 
 .sort-control {
-  display: grid;
-  grid-template-columns: 3fr 9fr;
-  align-items: center;
-  grid-column: 8 / -1;
-  margin: 0;
+  display: block;
+  margin: 0 0 2rem;
   border-top: 1px solid var(--line-strong);
   border-bottom: 1px solid var(--line-strong);
 }
 
-.sort-control label {
-  padding: 0.8rem 1rem 0.8rem 0;
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 800;
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .sort-control select {
   width: 100%;
-  min-height: 46px;
+  min-height: 42px;
   padding: 0.55rem 2rem 0.55rem 0.75rem;
-  border-width: 0 0 0 1px;
+  border: 0;
   background-color: var(--white);
   color: var(--ink);
   font-size: 0.88rem;
@@ -1526,7 +1538,7 @@ th {
     grid-column: 1 / 7;
   }
 
-  .hero__search {
+  .hero__explore {
     grid-column: 7 / 13;
   }
 
@@ -1605,27 +1617,26 @@ th {
     line-height: 1.55;
   }
 
-  .home-page .hero__search {
+  .home-page .hero__explore {
     display: block;
     min-height: 0;
-    margin: 0;
     padding: 1.25rem 20px 1.5rem;
     border-top: 1px solid var(--line-strong);
     background: var(--surface);
   }
 
-  .home-page .hero__search > label {
-    display: block;
-    padding: 0 0 0.7rem;
-    border-bottom: 0;
+  .home-page .hero__explore .section-label {
+    margin-bottom: 0.55rem;
   }
 
-  .home-page .hero__search .search-panel__control {
-    padding: 0;
+  .home-page .hero__explore h2 {
+    margin-bottom: 1.1rem;
+    font-size: clamp(2.3rem, 11vw, 3.8rem);
   }
 
-  .home-page .hero__search > p {
-    padding: 0.6rem 0 0;
+  .home-page .hero__explore .result-status {
+    margin-top: 0.65rem;
+    font-size: 0.7rem;
   }
 
   .section-heading,
@@ -1777,14 +1788,9 @@ th {
     scroll-margin-top: 72px;
   }
 
-  .filter-controls {
+  .search-sorting {
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    row-gap: 0.65rem;
     margin-bottom: 1.25rem;
-  }
-
-  .filter-controls .type-filters {
-    grid-column: 1 / -1;
   }
 
   .type-filters > div {
@@ -1796,19 +1802,13 @@ th {
     padding-bottom: 0.5rem;
   }
 
-  .sort-control {
-    display: grid;
-    grid-column: 3 / -1;
+  .search-sorting .sort-control {
+    grid-column: 4 / -1;
     margin: 0;
-  }
-
-  .sort-control label {
-    padding: 0.6rem 0.5rem;
   }
 
   .sort-control select {
     width: 100%;
-    border-width: 0 0 0 1px;
     font-size: 0.82rem;
   }
 
