@@ -87,6 +87,7 @@ HOME_TYPE_ORDER = (
     "concept",
     "history",
 )
+CATEGORY_ARCHIVE_TYPES = ("concept", "history")
 TYPE_PREFIXES = {
     "guide": "GU",
     "rule": "RU",
@@ -392,14 +393,21 @@ def _document(
 """
 
 
-def _site_header(home_prefix: str, repository_url: str) -> str:
+def _site_header(
+    home_prefix: str,
+    repository_url: str,
+    *,
+    current_section: str = "",
+) -> str:
     safe_home = html.escape(home_prefix, quote=True)
+    concept_current = ' aria-current="page"' if current_section == "concept" else ""
+    history_current = ' aria-current="page"' if current_section == "history" else ""
     return f"""<header class="site-header">
   <a class="wordmark" href="{safe_home}"><span>WAGE</span><span>WIKI</span></a>
   <nav aria-label="주요 메뉴">
-    <a href="{safe_home}?type=concept#explore">개념</a>
-    <a href="{safe_home}?type=history#explore">연혁</a>
-    <a href="{html.escape(repository_url, quote=True)}">GitHub 저장소</a>
+    <a href="{safe_home}concept/"{concept_current}>개념</a>
+    <a href="{safe_home}history/"{history_current}>연혁</a>
+    <a class="site-nav__repo" href="{html.escape(repository_url, quote=True)}">GitHub 저장소</a>
   </nav>
 </header>"""
 
@@ -408,7 +416,7 @@ def _badge(value: str, label: str, kind: str) -> str:
     return f'<span class="badge badge--{html.escape(kind)}" data-value="{html.escape(value, quote=True)}">{html.escape(label)}</span>'
 
 
-def _record_card(record: dict[str, Any]) -> str:
+def _record_card(record: dict[str, Any], *, link_prefix: str = "") -> str:
     return f"""<article class="result-card">
   <div class="result-card__number" aria-hidden="true">{html.escape(record['number'])}</div>
   <div class="result-card__body">
@@ -416,7 +424,7 @@ def _record_card(record: dict[str, Any]) -> str:
       <span>{html.escape(record['typeLabel'])}</span>
       <span>{html.escape(record['dateLabel'])} {html.escape(record['dateDisplay'])}</span>
     </div>
-    <h3><a href="{html.escape(record['url'], quote=True)}">{html.escape(record['title'])}</a></h3>
+    <h3><a href="{html.escape(link_prefix + record['url'], quote=True)}">{html.escape(record['title'])}</a></h3>
     <p>{html.escape(record['summary'])}</p>
     <div class="badges">
       {_badge(record['status'], record['statusLabel'], 'editorial')}
@@ -424,6 +432,45 @@ def _record_card(record: dict[str, Any]) -> str:
     </div>
   </div>
 </article>"""
+
+
+def _type_archive_page(
+    records: list[dict[str, Any]],
+    entity_type: str,
+    site_url: str,
+    repository_url: str,
+) -> str:
+    """Render a focused, static archive for a document type."""
+    type_label = TYPE_LABELS[entity_type]
+    archive_records = sorted(
+        (record for record in records if record["type"] == entity_type),
+        key=lambda record: (record["sortDate"], record["title"].casefold()),
+        reverse=True,
+    )
+    cards = "".join(_record_card(record, link_prefix="../") for record in archive_records)
+    body = f"""{_site_header('../', repository_url, current_section=entity_type)}
+<main id="main" class="type-archive" tabindex="-1">
+  <header class="type-archive__header">
+    <p class="section-label">문서 유형</p>
+    <div>
+      <h1 id="type-archive-title">{html.escape(type_label)}</h1>
+      <p class="type-archive__count">{len(archive_records)}개 문서</p>
+    </div>
+  </header>
+  <section class="type-archive__listing" aria-labelledby="type-archive-list-title">
+    <h2 class="visually-hidden" id="type-archive-list-title">{html.escape(type_label)} 문서 목록</h2>
+    <div class="results type-archive__results">{cards}</div>
+  </section>
+</main>
+<footer class="site-footer"><p>Wage Wiki · {html.escape(type_label)} {len(archive_records)}개 문서</p><p><a href="../#explore">전체 문서 보기</a></p></footer>"""
+    return _document(
+        title=f"{type_label} | {SITE_TITLE}",
+        description=f"Wage Wiki의 {type_label} 문서 {len(archive_records)}개",
+        body=body,
+        asset_prefix="../assets/",
+        canonical_url=_canonical(site_url, f"{entity_type}/"),
+        page_class=f"archive-page archive-page--{entity_type}",
+    )
 
 
 def _decision_path_steps_html(
@@ -907,9 +954,12 @@ def _entity_page(
         rail_date = f"<strong>{date_parts[0]}</strong><span>{date_parts[1]}.{date_parts[2]}</span>"
     else:
         rail_date = "<strong>날짜</strong><span>미기재</span>"
+    type_archive_href = (
+        f"../../{record['type']}/" if record["type"] in CATEGORY_ARCHIVE_TYPES else "../../#explore"
+    )
     body = f"""{_site_header('../../', repository_url)}
 <main id="{DOCUMENT_MAIN_FRAGMENT_ID}" tabindex="-1">
-  <nav class="breadcrumb" aria-label="현재 위치"><a href="../../">홈</a><span>/</span><a href="../../#explore">{html.escape(record['typeLabel'])}</a><span>/</span><span aria-current="page">{html.escape(record['number'])}</span></nav>
+  <nav class="breadcrumb" aria-label="현재 위치"><a href="../../">홈</a><span>/</span><a href="{html.escape(type_archive_href, quote=True)}">{html.escape(record['typeLabel'])}</a><span>/</span><span aria-current="page">{html.escape(record['number'])}</span></nav>
   <article class="document">
     <header class="document-hero">
       <div class="date-rail"><p>{html.escape(record['dateLabel'])}</p>{rail_date}<small>{html.escape(record['number'])}</small></div>
@@ -1135,6 +1185,14 @@ def build_site(
         encoding="utf-8",
         newline="\n",
     )
+    for entity_type in CATEGORY_ARCHIVE_TYPES:
+        target = output / entity_type
+        target.mkdir()
+        (target / "index.html").write_text(
+            _type_archive_page(records, entity_type, site_url, repository_url),
+            encoding="utf-8",
+            newline="\n",
+        )
     (output / "assets" / "entities.json").write_text(
         records_json, encoding="utf-8", newline="\n"
     )
@@ -1181,6 +1239,7 @@ def build_site(
         redirect_count += 1
 
     sitemap_urls = [_canonical(site_url), _canonical(site_url, "about/")]
+    sitemap_urls.extend(_canonical(site_url, f"{entity_type}/") for entity_type in CATEGORY_ARCHIVE_TYPES)
     sitemap_urls.extend(_canonical(site_url, record["url"]) for record in records)
     sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     sitemap += "".join(f"  <url><loc>{html.escape(url)}</loc></url>\n" for url in sitemap_urls if url)

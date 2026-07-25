@@ -170,9 +170,18 @@ svg {
   text-decoration: none;
 }
 
-.site-header nav a:hover {
+.site-header nav a:hover,
+.site-header nav a[aria-current="page"] {
   background: var(--blue);
   color: var(--white);
+}
+
+.site-header nav a[aria-current="page"] {
+  box-shadow: inset 0 -3px 0 var(--white);
+}
+
+.site-header nav a[aria-current="page"]:focus-visible {
+  outline-color: var(--white);
 }
 
 .section-label {
@@ -194,9 +203,48 @@ svg {
 .explorer,
 .recent-documents,
 .disclaimer,
-.about {
+.about,
+.type-archive {
   width: var(--page);
   margin-inline: auto;
+}
+
+.type-archive {
+  padding: clamp(2.5rem, 6vw, 6rem) 0 clamp(3rem, 7vw, 7rem);
+}
+
+.type-archive__header {
+  display: grid;
+  grid-template-columns: 3fr 9fr;
+  gap: clamp(1rem, 3vw, 3rem);
+  align-items: end;
+  padding: 0 0 clamp(1.5rem, 3vw, 2.5rem);
+  border-top: 1px solid var(--line-strong);
+}
+
+.type-archive__header .section-label {
+  align-self: start;
+  margin: 1.05rem 0 0;
+}
+
+.type-archive__header h1 {
+  margin: 0;
+  font-size: clamp(3.25rem, 9vw, 8.5rem);
+  font-weight: 800;
+  letter-spacing: -0.08em;
+  line-height: 0.82;
+}
+
+.type-archive__count {
+  margin: 1rem 0 0;
+  color: var(--blue);
+  font-size: clamp(0.88rem, 1.3vw, 1rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.type-archive__listing {
+  margin-top: clamp(1.5rem, 3vw, 2.5rem);
 }
 
 .section-heading {
@@ -571,14 +619,14 @@ svg {
   border-top: 3px solid var(--ink);
 }
 
-.home-page .result-card {
+:is(.home-page, .archive-page) .result-card {
   display: grid;
   grid-template-columns: clamp(72px, 10vw, 120px) minmax(0, 1fr);
   min-height: 150px;
   border-bottom: 1px solid var(--line-strong);
 }
 
-.home-page .result-card__number {
+:is(.home-page, .archive-page) .result-card__number {
   padding: 1rem clamp(0.75rem, 1.5vw, 1.25rem);
   border-right: 1px solid var(--line-strong);
   color: var(--blue);
@@ -589,7 +637,7 @@ svg {
   font-variant-numeric: tabular-nums;
 }
 
-.home-page .result-card__body {
+:is(.home-page, .archive-page) .result-card__body {
   display: grid;
   grid-template-areas:
     "meta meta"
@@ -602,7 +650,7 @@ svg {
   padding: 0.75rem clamp(0.9rem, 1.5vw, 1.25rem);
 }
 
-.home-page .result-card__meta {
+:is(.home-page, .archive-page) .result-card__meta {
   grid-area: meta;
   display: flex;
   justify-content: space-between;
@@ -614,8 +662,8 @@ svg {
   font-variant-numeric: tabular-nums;
 }
 
-.home-page .result-card h3,
-.home-page .result-card h4 {
+:is(.home-page, .archive-page) .result-card h3,
+:is(.home-page, .archive-page) .result-card h4 {
   grid-area: title;
   margin: 0;
   font-size: clamp(1.1rem, 1.7vw, 1.5rem);
@@ -623,12 +671,12 @@ svg {
   line-height: 1.2;
 }
 
-.home-page .result-card h3 a,
-.home-page .result-card h4 a {
+:is(.home-page, .archive-page) .result-card h3 a,
+:is(.home-page, .archive-page) .result-card h4 a {
   text-decoration: none;
 }
 
-.home-page .result-card p {
+:is(.home-page, .archive-page) .result-card p {
   grid-area: summary;
   display: -webkit-box;
   overflow: hidden;
@@ -641,7 +689,7 @@ svg {
   -webkit-line-clamp: 2;
 }
 
-.home-page .result-card .badges {
+:is(.home-page, .archive-page) .result-card .badges {
   grid-area: badges;
   align-self: start;
   justify-self: end;
@@ -677,7 +725,7 @@ svg {
   border-style: dashed;
 }
 
-.home-page .badge {
+:is(.home-page, .archive-page) .badge {
   min-height: 26px;
   padding: 0.2rem 0.5rem;
   font-size: 0.62rem;
@@ -1540,8 +1588,33 @@ th {
     font-size: 0.72rem;
   }
 
-  .site-header nav a:nth-child(3) {
+  .site-header nav .site-nav__repo {
     display: none;
+  }
+
+  .type-archive {
+    padding: 2.25rem 0 3rem;
+  }
+
+  .type-archive__header {
+    display: block;
+    padding-bottom: 1.5rem;
+  }
+
+  .type-archive__header .section-label {
+    margin: 0 0 1.1rem;
+  }
+
+  .type-archive__header h1 {
+    font-size: clamp(3.1rem, 20vw, 5.6rem);
+  }
+
+  .type-archive__count {
+    margin-top: 0.8rem;
+  }
+
+  .type-archive__listing {
+    margin-top: 1.25rem;
   }
 
   .explore-panel {
@@ -1705,12 +1778,12 @@ th {
     font-size: 0.82rem;
   }
 
-  .home-page .result-card {
+  :is(.home-page, .archive-page) .result-card {
     grid-template-columns: 60px minmax(0, 1fr);
     min-height: 160px;
   }
 
-  .home-page .result-card__number {
+  :is(.home-page, .archive-page) .result-card__number {
     padding: 0.85rem 0.45rem;
     border-right: 1px solid var(--line-strong);
     border-bottom: 0;
@@ -1719,7 +1792,7 @@ th {
     word-break: normal;
   }
 
-  .home-page .result-card__body {
+  :is(.home-page, .archive-page) .result-card__body {
     grid-template-areas:
       "meta"
       "title"
@@ -1731,27 +1804,27 @@ th {
     padding: 0.8rem 0.85rem;
   }
 
-  .home-page .result-card__meta {
+  :is(.home-page, .archive-page) .result-card__meta {
     gap: 0.4rem;
     font-size: 0.64rem;
   }
 
-  .home-page .result-card h3,
-  .home-page .result-card h4 {
+  :is(.home-page, .archive-page) .result-card h3,
+  :is(.home-page, .archive-page) .result-card h4 {
     font-size: 1.1rem;
     line-height: 1.3;
   }
 
-  .home-page .result-card p {
+  :is(.home-page, .archive-page) .result-card p {
     font-size: 0.76rem;
     -webkit-line-clamp: 1;
   }
 
-  .home-page .result-card .badges {
+  :is(.home-page, .archive-page) .result-card .badges {
     justify-self: start;
   }
 
-  .home-page .badge {
+  :is(.home-page, .archive-page) .badge {
     min-height: 26px;
     padding: 0.2rem 0.45rem;
     font-size: 0.6rem;

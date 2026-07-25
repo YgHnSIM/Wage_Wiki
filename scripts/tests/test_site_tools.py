@@ -68,8 +68,8 @@ class SiteBuildTests(unittest.TestCase):
             self.assertIn('<main id="main" tabindex="-1">', home)
             self.assertIn(f"전체 문서 {expected_entities}개", home)
             home_header = home[home.index('<header class="site-header">'):home.index("</header>") + len("</header>")]
-            self.assertIn('href="./?type=concept#explore">개념</a>', home_header)
-            self.assertIn('href="./?type=history#explore">연혁</a>', home_header)
+            self.assertIn('href="./concept/">개념</a>', home_header)
+            self.assertIn('href="./history/">연혁</a>', home_header)
             self.assertNotIn(">문서 탐색</a>", home_header)
             self.assertNotIn(">데이터 안내</a>", home_header)
             explorer = home[home.index('<section class="explorer"'):home.index('<section class="recent-documents"')]
@@ -106,13 +106,39 @@ class SiteBuildTests(unittest.TestCase):
             not_found = (output / "404.html").read_text(encoding="utf-8")
             self.assertIn('href="https://example.test/Wage_Wiki/assets/styles.css?', not_found)
             self.assertIn('href="https://example.test/Wage_Wiki/#explore"', not_found)
-            self.assertIn('href="https://example.test/Wage_Wiki/?type=concept#explore">개념</a>', not_found)
-            self.assertIn('href="https://example.test/Wage_Wiki/?type=history#explore">연혁</a>', not_found)
+            self.assertIn('href="https://example.test/Wage_Wiki/concept/">개념</a>', not_found)
+            self.assertIn('href="https://example.test/Wage_Wiki/history/">연혁</a>', not_found)
+            about = (output / "about" / "index.html").read_text(encoding="utf-8")
+            about_header = about[about.index('<header class="site-header">'):about.index("</header>") + len("</header>")]
+            self.assertIn('href="../concept/">개념</a>', about_header)
+            self.assertIn('href="../history/">연혁</a>', about_header)
             self.assertEqual(len(list((output / "entities").glob("*/index.html"))), expected_entities)
             records = json.loads((output / "assets" / "entities.json").read_text(encoding="utf-8"))
             self.assertEqual(len(records), expected_entities)
             self.assertEqual(records[0]["type"], "guide")
             self.assertEqual(records[0]["number"], "GU-01")
+            for entity_type in ("concept", "history"):
+                archive_path = output / entity_type / "index.html"
+                self.assertTrue(archive_path.is_file())
+                archive = archive_path.read_text(encoding="utf-8")
+                archive_records = [record for record in records if record["type"] == entity_type]
+                archive_label = archive_records[0]["typeLabel"]
+                archive_header = archive[archive.index('<header class="site-header">'):archive.index("</header>") + len("</header>")]
+                self.assertIn(f'<body class="archive-page archive-page--{entity_type}">', archive)
+                self.assertIn(f'<h1 id="type-archive-title">{archive_label}</h1>', archive)
+                self.assertEqual(archive.count('<h1 id="type-archive-title">'), 1)
+                self.assertEqual(archive.count('<article class="result-card">'), len(archive_records))
+                self.assertIn(f'href="../{entity_type}/" aria-current="page">{archive_label}</a>', archive_header)
+                self.assertEqual(archive_header.count('aria-current="page"'), 1)
+                self.assertIn(f'<link rel="canonical" href="https://example.test/Wage_Wiki/{entity_type}/">', archive)
+                self.assertNotIn('id="search-input"', archive)
+                self.assertNotIn('id="pagination"', archive)
+                self.assertEqual(
+                    re.findall(r'<div class="result-card__meta">\s*<span>([^<]+)</span>', archive),
+                    [archive_label] * len(archive_records),
+                )
+                for record in archive_records:
+                    self.assertIn(f"href=\"../{record['url']}\"", archive)
             self.assertTrue(all(record.get("searchText") for record in records))
             self.assertTrue(all("aliases" in record and "caseNumber" in record for record in records))
             self.assertLessEqual(max(len(record["summary"]) for record in records), 161)
@@ -122,8 +148,12 @@ class SiteBuildTests(unittest.TestCase):
             decision_path_pages = []
             for page_path in (output / "entities").glob("*/index.html"):
                 page = page_path.read_text(encoding="utf-8")
-                self.assertIn('href="../../?type=concept#explore">개념</a>', page)
-                self.assertIn('href="../../?type=history#explore">연혁</a>', page)
+                self.assertIn('href="../../concept/">개념</a>', page)
+                self.assertIn('href="../../history/">연혁</a>', page)
+                if 'entity-page--concept' in page:
+                    self.assertIn('href="../../concept/"', page)
+                if 'entity-page--history' in page:
+                    self.assertIn('href="../../history/"', page)
                 if "<h1>보장시간 합의 후 법정수당 재산정</h1>" in page:
                     flowchart_pages.append(page)
                 if "<h1>대법원 2013. 12. 18. 선고 2012다89399 전원합의체 판결</h1>" in page:
@@ -151,6 +181,9 @@ class SiteBuildTests(unittest.TestCase):
             self.assertIn("<dt>적용 종료</dt><dd>종료일 없음</dd>", primary_metadata.group(1))
             checked = check_site(output)
             self.assertEqual(checked["issues"], 0, checked["details"])
+            sitemap = (output / "sitemap.xml").read_text(encoding="utf-8")
+            self.assertIn("https://example.test/Wage_Wiki/concept/", sitemap)
+            self.assertIn("https://example.test/Wage_Wiki/history/", sitemap)
 
     def test_home_recent_documents_are_limited_ordered_and_escaped(self) -> None:
         records = [
