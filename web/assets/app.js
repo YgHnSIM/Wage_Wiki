@@ -57,14 +57,13 @@
     const results = document.getElementById("archive-results");
     const sortSelect = document.getElementById("archive-sort");
     const status = document.getElementById("archive-sort-status");
+    const announcer = document.getElementById("archive-sort-announcer");
     if (!(results instanceof HTMLElement) || !(sortSelect instanceof HTMLSelectElement) || !(status instanceof HTMLElement)) return;
 
     const cards = Array.from(results.querySelectorAll(":scope > .archive-card"));
     if (!cards.length) return;
 
     sortSelect.setAttribute("aria-controls", results.id);
-    status.setAttribute("role", "status");
-    status.setAttribute("aria-atomic", "true");
     const initialOrder = new Map(cards.map((card, index) => [card, index]));
 
     function normalizedSort(value) {
@@ -95,27 +94,33 @@
       window.history[historyMode](null, "", `${url.pathname}${url.search}${url.hash}`);
     }
 
-    function render(sortMode, { historyMode = "" } = {}) {
+    function render(sortMode, { historyMode = "", announce = false } = {}) {
       const normalized = normalizedSort(sortMode);
       results.replaceChildren(...orderedCards(normalized));
       sortSelect.value = normalized;
-      status.textContent = `${cards.length}개 문서 · ${ARCHIVE_SORT_LABELS[normalized]}`;
+      status.textContent = `${cards.length}개 문서`;
+      if (announce && announcer instanceof HTMLElement) {
+        announcer.textContent = "";
+        window.requestAnimationFrame(() => {
+          announcer.textContent = `${cards.length}개 문서 · ${ARCHIVE_SORT_LABELS[normalized]}`;
+        });
+      }
       if (historyMode) updateUrl(normalized, historyMode);
     }
 
     sortSelect.addEventListener("change", () => {
-      render(sortSelect.value, { historyMode: "pushState" });
+      render(sortSelect.value, { historyMode: "pushState", announce: true });
     });
 
-    function applyLocationSort() {
+    function applyLocationSort({ announce = false } = {}) {
       const requestedSort = new URLSearchParams(window.location.search).get("sort");
       const historyMode = requestedSort !== null && !ARCHIVE_SORT_MODES.has(requestedSort)
         ? "replaceState"
         : "";
-      render(requestedSort, { historyMode });
+      render(requestedSort, { historyMode, announce });
     }
 
-    window.addEventListener("popstate", applyLocationSort);
+    window.addEventListener("popstate", () => applyLocationSort({ announce: true }));
     applyLocationSort();
   }
 
@@ -138,9 +143,25 @@
       pageNext: document.getElementById("page-next"),
       typeButtons: Array.from(document.querySelectorAll(".type-filter")),
       sortSelect: document.getElementById("sort-select"),
+      announcer: document.getElementById("results-announcer"),
     };
 
+    if (!(elements.form instanceof HTMLFormElement)
+      || !(elements.search instanceof HTMLInputElement)
+      || !(elements.clearSearch instanceof HTMLButtonElement)
+      || !(elements.results instanceof HTMLElement)
+      || !(elements.statusText instanceof HTMLElement)
+      || !(elements.empty instanceof HTMLElement)
+      || !(elements.emptyTitle instanceof HTMLElement)
+      || !(elements.emptyDescription instanceof HTMLElement)
+      || !(elements.pagination instanceof HTMLElement)
+      || !(elements.pagePrev instanceof HTMLButtonElement)
+      || !(elements.pageStatus instanceof HTMLElement)
+      || !(elements.pageNext instanceof HTMLButtonElement)
+      || !(elements.sortSelect instanceof HTMLSelectElement)) return;
+
     const mobile = window.matchMedia("(max-width: 760px)");
+    const staticFallbackCards = Array.from(elements.results.children);
     let pageSize = mobile.matches ? 6 : 10;
     let records = [];
     let filtered = [];
@@ -148,6 +169,48 @@
     let activeType = "all";
     let activeSort = "latest";
     let query = "";
+    let dataState = "loading";
+    let announcementTimer = null;
+    let announcementToken = 0;
+
+    function isReady() {
+      return dataState === "ready";
+    }
+
+    function setBusy(isBusy) {
+      explorer.setAttribute("aria-busy", String(isBusy));
+    }
+
+    function setDataControlsDisabled(disabled) {
+      const controls = [
+        elements.search,
+        elements.clearSearch,
+        elements.sortSelect,
+        elements.pagePrev,
+        elements.pageNext,
+        ...elements.typeButtons,
+      ];
+      controls.forEach((control) => {
+        if (control instanceof HTMLButtonElement || control instanceof HTMLInputElement || control instanceof HTMLSelectElement) {
+          control.disabled = disabled;
+        }
+      });
+      if (disabled) elements.pagination.hidden = true;
+    }
+
+    function announce(text, { debounce = false } = {}) {
+      if (!(elements.announcer instanceof HTMLElement)) return;
+      if (announcementTimer !== null) window.clearTimeout(announcementTimer);
+      const token = ++announcementToken;
+      announcementTimer = window.setTimeout(() => {
+        announcementTimer = null;
+        if (token !== announcementToken) return;
+        elements.announcer.textContent = "";
+        window.requestAnimationFrame(() => {
+          if (token === announcementToken) elements.announcer.textContent = text;
+        });
+      }, debounce ? 250 : 0);
+    }
 
     function normalizeText(value) {
       return String(value || "")
@@ -214,6 +277,7 @@
     }
 
     function activeTypeLabel() {
+      if (activeType === "all") return "전체 문서";
       const activeButton = elements.typeButtons.find((button) => button.dataset.type === activeType);
       return activeButton ? activeButton.dataset.label : "전체 문서";
     }
@@ -221,10 +285,6 @@
     function setSort(value) {
       activeSort = SORT_MODES.has(value) ? value : "latest";
       elements.sortSelect.value = activeSort;
-    }
-
-    function sortLabel() {
-      return elements.sortSelect.options[elements.sortSelect.selectedIndex].text;
     }
 
     function badge(value, label, kind) {
@@ -235,18 +295,81 @@
       return node;
     }
 
+    function stableCardKey(record, headingTag) {
+      const source = `${headingTag}|${record.number || ""}|${record.url || ""}`;
+      let hash = 2166136261;
+      for (let index = 0; index < source.length; index += 1) {
+        hash ^= source.charCodeAt(index);
+        hash = Math.imul(hash, 16777619);
+      }
+      return (hash >>> 0).toString(36);
+    }
+
+    function appendFolioNumber(container, rawNumber) {
+      const number = String(rawNumber || "");
+      const folio = document.createElement("span");
+      folio.className = "folio-number";
+      const separatorIndex = number.lastIndexOf("-");
+      if (separatorIndex > 0 && separatorIndex < number.length - 1) {
+        const prefix = document.createElement("span");
+        prefix.className = "folio-prefix";
+        prefix.textContent = number.slice(0, separatorIndex);
+        const separator = document.createElement("span");
+        separator.className = "folio-separator";
+        separator.setAttribute("aria-hidden", "true");
+        separator.textContent = "-";
+        const sequence = document.createElement("span");
+        sequence.className = "folio-sequence";
+        sequence.textContent = number.slice(separatorIndex + 1);
+        folio.append(prefix, separator, sequence);
+      } else {
+        const sequence = document.createElement("span");
+        sequence.className = "folio-sequence";
+        sequence.textContent = number;
+        folio.append(sequence);
+      }
+      container.append(folio);
+    }
+
     function renderCard(record, headingTag) {
       const article = document.createElement("article");
       article.className = "result-card";
 
-      const number = document.createElement("div");
+      const key = stableCardKey(record, headingTag);
+      const cardId = `result-card-${key}`;
+      const numberId = `${cardId}-number`;
+      const titleId = `${cardId}-title`;
+
+      const link = document.createElement("a");
+      link.className = "result-card__link";
+      link.href = record.url;
+      link.setAttribute("aria-labelledby", `${numberId} ${titleId}`);
+
+      const accessibleNumber = document.createElement("span");
+      accessibleNumber.className = "visually-hidden";
+      accessibleNumber.id = numberId;
+      accessibleNumber.textContent = `문서 번호 ${record.number}`;
+
+      const number = document.createElement("span");
       number.className = "result-card__number";
       number.setAttribute("aria-hidden", "true");
-      number.textContent = record.number;
+      appendFolioNumber(number, record.number);
 
       const body = document.createElement("div");
       body.className = "result-card__body";
 
+      const heading = document.createElement(headingTag);
+      heading.id = titleId;
+      heading.textContent = record.title;
+
+      const summary = document.createElement("p");
+      summary.textContent = record.summary;
+
+      const metaRail = document.createElement("aside");
+      metaRail.className = "result-card__meta-rail";
+
+      const details = document.createElement("div");
+      details.className = "meta-rail__details";
       const meta = document.createElement("div");
       meta.className = "result-card__meta";
       const type = document.createElement("span");
@@ -254,15 +377,7 @@
       const date = document.createElement("span");
       date.textContent = `${record.dateLabel} ${record.dateDisplay}`;
       meta.append(type, date);
-
-      const heading = document.createElement(headingTag);
-      const link = document.createElement("a");
-      link.href = record.url;
-      link.textContent = record.title;
-      heading.append(link);
-
-      const summary = document.createElement("p");
-      summary.textContent = record.summary;
+      details.append(meta);
 
       const badges = document.createElement("div");
       badges.className = "badges";
@@ -271,8 +386,10 @@
         badge(record.legalStatus, record.legalStatusLabel, "legal")
       );
 
-      body.append(meta, heading, summary, badges);
-      article.append(number, body);
+      body.append(heading, summary);
+      metaRail.append(details, badges);
+      link.append(accessibleNumber, number, body, metaRail);
+      article.append(link);
       return article;
     }
 
@@ -322,7 +439,14 @@
       });
     }
 
-    function render({ historyMode = "replace", moveToResults = false } = {}) {
+    function resultStatusText(start, shown) {
+      const queryLabel = query ? `“${query}” 검색 · ` : "";
+      const shownLabel = filtered.length ? ` · ${start + 1}–${shown}개 표시` : "";
+      return `${queryLabel}${activeTypeLabel()} ${filtered.length}개${shownLabel}`;
+    }
+
+    function render({ historyMode = "replace", moveToResults = false, announcement = "none" } = {}) {
+      if (!isReady()) return;
       filtered = selectRecords();
       const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
       currentPage = Math.min(Math.max(currentPage, 1), totalPages);
@@ -335,9 +459,8 @@
       elements.results.append(fragment);
 
       const shown = start + shownRecords.length;
-      const queryLabel = query ? `“${query}” 검색 · ` : "";
-      const shownLabel = filtered.length ? ` · ${start + 1}–${shown}개 표시` : "";
-      elements.statusText.textContent = `${queryLabel}${activeTypeLabel()} ${filtered.length}개${shownLabel} · ${sortLabel()}`;
+      const statusText = resultStatusText(start, shown);
+      elements.statusText.textContent = statusText;
       elements.empty.hidden = filtered.length !== 0;
       elements.emptyTitle.textContent = query ? "검색 결과가 없습니다." : "선택한 유형에 문서가 없습니다.";
       elements.emptyDescription.textContent = query ? "검색어를 바꾸거나 다른 문서 유형을 선택해 보세요." : "다른 문서 유형을 선택해 보세요.";
@@ -348,11 +471,14 @@
       elements.pageStatus.textContent = hasMultiplePages ? `${currentPage} / ${totalPages} 페이지` : "";
       elements.clearSearch.hidden = !query;
       writeUrl({ mode: historyMode, moveToResults });
+      if (announcement === "immediate") announce(statusText);
+      if (announcement === "debounced") announce(statusText, { debounce: true });
     }
 
-    function refresh(moveToResults) {
+    function refresh({ moveToResults = true, announcement = "immediate" } = {}) {
+      if (!isReady()) return;
       currentPage = 1;
-      render({ moveToResults });
+      render({ moveToResults, announcement });
     }
 
     function applyParams() {
@@ -362,38 +488,46 @@
       setType(params.get("type") || "all");
       setSort(params.get("sort") || "latest");
       currentPage = parsePage(params.get("page"));
+      elements.clearSearch.hidden = !query;
     }
 
     elements.typeButtons.forEach((button) => {
       button.addEventListener("click", () => {
+        if (!isReady()) return;
         setType(button.dataset.type);
-        refresh(true);
+        refresh();
       });
     });
     elements.sortSelect.addEventListener("change", () => {
+      if (!isReady()) return;
       setSort(elements.sortSelect.value);
-      refresh(true);
+      refresh();
     });
     elements.search.addEventListener("input", () => {
+      if (!isReady()) return;
       query = elements.search.value.trim();
-      refresh(true);
+      refresh({ announcement: "debounced" });
     });
     elements.form.addEventListener("submit", (event) => {
       event.preventDefault();
+      if (!isReady()) return;
       query = elements.search.value.trim();
-      refresh(true);
+      refresh();
     });
     elements.clearSearch.addEventListener("click", () => {
+      if (!isReady()) return;
       elements.search.value = "";
       query = "";
-      refresh(true);
+      refresh();
       elements.search.focus();
     });
     function changePage(direction) {
+      if (!isReady()) return;
       currentPage += direction;
       render({ historyMode: "push", moveToResults: true });
       window.requestAnimationFrame(() => {
-        elements.results.scrollIntoView({ block: "start", behavior: "smooth" });
+        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        elements.results.scrollIntoView({ block: "start", behavior: reducedMotion ? "auto" : "smooth" });
         elements.pageStatus.focus({ preventScroll: true });
       });
     }
@@ -405,6 +539,7 @@
       if (!elements.pageNext.disabled) changePage(1);
     });
     mobile.addEventListener("change", () => {
+      if (!isReady()) return;
       const previousPageSize = pageSize;
       const firstOffset = (currentPage - 1) * previousPageSize;
       pageSize = mobile.matches ? 6 : 10;
@@ -412,10 +547,12 @@
       render();
     });
     window.addEventListener("popstate", () => {
+      if (!isReady()) return;
       applyParams();
-      render();
+      render({ announcement: "immediate" });
     });
     document.addEventListener("keydown", (event) => {
+      if (!isReady() || elements.search.disabled) return;
       const editable = event.target instanceof HTMLElement && event.target.matches("input, textarea, select, [contenteditable=true]");
       const shortcut = (event.ctrlKey || event.metaKey) && event.key.toLocaleLowerCase() === "k";
       if ((!editable && event.key === "/") || shortcut) {
@@ -426,6 +563,9 @@
     });
 
     applyParams();
+    setBusy(true);
+    setDataControlsDisabled(true);
+    elements.statusText.textContent = "문서 데이터를 불러오는 중입니다.";
     fetch(explorer.dataset.indexUrl, { credentials: "same-origin" })
       .then((response) => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -434,17 +574,23 @@
       .then((data) => {
         if (!Array.isArray(data)) throw new Error("문서 데이터 형식이 올바르지 않습니다.");
         records = data;
+        dataState = "ready";
+        setBusy(false);
+        setDataControlsDisabled(false);
+        // The location may have changed while the index was loading.
+        applyParams();
         render();
       })
       .catch(() => {
+        dataState = "failed";
+        setBusy(false);
+        setDataControlsDisabled(true);
+        if (staticFallbackCards.length) elements.results.replaceChildren(...staticFallbackCards);
         elements.statusText.textContent = "문서 데이터를 불러오지 못해 최신 문서 일부만 표시합니다.";
         elements.pagination.hidden = true;
-        elements.search.disabled = true;
-        elements.pagePrev.disabled = true;
-        elements.pageNext.disabled = true;
-        elements.typeButtons.forEach((button) => {
-          button.disabled = true;
-        });
+        elements.pageStatus.textContent = "";
+        elements.empty.hidden = true;
+        announce("문서 데이터를 불러오지 못해 최신 문서 일부만 표시합니다.");
       });
   }
 

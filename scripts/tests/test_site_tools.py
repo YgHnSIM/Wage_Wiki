@@ -12,7 +12,16 @@ ROOT = SCRIPTS.parent
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from build_site import _home_recent_documents, _summary, _truncate_summary, build_site, render_inline, render_markdown
+from build_site import (
+    _archive_card,
+    _home_recent_documents,
+    _record_card,
+    _summary,
+    _truncate_summary,
+    build_site,
+    render_inline,
+    render_markdown,
+)
 from check_site import check_site
 from kg_common import Entity, entity_lookup, load_entities
 
@@ -53,9 +62,25 @@ class SiteBuildTests(unittest.TestCase):
             self.assertNotIn('class="judgment-paths"', home)
             result_start = home.index('<div class="results" id="results">')
             pagination_start = home.index('<nav class="pagination"', result_start)
-            self.assertEqual(home[result_start:pagination_start].count('<article class="result-card">'), 10)
+            initial_results = home[result_start:pagination_start]
+            self.assertEqual(initial_results.count('<article class="result-card">'), 10)
+            self.assertEqual(initial_results.count('<a class="result-card__link"'), 10)
+            self.assertNotIn('<h3><a ', initial_results)
+            for card in re.findall(r'<article class="result-card">(.*?)</article>', initial_results, flags=re.S):
+                self.assertEqual(card.count('<a '), 1)
+                match = re.search(
+                    r'<a class="result-card__link"[^>]*aria-labelledby="(result-card-[a-f0-9]{12})-number \1-title">',
+                    card,
+                )
+                self.assertIsNotNone(match)
+                card_id = match.group(1)
+                self.assertIn(f'<span class="visually-hidden" id="{card_id}-number">문서 번호 ', card)
+                self.assertIn(f'<h3 id="{card_id}-title">', card)
+                self.assertIn('class="folio-number"', card)
             self.assertEqual(home.count('<article class="recent-document">'), 4)
             self.assertEqual(home.count('class="recent-document__summary"'), 4)
+            self.assertEqual(home.count('<a class="recent-document__link"'), 4)
+            self.assertNotIn('<h3><a ', home[home.index('<section class="recent-documents"'):])
             type_buttons = re.findall(r'<button\b[^>]*class="type-filter(?: is-active)?"[^>]*>', home)
             self.assertEqual(len(type_buttons), 10)
             self.assertEqual(
@@ -84,9 +109,16 @@ class SiteBuildTests(unittest.TestCase):
             self.assertIn('<form class="search-panel" id="search-form"', explorer)
             self.assertIn('aria-label="문서 검색"', explorer)
             self.assertIn('class="results-toolbar"', explorer)
+            self.assertIn('<p class="result-status" id="result-status">', explorer)
+            self.assertNotIn('id="result-status" role=', explorer)
+            self.assertIn('<label for="sort-select">정렬</label>', explorer)
+            self.assertIn('<p class="visually-hidden" id="results-announcer" aria-live="polite" aria-atomic="true"></p>', explorer)
+            self.assertIn('<p id="page-status" tabindex="-1"></p>', explorer)
+            self.assertNotIn('id="page-status" role=', explorer)
             self.assertNotIn('id="search-title"', explorer)
             self.assertNotIn('id="search-help"', explorer)
             self.assertLess(explorer.index('class="explore-panel"'), explorer.index('class="search-workspace"'))
+            self.assertLess(explorer.index('class="search-workspace"'), explorer.index('class="results-toolbar"'))
             self.assertLess(explorer.index('class="explorer-console"'), explorer.index('<div class="results"'))
             search_workspace = explorer[explorer.index('<div class="search-workspace">'):explorer.index('<div class="results-toolbar">')]
             self.assertEqual(search_workspace.count("<form"), 1)
@@ -103,6 +135,7 @@ class SiteBuildTests(unittest.TestCase):
                 "show-all",
             ):
                 self.assertNotIn(removed_control, home)
+            self.assertIn('<footer class="site-footer"><div class="site-footer__inner">', home)
             not_found = (output / "404.html").read_text(encoding="utf-8")
             self.assertIn('href="https://example.test/Wage_Wiki/assets/styles.css?', not_found)
             self.assertIn('href="https://example.test/Wage_Wiki/#explore"', not_found)
@@ -145,8 +178,10 @@ class SiteBuildTests(unittest.TestCase):
                 self.assertIn('<option value="latest">최신 적용일순</option>', archive)
                 self.assertIn('<option value="oldest">오래된 적용일순</option>', archive)
                 self.assertIn('<option value="title">가나다순</option>', archive)
+                self.assertIn(f'<p id="archive-sort-status">{len(archive_records)}개 문서</p>', archive)
+                self.assertNotIn('id="archive-sort-status" role=', archive)
                 self.assertIn(
-                    f'<p id="archive-sort-status" role="status" aria-live="polite" aria-atomic="true">{len(archive_records)}개 문서 · 최신 적용일순</p>',
+                    '<p class="visually-hidden" id="archive-sort-announcer" aria-live="polite" aria-atomic="true"></p>',
                     archive,
                 )
                 self.assertIn('<div class="type-archive__results" id="archive-results">', archive)
@@ -155,10 +190,23 @@ class SiteBuildTests(unittest.TestCase):
                     [record["sortDate"] for record in expected_archive_records],
                 )
                 self.assertEqual(
-                    re.findall(r'<article class="archive-card".*?<h3><a href="([^"]+)">', archive, flags=re.S),
+                    re.findall(r'<article class="archive-card".*?<a class="archive-card__link" href="([^"]+)"', archive, flags=re.S),
                     [f"../{record['url']}" for record in expected_archive_records],
                 )
+                archive_cards = re.findall(r'<article class="archive-card".*?</article>', archive, flags=re.S)
+                for card in archive_cards:
+                    self.assertEqual(card.count('<a '), 1)
+                    match = re.search(
+                        r'<a class="archive-card__link"[^>]*aria-labelledby="(archive-card-[a-f0-9]{12})-number \1-title">',
+                        card,
+                    )
+                    self.assertIsNotNone(match)
+                    card_id = match.group(1)
+                    self.assertIn(f'<span class="visually-hidden" id="{card_id}-number">문서 번호 ', card)
+                    self.assertIn(f'<h3 id="{card_id}-title">', card)
+                    self.assertNotIn('<h3><a ', card)
                 self.assertEqual(archive.count('data-sort-title="'), len(archive_records))
+                self.assertIn('<footer class="site-footer"><div class="site-footer__inner">', archive)
             self.assertTrue(all(record.get("searchText") for record in records))
             self.assertTrue(all("aliases" in record and "caseNumber" in record for record in records))
             self.assertLessEqual(max(len(record["summary"]) for record in records), 161)
@@ -220,11 +268,50 @@ class SiteBuildTests(unittest.TestCase):
         ]
         rendered = _home_recent_documents(records)
         self.assertEqual(rendered.count('<article class="recent-document">'), 4)
+        self.assertEqual(rendered.count('<a class="recent-document__link"'), 4)
+        self.assertNotIn("<h3><a ", rendered)
         self.assertNotIn("문서 1", rendered)
         self.assertIn("&lt;script&gt;title()&lt;/script&gt;", rendered)
         self.assertIn("&lt;img src=x onerror=alert(1)&gt;", rendered)
         self.assertNotIn("<script>title()</script>", rendered)
         self.assertNotIn("<img src=x", rendered)
+
+    def test_card_links_use_safe_stable_ids_and_escape_untrusted_content(self) -> None:
+        record = {
+            "id": 'record <unsafe> "id"',
+            "number": 'LA-03"><script>alert(1)</script>',
+            "url": 'entities/example/?q="quoted"&tag=<unsafe>',
+            "title": '<script>alert("title")</script>',
+            "summary": '<img src=x onerror=alert(1)>',
+            "typeLabel": '판례 <unsafe>',
+            "dateLabel": "적용",
+            "dateDisplay": '<2026-01-01>',
+            "status": 'review" data-bad="1',
+            "statusLabel": '<검토>',
+            "legalStatus": "current",
+            "legalStatusLabel": '<현행>',
+            "sortDate": '2026-01-01" onclick="alert(1)',
+        }
+        rendered_cards = (
+            (_record_card(record, link_prefix="../"), "result-card"),
+            (_archive_card(record, link_prefix="../"), "archive-card"),
+        )
+        for markup, context in rendered_cards:
+            self.assertEqual(markup.count("<a "), 1)
+            self.assertNotIn("<h3><a ", markup)
+            self.assertNotIn('<script>alert("title")</script>', markup)
+            self.assertNotIn("<img src=x", markup)
+            self.assertIn("&lt;script&gt;alert(&quot;title&quot;)&lt;/script&gt;", markup)
+            self.assertIn("&lt;img src=x onerror=alert(1)&gt;", markup)
+            self.assertIn('href="../entities/example/?q=&quot;quoted&quot;&amp;tag=&lt;unsafe&gt;"', markup)
+            self.assertRegex(
+                markup,
+                rf'aria-labelledby="({context}-[a-f0-9]{{12}})-number \1-title"',
+            )
+            self.assertNotIn('id="record', markup)
+            self.assertIn('class="folio-number"', markup)
+            if context == "archive-card":
+                self.assertIn('data-sort-date="2026-01-01&quot; onclick=&quot;alert(1)"', markup)
 
     def test_output_must_stay_inside_repository(self) -> None:
         with self.assertRaises(ValueError):

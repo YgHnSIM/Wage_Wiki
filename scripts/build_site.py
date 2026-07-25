@@ -416,40 +416,78 @@ def _badge(value: str, label: str, kind: str) -> str:
     return f'<span class="badge badge--{html.escape(kind)}" data-value="{html.escape(value, quote=True)}">{html.escape(label)}</span>'
 
 
+def _card_dom_id(context: str, record: dict[str, Any]) -> str:
+    """Return a stable, HTML-safe ID stem for a card rendered in a given context."""
+    safe_context = re.sub(r"[^a-z0-9]+", "-", context.casefold()).strip("-") or "card"
+    identifier = scalar_text(record.get("id")) or scalar_text(record.get("number"))
+    digest = hashlib.sha256(f"{safe_context}:{identifier}".encode("utf-8")).hexdigest()[:12]
+    return f"{safe_context}-{digest}"
+
+
+def _folio_number(number: str) -> str:
+    """Render a document folio that can stay intact or stack deliberately by breakpoint."""
+    prefix, separator, sequence = number.rpartition("-")
+    if prefix and separator and sequence:
+        return (
+            '<span class="folio-number">'
+            f'<span class="folio-prefix">{html.escape(prefix)}</span>'
+            '<span class="folio-separator" aria-hidden="true">-</span>'
+            f'<span class="folio-sequence">{html.escape(sequence)}</span>'
+            "</span>"
+        )
+    return f'<span class="folio-number"><span class="folio-sequence">{html.escape(number)}</span></span>'
+
+
 def _record_card(record: dict[str, Any], *, link_prefix: str = "") -> str:
+    card_id = _card_dom_id("result-card", record)
+    number_id = f"{card_id}-number"
+    title_id = f"{card_id}-title"
     return f"""<article class="result-card">
-  <div class="result-card__number" aria-hidden="true">{html.escape(record['number'])}</div>
-  <div class="result-card__body">
-    <div class="result-card__meta">
-      <span>{html.escape(record['typeLabel'])}</span>
-      <span>{html.escape(record['dateLabel'])} {html.escape(record['dateDisplay'])}</span>
+  <a class="result-card__link" href="{html.escape(link_prefix + record['url'], quote=True)}" aria-labelledby="{number_id} {title_id}">
+    <span class="visually-hidden" id="{number_id}">문서 번호 {html.escape(record['number'])}</span>
+    <span class="result-card__number" aria-hidden="true">{_folio_number(record['number'])}</span>
+    <div class="result-card__body">
+      <h3 id="{title_id}">{html.escape(record['title'])}</h3>
+      <p>{html.escape(record['summary'])}</p>
     </div>
-    <h3><a href="{html.escape(link_prefix + record['url'], quote=True)}">{html.escape(record['title'])}</a></h3>
-    <p>{html.escape(record['summary'])}</p>
-    <div class="badges">
-      {_badge(record['status'], record['statusLabel'], 'editorial')}
-      {_badge(record['legalStatus'], record['legalStatusLabel'], 'legal')}
-    </div>
-  </div>
+    <aside class="result-card__meta-rail">
+      <div class="meta-rail__details">
+        <div class="result-card__meta">
+          <span>{html.escape(record['typeLabel'])}</span>
+          <span>{html.escape(record['dateLabel'])} {html.escape(record['dateDisplay'])}</span>
+        </div>
+      </div>
+      <div class="badges">
+        {_badge(record['status'], record['statusLabel'], 'editorial')}
+        {_badge(record['legalStatus'], record['legalStatusLabel'], 'legal')}
+      </div>
+    </aside>
+  </a>
 </article>"""
 
 
 def _archive_card(record: dict[str, Any], *, link_prefix: str = "") -> str:
     sort_date = scalar_text(record.get("sortDate"))
     date_attributes = f' datetime="{html.escape(sort_date, quote=True)}"' if sort_date else ""
+    card_id = _card_dom_id("archive-card", record)
+    number_id = f"{card_id}-number"
+    title_id = f"{card_id}-title"
     return f"""<article class="archive-card" data-sort-date="{html.escape(sort_date, quote=True)}" data-sort-title="{html.escape(record['title'], quote=True)}">
-  <header class="archive-card__meta">
-    <span class="archive-card__number">{html.escape(record['number'])}</span>
-    <time{date_attributes}>{html.escape(record['dateLabel'])} {html.escape(record['dateDisplay'])}</time>
-  </header>
-  <div class="archive-card__body">
-    <h3><a href="{html.escape(link_prefix + record['url'], quote=True)}">{html.escape(record['title'])}</a></h3>
-    <p>{html.escape(record['summary'])}</p>
-  </div>
-  <div class="badges">
-    {_badge(record['status'], record['statusLabel'], 'editorial')}
-    {_badge(record['legalStatus'], record['legalStatusLabel'], 'legal')}
-  </div>
+  <a class="archive-card__link" href="{html.escape(link_prefix + record['url'], quote=True)}" aria-labelledby="{number_id} {title_id}">
+    <span class="visually-hidden" id="{number_id}">문서 번호 {html.escape(record['number'])}</span>
+    <header class="archive-card__meta">
+      <span class="archive-card__number" aria-hidden="true">{_folio_number(record['number'])}</span>
+      <time{date_attributes}>{html.escape(record['dateLabel'])} {html.escape(record['dateDisplay'])}</time>
+    </header>
+    <div class="archive-card__body">
+      <h3 id="{title_id}">{html.escape(record['title'])}</h3>
+      <p>{html.escape(record['summary'])}</p>
+    </div>
+    <div class="badges">
+      {_badge(record['status'], record['statusLabel'], 'editorial')}
+      {_badge(record['legalStatus'], record['legalStatusLabel'], 'legal')}
+    </div>
+  </a>
 </article>"""
 
 
@@ -486,7 +524,7 @@ def _type_archive_page(
   <section class="type-archive__listing" aria-labelledby="type-archive-list-title" data-archive-sort>
     <h2 class="visually-hidden" id="type-archive-list-title">{html.escape(type_label)} 문서 목록</h2>
     <div class="type-archive__toolbar">
-      <p id="archive-sort-status" role="status" aria-live="polite" aria-atomic="true">{len(archive_records)}개 문서 · 최신 적용일순</p>
+      <p id="archive-sort-status">{len(archive_records)}개 문서</p>
       <div class="type-archive__sort">
         <label for="archive-sort">정렬</label>
         <select id="archive-sort" name="sort">
@@ -496,10 +534,11 @@ def _type_archive_page(
         </select>
       </div>
     </div>
+    <p class="visually-hidden" id="archive-sort-announcer" aria-live="polite" aria-atomic="true"></p>
     <div class="type-archive__results" id="archive-results">{cards}</div>
   </section>
 </main>
-<footer class="site-footer"><p>Wage Wiki · {html.escape(type_label)} {len(archive_records)}개 문서</p><p><a href="../#explore">전체 문서 보기</a></p></footer>"""
+<footer class="site-footer"><div class="site-footer__inner"><p>Wage Wiki · {html.escape(type_label)} {len(archive_records)}개 문서</p><p><a href="../#explore">전체 문서 보기</a></p></div></footer>"""
     return _document(
         title=f"{type_label} | {SITE_TITLE}",
         description=f"Wage Wiki의 {type_label} 문서 {len(archive_records)}개",
@@ -552,14 +591,20 @@ def _home_recent_documents(records: list[dict[str, Any]], limit: int = 4) -> str
         raw_date = scalar_text(record.get("asOfDate"))
         date_attr = f' datetime="{html.escape(raw_date, quote=True)}"' if raw_date else ""
         date_display = html.escape(_format_date(raw_date) if raw_date else "미기재")
+        card_id = _card_dom_id("recent-document", record)
+        number_id = f"{card_id}-number"
+        title_id = f"{card_id}-title"
         items.append(
             f"""<article class="recent-document">
-  <p class="recent-document__number" aria-hidden="true">{html.escape(record['number'])}</p>
-  <div class="recent-document__body">
-    <p class="recent-document__meta"><span>{html.escape(record['typeLabel'])}</span><time{date_attr}>기준일 {date_display}</time></p>
-    <h3><a href="{html.escape(record['url'], quote=True)}">{html.escape(record['title'])}</a></h3>
-  </div>
-  <p class="recent-document__summary">{html.escape(record['summary'])}</p>
+  <a class="recent-document__link" href="{html.escape(record['url'], quote=True)}" aria-labelledby="{number_id} {title_id}">
+    <span class="visually-hidden" id="{number_id}">문서 번호 {html.escape(record['number'])}</span>
+    <p class="recent-document__number" aria-hidden="true">{_folio_number(record['number'])}</p>
+    <div class="recent-document__body">
+      <p class="recent-document__meta"><span>{html.escape(record['typeLabel'])}</span><time{date_attr}>기준일 {date_display}</time></p>
+      <h3 id="{title_id}">{html.escape(record['title'])}</h3>
+    </div>
+    <p class="recent-document__summary">{html.escape(record['summary'])}</p>
+  </a>
 </article>"""
         )
     return f"""<section class="recent-documents" aria-labelledby="recent-documents-title">
@@ -601,7 +646,6 @@ def _home_page(
         <p class="section-label">전체 지식베이스</p>
         <h1 id="explore-title">문서 탐색</h1>
         <fieldset class="type-filters"><legend>문서 유형</legend><div>{''.join(type_buttons)}</div></fieldset>
-        <p class="result-status" id="result-status" role="status" aria-live="polite" aria-atomic="true">전체 문서 {len(records)}개 · {len(initial)}개 표시</p>
       </div>
       <div class="search-workspace">
         <form class="search-panel" id="search-form" role="search" aria-label="문서 검색" action="./" method="get">
@@ -614,8 +658,9 @@ def _home_page(
       </div>
     </div>
     <div class="results-toolbar">
+      <p class="result-status" id="result-status">전체 문서 {len(records)}개 · 1–{len(initial)}개 표시</p>
       <div class="sort-control">
-        <label class="visually-hidden" for="sort-select">정렬 기준</label>
+        <label for="sort-select">정렬</label>
         <select id="sort-select" name="sort">
           <option value="latest">최신 적용일순</option>
           <option value="oldest">오래된 적용일순</option>
@@ -624,12 +669,13 @@ def _home_page(
         </select>
       </div>
     </div>
+    <p class="visually-hidden" id="results-announcer" aria-live="polite" aria-atomic="true"></p>
 
     <noscript><p class="notice">유형 필터를 사용하려면 JavaScript가 필요합니다. 아래에는 최신 문서 일부가 표시됩니다.</p></noscript>
     <div class="results" id="results">{initial_cards}</div>
     <nav class="pagination" id="pagination" aria-label="검색 결과 페이지" hidden>
       <button type="button" id="page-prev" aria-controls="results">이전</button>
-      <p id="page-status" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></p>
+      <p id="page-status" tabindex="-1"></p>
       <button type="button" id="page-next" aria-controls="results">다음</button>
     </nav>
     <div class="empty-state" id="empty-state" hidden><h3 id="empty-title">검색 결과가 없습니다.</h3><p id="empty-description">검색어를 바꾸거나 다른 문서 유형을 선택해 보세요.</p></div>
@@ -643,7 +689,7 @@ def _home_page(
     <a class="text-link" href="about/">데이터 구성과 검증 기준 보기</a>
   </section>
 </main>
-<footer class="site-footer"><p>Wage Wiki · 기준일 {formatted_as_of}</p><p><a href="{html.escape(repository_url, quote=True)}">GitHub에서 원본 보기</a></p></footer>"""
+<footer class="site-footer"><div class="site-footer__inner"><p>Wage Wiki · 기준일 {formatted_as_of}</p><p><a href="{html.escape(repository_url, quote=True)}">GitHub에서 원본 보기</a></p></div></footer>"""
     return _document(
         title=SITE_TITLE,
         description=SITE_DESCRIPTION,
@@ -1036,7 +1082,7 @@ def _entity_page(
     </div>
   </article>
 </main>
-<footer class="site-footer"><p>Wage Wiki · {html.escape(record['id'])}</p><p><a href="../../#explore">전체 문서로 돌아가기</a></p></footer>"""
+<footer class="site-footer"><div class="site-footer__inner"><p>Wage Wiki · {html.escape(record['id'])}</p><p><a href="../../#explore">전체 문서로 돌아가기</a></p></div></footer>"""
     return _document(
         title=f"{title} | Wage Wiki",
         description=record["summary"][:160] or SITE_DESCRIPTION,
@@ -1092,7 +1138,7 @@ def _about_page(
   </section>
   <section class="disclaimer"><h2>책임 범위</h2><p>이 사이트는 연구와 정보 제공을 위한 자료입니다. 실제 사건에는 사실관계, 적용 시점, 단체협약·취업규칙 등 추가 요소가 영향을 줄 수 있으므로 필요한 경우 전문가의 검토를 받으세요.</p><a class="text-link" href="../#explore">문서 탐색으로 돌아가기</a></section>
 </main>
-<footer class="site-footer"><p>Wage Wiki · 전체 {len(records)}개 문서</p><p><a href="{html.escape(repository_url, quote=True)}">GitHub 저장소</a></p></footer>"""
+<footer class="site-footer"><div class="site-footer__inner"><p>Wage Wiki · 전체 {len(records)}개 문서</p><p><a href="{html.escape(repository_url, quote=True)}">GitHub 저장소</a></p></div></footer>"""
     return _document(
         title=f"데이터 안내 | {SITE_TITLE}",
         description="Wage Wiki의 수록 범위, 편집·법적 상태, 탐색 기준과 근거 표시 방법",
