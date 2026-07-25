@@ -3,6 +3,12 @@
 
   const TYPE_ORDER = ["law", "case", "interpretation", "fact_pattern", "discussion", "guide", "rule", "concept", "history"];
   const SORT_MODES = new Set(["latest", "oldest", "title", "type"]);
+  const ARCHIVE_SORT_MODES = new Set(["latest", "oldest", "title"]);
+  const ARCHIVE_SORT_LABELS = {
+    latest: "최신 적용일순",
+    oldest: "오래된 적용일순",
+    title: "가나다순",
+  };
 
   function initDocumentMeta() {
     const details = Array.from(document.querySelectorAll(".document-meta__more"));
@@ -42,6 +48,75 @@
       }
     }, { passive: true });
     update();
+  }
+
+  function initTypeArchive() {
+    const listing = document.querySelector(".type-archive__listing[data-archive-sort]");
+    if (!listing) return;
+
+    const results = document.getElementById("archive-results");
+    const sortSelect = document.getElementById("archive-sort");
+    const status = document.getElementById("archive-sort-status");
+    if (!(results instanceof HTMLElement) || !(sortSelect instanceof HTMLSelectElement) || !(status instanceof HTMLElement)) return;
+
+    const cards = Array.from(results.querySelectorAll(":scope > .archive-card"));
+    if (!cards.length) return;
+
+    sortSelect.setAttribute("aria-controls", results.id);
+    status.setAttribute("role", "status");
+    status.setAttribute("aria-atomic", "true");
+    const initialOrder = new Map(cards.map((card, index) => [card, index]));
+
+    function normalizedSort(value) {
+      return ARCHIVE_SORT_MODES.has(value) ? value : "latest";
+    }
+
+    function compareTitles(left, right) {
+      const difference = (left.dataset.sortTitle || "").localeCompare(right.dataset.sortTitle || "", "ko-KR");
+      return difference || initialOrder.get(left) - initialOrder.get(right);
+    }
+
+    function orderedCards(sortMode) {
+      // The generator has already serialized the no-JavaScript baseline as newest first.
+      if (sortMode === "latest") return cards.slice();
+      return cards.slice().sort((left, right) => {
+        if (sortMode === "title") return compareTitles(left, right);
+
+        const dateDifference = (left.dataset.sortDate || "").localeCompare(right.dataset.sortDate || "");
+        if (dateDifference) return dateDifference;
+        return compareTitles(left, right);
+      });
+    }
+
+    function updateUrl(sortMode, historyMode) {
+      const url = new URL(window.location.href);
+      if (sortMode === "latest") url.searchParams.delete("sort");
+      else url.searchParams.set("sort", sortMode);
+      window.history[historyMode](null, "", `${url.pathname}${url.search}${url.hash}`);
+    }
+
+    function render(sortMode, { historyMode = "" } = {}) {
+      const normalized = normalizedSort(sortMode);
+      results.replaceChildren(...orderedCards(normalized));
+      sortSelect.value = normalized;
+      status.textContent = `${cards.length}개 문서 · ${ARCHIVE_SORT_LABELS[normalized]}`;
+      if (historyMode) updateUrl(normalized, historyMode);
+    }
+
+    sortSelect.addEventListener("change", () => {
+      render(sortSelect.value, { historyMode: "pushState" });
+    });
+
+    function applyLocationSort() {
+      const requestedSort = new URLSearchParams(window.location.search).get("sort");
+      const historyMode = requestedSort !== null && !ARCHIVE_SORT_MODES.has(requestedSort)
+        ? "replaceState"
+        : "";
+      render(requestedSort, { historyMode });
+    }
+
+    window.addEventListener("popstate", applyLocationSort);
+    applyLocationSort();
   }
 
   function initExplorer() {
@@ -375,5 +450,6 @@
 
   initDocumentMeta();
   initDocumentIndex();
+  initTypeArchive();
   initExplorer();
 })();

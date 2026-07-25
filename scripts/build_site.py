@@ -434,6 +434,25 @@ def _record_card(record: dict[str, Any], *, link_prefix: str = "") -> str:
 </article>"""
 
 
+def _archive_card(record: dict[str, Any], *, link_prefix: str = "") -> str:
+    sort_date = scalar_text(record.get("sortDate"))
+    date_attributes = f' datetime="{html.escape(sort_date, quote=True)}"' if sort_date else ""
+    return f"""<article class="archive-card" data-sort-date="{html.escape(sort_date, quote=True)}" data-sort-title="{html.escape(record['title'], quote=True)}">
+  <header class="archive-card__meta">
+    <span class="archive-card__number">{html.escape(record['number'])}</span>
+    <time{date_attributes}>{html.escape(record['dateLabel'])} {html.escape(record['dateDisplay'])}</time>
+  </header>
+  <div class="archive-card__body">
+    <h3><a href="{html.escape(link_prefix + record['url'], quote=True)}">{html.escape(record['title'])}</a></h3>
+    <p>{html.escape(record['summary'])}</p>
+  </div>
+  <div class="badges">
+    {_badge(record['status'], record['statusLabel'], 'editorial')}
+    {_badge(record['legalStatus'], record['legalStatusLabel'], 'legal')}
+  </div>
+</article>"""
+
+
 def _type_archive_page(
     records: list[dict[str, Any]],
     entity_type: str,
@@ -444,22 +463,40 @@ def _type_archive_page(
     type_label = TYPE_LABELS[entity_type]
     archive_records = sorted(
         (record for record in records if record["type"] == entity_type),
-        key=lambda record: (record["sortDate"], record["title"].casefold()),
-        reverse=True,
+        key=lambda record: record["title"].casefold(),
     )
-    cards = "".join(_record_card(record, link_prefix="../") for record in archive_records)
+    archive_records.sort(key=lambda record: record["sortDate"], reverse=True)
+    cards = "".join(_archive_card(record, link_prefix="../") for record in archive_records)
+    descriptions = {
+        "concept": "임금법 판단에 필요한 핵심 개념과 계산 구조를 정리한 문서입니다.",
+        "history": "법리와 제도의 변화를 시기와 적용 기준에 따라 정리한 문서입니다.",
+    }
     body = f"""{_site_header('../', repository_url, current_section=entity_type)}
 <main id="main" class="type-archive" tabindex="-1">
   <header class="type-archive__header">
-    <p class="section-label">문서 유형</p>
-    <div>
-      <h1 id="type-archive-title">{html.escape(type_label)}</h1>
-      <p class="type-archive__count">{len(archive_records)}개 문서</p>
+    <p class="section-label">문서 아카이브</p>
+    <div class="type-archive__intro">
+      <div class="type-archive__title-row">
+        <h1 id="type-archive-title">{html.escape(type_label)}</h1>
+        <p class="type-archive__count"><strong>{len(archive_records)}</strong>개 문서</p>
+      </div>
+      <p class="type-archive__description">{html.escape(descriptions[entity_type])}</p>
     </div>
   </header>
-  <section class="type-archive__listing" aria-labelledby="type-archive-list-title">
+  <section class="type-archive__listing" aria-labelledby="type-archive-list-title" data-archive-sort>
     <h2 class="visually-hidden" id="type-archive-list-title">{html.escape(type_label)} 문서 목록</h2>
-    <div class="results type-archive__results">{cards}</div>
+    <div class="type-archive__toolbar">
+      <p id="archive-sort-status" role="status" aria-live="polite" aria-atomic="true">{len(archive_records)}개 문서 · 최신 적용일순</p>
+      <div class="type-archive__sort">
+        <label for="archive-sort">정렬</label>
+        <select id="archive-sort" name="sort">
+          <option value="latest">최신 적용일순</option>
+          <option value="oldest">오래된 적용일순</option>
+          <option value="title">가나다순</option>
+        </select>
+      </div>
+    </div>
+    <div class="type-archive__results" id="archive-results">{cards}</div>
   </section>
 </main>
 <footer class="site-footer"><p>Wage Wiki · {html.escape(type_label)} {len(archive_records)}개 문서</p><p><a href="../#explore">전체 문서 보기</a></p></footer>"""
@@ -470,6 +507,7 @@ def _type_archive_page(
         asset_prefix="../assets/",
         canonical_url=_canonical(site_url, f"{entity_type}/"),
         page_class=f"archive-page archive-page--{entity_type}",
+        include_app=True,
     )
 
 

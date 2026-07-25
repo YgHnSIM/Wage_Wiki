@@ -122,23 +122,43 @@ class SiteBuildTests(unittest.TestCase):
                 self.assertTrue(archive_path.is_file())
                 archive = archive_path.read_text(encoding="utf-8")
                 archive_records = [record for record in records if record["type"] == entity_type]
+                expected_archive_records = sorted(
+                    archive_records,
+                    key=lambda record: record["title"].casefold(),
+                )
+                expected_archive_records.sort(key=lambda record: record["sortDate"], reverse=True)
                 archive_label = archive_records[0]["typeLabel"]
                 archive_header = archive[archive.index('<header class="site-header">'):archive.index("</header>") + len("</header>")]
                 self.assertIn(f'<body class="archive-page archive-page--{entity_type}">', archive)
                 self.assertIn(f'<h1 id="type-archive-title">{archive_label}</h1>', archive)
                 self.assertEqual(archive.count('<h1 id="type-archive-title">'), 1)
-                self.assertEqual(archive.count('<article class="result-card">'), len(archive_records))
+                self.assertEqual(archive.count('<article class="archive-card"'), len(archive_records))
                 self.assertIn(f'href="../{entity_type}/" aria-current="page">{archive_label}</a>', archive_header)
                 self.assertEqual(archive_header.count('aria-current="page"'), 1)
                 self.assertIn(f'<link rel="canonical" href="https://example.test/Wage_Wiki/{entity_type}/">', archive)
+                self.assertIn('<script defer src="../assets/app.js?', archive)
                 self.assertNotIn('id="search-input"', archive)
                 self.assertNotIn('id="pagination"', archive)
-                self.assertEqual(
-                    re.findall(r'<div class="result-card__meta">\s*<span>([^<]+)</span>', archive),
-                    [archive_label] * len(archive_records),
+                self.assertIn('<section class="type-archive__listing" aria-labelledby="type-archive-list-title" data-archive-sort>', archive)
+                self.assertIn('<label for="archive-sort">정렬</label>', archive)
+                self.assertIn('<select id="archive-sort" name="sort">', archive)
+                self.assertIn('<option value="latest">최신 적용일순</option>', archive)
+                self.assertIn('<option value="oldest">오래된 적용일순</option>', archive)
+                self.assertIn('<option value="title">가나다순</option>', archive)
+                self.assertIn(
+                    f'<p id="archive-sort-status" role="status" aria-live="polite" aria-atomic="true">{len(archive_records)}개 문서 · 최신 적용일순</p>',
+                    archive,
                 )
-                for record in archive_records:
-                    self.assertIn(f"href=\"../{record['url']}\"", archive)
+                self.assertIn('<div class="type-archive__results" id="archive-results">', archive)
+                self.assertEqual(
+                    re.findall(r'<article class="archive-card" data-sort-date="([^"]*)"', archive),
+                    [record["sortDate"] for record in expected_archive_records],
+                )
+                self.assertEqual(
+                    re.findall(r'<article class="archive-card".*?<h3><a href="([^"]+)">', archive, flags=re.S),
+                    [f"../{record['url']}" for record in expected_archive_records],
+                )
+                self.assertEqual(archive.count('data-sort-title="'), len(archive_records))
             self.assertTrue(all(record.get("searchText") for record in records))
             self.assertTrue(all("aliases" in record and "caseNumber" in record for record in records))
             self.assertLessEqual(max(len(record["summary"]) for record in records), 161)
