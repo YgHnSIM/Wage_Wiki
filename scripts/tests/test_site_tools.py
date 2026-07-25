@@ -40,6 +40,12 @@ class SiteBuildTests(unittest.TestCase):
             self.assertIn('class="search-panel"', home)
             self.assertIn('class="type-filters"', home)
             self.assertIn('data-type="guide" data-label="실무 가이드"', home)
+            type_buttons = re.findall(r'<button\b[^>]*class="type-filter(?: is-active)?"[^>]*>', home)
+            self.assertEqual(len(type_buttons), 10)
+            self.assertIn('data-type="all"', type_buttons[0])
+            self.assertIn('aria-pressed="true"', type_buttons[0])
+            self.assertEqual(sum('aria-pressed="true"' in button for button in type_buttons), 1)
+            self.assertTrue(all('aria-pressed="false"' in button for button in type_buttons[1:]))
             self.assertIn('<main id="main" tabindex="-1">', home)
             self.assertIn(f"전체 문서 {expected_entities}개", home)
             for removed_control in (
