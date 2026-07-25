@@ -67,6 +67,11 @@ class SiteBuildTests(unittest.TestCase):
             self.assertTrue(all('aria-pressed="false"' in button for button in type_buttons[1:]))
             self.assertIn('<main id="main" tabindex="-1">', home)
             self.assertIn(f"전체 문서 {expected_entities}개", home)
+            home_header = home[home.index('<header class="site-header">'):home.index("</header>") + len("</header>")]
+            self.assertIn('href="./?type=concept#explore">개념</a>', home_header)
+            self.assertIn('href="./?type=history#explore">연혁</a>', home_header)
+            self.assertNotIn(">문서 탐색</a>", home_header)
+            self.assertNotIn(">데이터 안내</a>", home_header)
             explorer = home[home.index('<section class="explorer"'):home.index('<section class="recent-documents"')]
             self.assertNotIn('class="hero"', home)
             self.assertNotIn('id="hero-title"', home)
@@ -101,6 +106,8 @@ class SiteBuildTests(unittest.TestCase):
             not_found = (output / "404.html").read_text(encoding="utf-8")
             self.assertIn('href="https://example.test/Wage_Wiki/assets/styles.css?', not_found)
             self.assertIn('href="https://example.test/Wage_Wiki/#explore"', not_found)
+            self.assertIn('href="https://example.test/Wage_Wiki/?type=concept#explore">개념</a>', not_found)
+            self.assertIn('href="https://example.test/Wage_Wiki/?type=history#explore">연혁</a>', not_found)
             self.assertEqual(len(list((output / "entities").glob("*/index.html"))), expected_entities)
             records = json.loads((output / "assets" / "entities.json").read_text(encoding="utf-8"))
             self.assertEqual(len(records), expected_entities)
@@ -115,6 +122,8 @@ class SiteBuildTests(unittest.TestCase):
             decision_path_pages = []
             for page_path in (output / "entities").glob("*/index.html"):
                 page = page_path.read_text(encoding="utf-8")
+                self.assertIn('href="../../?type=concept#explore">개념</a>', page)
+                self.assertIn('href="../../?type=history#explore">연혁</a>', page)
                 if "<h1>보장시간 합의 후 법정수당 재산정</h1>" in page:
                     flowchart_pages.append(page)
                 if "<h1>대법원 2013. 12. 18. 선고 2012다89399 전원합의체 판결</h1>" in page:

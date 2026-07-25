@@ -397,8 +397,8 @@ def _site_header(home_prefix: str, repository_url: str) -> str:
     return f"""<header class="site-header">
   <a class="wordmark" href="{safe_home}"><span>WAGE</span><span>WIKI</span></a>
   <nav aria-label="주요 메뉴">
-    <a href="{safe_home}#explore">문서 탐색</a>
-    <a href="{safe_home}about/">데이터 안내</a>
+    <a href="{safe_home}?type=concept#explore">개념</a>
+    <a href="{safe_home}?type=history#explore">연혁</a>
     <a href="{html.escape(repository_url, quote=True)}">GitHub 저장소</a>
   </nav>
 </header>"""
