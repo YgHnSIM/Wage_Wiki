@@ -53,34 +53,6 @@ SITE_DESCRIPTION = "통상임금·평균임금과 성과급, 지급조건, 최�
 DEFAULT_REPOSITORY_URL = "https://github.com/YgHnSIM/Wage_Wiki"
 ASSET_VERSION = "dev"
 
-TOPIC_LINKS = (
-    (
-        "통상임금",
-        "통상임금",
-        "고정성 폐기 이후의 판단 기준, 상여금과 지급조건을 살펴봅니다.",
-    ),
-    (
-        "평균임금·성과급",
-        "성과급 평균임금",
-        "공공기관·사기업 성과급과 퇴직금 산입 기준을 살펴봅니다.",
-    ),
-    (
-        "재직·근무조건",
-        "재직조건",
-        "재직조건과 근무일수 조건의 효력 및 통상임금성을 살펴봅니다.",
-    ),
-    (
-        "최저임금·택시",
-        "택시 최저임금",
-        "소정근로시간과 초과운송수입금의 판단 구조를 살펴봅니다.",
-    ),
-    (
-        "반환약정",
-        "반환약정",
-        "사이닝보너스·지원비 반환과 위약예정 금지 기준을 살펴봅니다.",
-    ),
-)
-
 TYPE_ORDER = {
     "guide": 0,
     "rule": 1,
@@ -103,6 +75,18 @@ TYPE_LABELS = {
     "discussion": "쟁점",
     "history": "연혁",
 }
+
+HOME_TYPE_ORDER = (
+    "law",
+    "case",
+    "interpretation",
+    "fact_pattern",
+    "discussion",
+    "guide",
+    "rule",
+    "concept",
+    "history",
+)
 TYPE_PREFIXES = {
     "guide": "GU",
     "rule": "RU",
@@ -354,35 +338,6 @@ def _decision_path(
     ]
 
 
-def _judgment_paths(
-    entities: list[Entity],
-    by_id: dict[str, Entity],
-    names: dict[str, list[Entity]],
-    records_by_id: dict[str, dict[str, Any]],
-    as_of: str,
-    limit: int = 4,
-) -> list[dict[str, Any]]:
-    rules = [
-        entity
-        for entity in entities
-        if scalar_text(entity.data.get("entity_type")) == "rule"
-        and scalar_text(entity.data.get("status")) == "verified"
-        and scalar_text(entity.data.get("legal_status")) == "current"
-        and _effective_on(entity.data, as_of)
-    ]
-    rules.sort(key=lambda entity: records_by_id[scalar_text(entity.data.get("id"))]["sortDate"], reverse=True)
-    paths: list[dict[str, Any]] = []
-    for rule in rules:
-        steps = _decision_path(rule, by_id, names)
-        if len(steps) != 4:
-            continue
-        record = records_by_id[scalar_text(rule.data.get("id"))]
-        paths.append({"record": record, "steps": steps})
-        if len(paths) >= limit:
-            break
-    return paths
-
-
 def _load_source_titles(path: Path) -> dict[str, str]:
     if not path.is_file():
         return {}
@@ -493,49 +448,57 @@ def _decision_path_steps_html(
     return f'<ol class="decision-path__steps">{"".join(items)}</ol>'
 
 
-def _home_judgment_paths(paths: list[dict[str, Any]], slugs: dict[str, str]) -> str:
-    if not paths:
+def _home_recent_documents(records: list[dict[str, Any]], limit: int = 4) -> str:
+    """Render the most recently reflected documents without duplicating judgment paths."""
+    recent_records = sorted(
+        records,
+        key=lambda record: (
+            scalar_text(record.get("asOfDate")) or "0000-00-00",
+            scalar_text(record.get("sortDate")) or "0000-00-00",
+            scalar_text(record.get("title")).casefold(),
+        ),
+        reverse=True,
+    )[:limit]
+    if not recent_records:
         return ""
+
     items: list[str] = []
-    for path in paths:
-        record = path["record"]
-        steps = _decision_path_steps_html(path["steps"], slugs, link_prefix="entities/")
+    for record in recent_records:
+        raw_date = scalar_text(record.get("asOfDate"))
+        date_attr = f' datetime="{html.escape(raw_date, quote=True)}"' if raw_date else ""
+        date_display = html.escape(_format_date(raw_date) if raw_date else "미기재")
         items.append(
-            f"""<article class="judgment-path">
-  <header><span>{html.escape(record['number'])}</span><time datetime="{html.escape(record['date'], quote=True)}">{html.escape(record['dateDisplay'])}</time></header>
-  <h3><a href="{html.escape(record['url'], quote=True)}">{html.escape(record['title'])}</a></h3>
-  {steps}
+            f"""<article class="recent-document">
+  <p class="recent-document__number" aria-hidden="true">{html.escape(record['number'])}</p>
+  <div class="recent-document__body">
+    <p class="recent-document__meta"><span>{html.escape(record['typeLabel'])}</span><time{date_attr}>기준일 {date_display}</time></p>
+    <h3><a href="{html.escape(record['url'], quote=True)}">{html.escape(record['title'])}</a></h3>
+  </div>
+  <p class="recent-document__summary">{html.escape(record['summary'])}</p>
 </article>"""
         )
-    return f"""<section class="judgment-paths" aria-labelledby="paths-title">
+    return f"""<section class="recent-documents" aria-labelledby="recent-documents-title">
   <div class="section-heading section-heading--split">
-    <div><p class="section-label">검증된 현행 판단 규칙</p><h2 id="paths-title">최근 판단 경로</h2></div>
-    <p class="section-note">사실관계에서 결론까지 연결된 최신 규칙입니다.</p>
+    <div><p class="section-label">최근 반영</p><h2 id="recent-documents-title">최근 추가 문서</h2></div>
+    <p class="section-note">자료 기준일이 최근인 문서입니다.</p>
   </div>
-  <div class="judgment-paths__list">{''.join(items)}</div>
+  <div class="recent-documents__list">{''.join(items)}</div>
 </section>"""
 
 
 def _home_page(
     records: list[dict[str, Any]],
     counts: Counter[str],
-    status_counts: Counter[str],
-    legal_counts: Counter[str],
     as_of: str,
     site_url: str,
     repository_url: str,
-    judgment_paths: list[dict[str, Any]],
-    slugs: dict[str, str],
 ) -> str:
-    trusted = [
-        item
-        for item in records
-        if item["status"] == "verified" and item["legalStatus"] == "current" and item["effectiveFrom"] <= as_of <= item["effectiveTo"]
-    ]
     ordered_records = sorted(records, key=lambda item: item["sortDate"], reverse=True)
-    initial = ordered_records[:18]
+    initial = ordered_records[:10]
     type_buttons = [f'<button type="button" class="type-filter is-active" data-type="all" data-label="전체 문서" aria-pressed="true">전체 <span>{len(records)}</span></button>']
-    for entity_type in sorted(counts, key=lambda value: TYPE_ORDER.get(value, 99)):
+    for entity_type in HOME_TYPE_ORDER:
+        if entity_type not in counts:
+            continue
         type_label = TYPE_LABELS.get(entity_type, entity_type)
         type_buttons.append(
             f'<button type="button" class="type-filter" data-type="{html.escape(entity_type, quote=True)}" '
@@ -543,49 +506,18 @@ def _home_page(
             f'{html.escape(type_label)} <span>{counts[entity_type]}</span></button>'
         )
     initial_cards = "".join(_record_card(item) for item in initial)
-    paths_html = _home_judgment_paths(judgment_paths, slugs)
-    topic_links = "".join(
-        f'<a href="?q={html.escape(quote(query), quote=True)}#explore"><strong>{html.escape(title)}</strong>'
-        f'<span>{html.escape(description)}</span></a>'
-        for title, query, description in TOPIC_LINKS
-    )
+    recent_documents_html = _home_recent_documents(records)
     formatted_as_of = html.escape(_format_date(as_of))
     body = f"""{_site_header('./', repository_url)}
 <main id="main" tabindex="-1">
   <section class="hero" aria-labelledby="hero-title">
     <div class="hero__copy">
-      <p class="section-label">통상임금·평균임금 중심 임금법 판례 지식베이스</p>
+      <p class="section-label">임금법 지식베이스</p>
       <h1 id="hero-title">판례와 규칙을<br>한 흐름으로 읽습니다.</h1>
       <p class="hero__description">통상임금·평균임금, 성과급, 지급조건, 최저임금 쟁점을 사실관계·판단 규칙·근거 권위·결론의 흐름으로 탐색합니다.</p>
       <a class="text-link" href="#explore">문서 탐색 시작</a>
     </div>
-    <div class="hero__folio" aria-label="데이터 현황">
-      <div><strong>{len(records):02d}</strong><span>전체 문서</span></div>
-      <div><strong>{len(trusted):02d}</strong><span>검증된 현행 지식</span></div>
-      <div><strong>{legal_counts.get('future', 0):02d}</strong><span>장래 적용</span></div>
-      <p>기준일 {formatted_as_of}</p>
-    </div>
-  </section>
-
-  <section class="current-strip" aria-label="현재 데이터 기준">
-    <div><span>편집 상태</span><strong>검증 {status_counts.get('verified', 0)} · 검토 {status_counts.get('review', 0)} · 초안 {status_counts.get('draft', 0)}</strong></div>
-    <div><span>법적 상태</span><strong>현행 {legal_counts.get('current', 0)} · 장래 {legal_counts.get('future', 0)}</strong></div>
-    <div><span>스키마</span><strong>v1.3</strong></div>
-  </section>
-
-  {paths_html}
-
-  <section class="topic-index" aria-labelledby="topics-title">
-    <div><p class="section-label">현재 수록 범위</p><h2 id="topics-title">주제별 시작점</h2></div>
-    <nav aria-label="주제별 문서 탐색">{topic_links}</nav>
-  </section>
-
-  <section class="explorer" id="explore" aria-labelledby="explore-title" data-index-url="assets/entities.json?v={ASSET_VERSION}">
-    <div class="section-heading section-heading--split">
-      <div><p class="section-label">전체 지식베이스</p><h2 id="explore-title">문서 탐색</h2></div>
-      <p class="result-status" id="result-status" aria-live="polite">전체 문서 {len(records)}개 · {len(initial)}개 표시</p>
-    </div>
-    <form class="search-panel" id="search-form" role="search" action="./" method="get">
+    <form class="search-panel hero__search" id="search-form" role="search" action="./" method="get">
       <label for="search-input">문서 검색</label>
       <div class="search-panel__control">
         <input id="search-input" name="q" type="search" autocomplete="off" placeholder="제목, 사건번호, 쟁점을 검색하세요" aria-describedby="search-help">
@@ -593,13 +525,37 @@ def _home_page(
       </div>
       <p id="search-help">제목·별칭·사건번호·본문을 검색합니다. 슬래시(/) 또는 Ctrl+K로 검색창에 이동할 수 있습니다.</p>
     </form>
-    <fieldset class="type-filters"><legend>문서 유형</legend><div>{''.join(type_buttons)}</div></fieldset>
+  </section>
+
+  <section class="explorer" id="explore" aria-labelledby="explore-title" data-index-url="assets/entities.json?v={ASSET_VERSION}">
+    <div class="section-heading section-heading--split">
+      <div><p class="section-label">전체 지식베이스</p><h2 id="explore-title">문서 탐색</h2></div>
+      <p class="result-status" id="result-status" aria-live="polite">전체 문서 {len(records)}개 · {len(initial)}개 표시</p>
+    </div>
+    <div class="filter-controls">
+      <fieldset class="type-filters"><legend>문서 유형</legend><div>{''.join(type_buttons)}</div></fieldset>
+      <div class="sort-control">
+        <label for="sort-select">정렬</label>
+        <select id="sort-select" name="sort">
+          <option value="latest">최신 적용일순</option>
+          <option value="oldest">오래된 적용일순</option>
+          <option value="title">가나다순</option>
+          <option value="type">문서 유형순</option>
+        </select>
+      </div>
+    </div>
 
     <noscript><p class="notice">유형 필터를 사용하려면 JavaScript가 필요합니다. 아래에는 최신 문서 일부가 표시됩니다.</p></noscript>
     <div class="results" id="results">{initial_cards}</div>
-    <div class="load-more-wrap"><button type="button" id="load-more" hidden>더 보기</button></div>
+    <nav class="pagination" id="pagination" aria-label="검색 결과 페이지" hidden>
+      <button type="button" id="page-prev" aria-controls="results">이전</button>
+      <p id="page-status" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></p>
+      <button type="button" id="page-next" aria-controls="results">다음</button>
+    </nav>
     <div class="empty-state" id="empty-state" hidden><h3 id="empty-title">검색 결과가 없습니다.</h3><p id="empty-description">검색어를 바꾸거나 다른 문서 유형을 선택해 보세요.</p></div>
   </section>
+
+  {recent_documents_html}
 
   <section class="disclaimer" aria-labelledby="disclaimer-title">
     <h2 id="disclaimer-title">이용 안내</h2>
@@ -1158,7 +1114,6 @@ def build_site(
     status_counts = Counter(record["status"] for record in records)
     legal_counts = Counter(record["legalStatus"] for record in records)
     as_of = max((record["asOfDate"] for record in records if record["asOfDate"]), default=dt.date.today().isoformat())
-    judgment_paths = _judgment_paths(entities, by_id, names, records_by_id, as_of)
     source_titles = _load_source_titles(root / "sources" / "registry.yaml")
 
     if output.exists():
@@ -1171,13 +1126,9 @@ def build_site(
         _home_page(
             records,
             counts,
-            status_counts,
-            legal_counts,
             as_of,
             site_url,
             repository_url,
-            judgment_paths,
-            slugs,
         ),
         encoding="utf-8",
         newline="\n",

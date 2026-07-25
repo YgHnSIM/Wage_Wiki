@@ -12,7 +12,7 @@ ROOT = SCRIPTS.parent
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from build_site import _summary, _truncate_summary, build_site, render_inline, render_markdown
+from build_site import _home_recent_documents, _summary, _truncate_summary, build_site, render_inline, render_markdown
 from check_site import check_site
 from kg_common import Entity, entity_lookup, load_entities
 
@@ -34,26 +34,47 @@ class SiteBuildTests(unittest.TestCase):
             self.assertTrue((output / "index.html").is_file())
             self.assertTrue((output / "about" / "index.html").is_file())
             home = (output / "index.html").read_text(encoding="utf-8")
-            self.assertIn('class="judgment-paths"', home)
-            self.assertIn('class="topic-index"', home)
+            self.assertIn('class="recent-documents"', home)
             self.assertIn('id="search-input"', home)
-            self.assertIn('class="search-panel"', home)
+            self.assertIn('class="search-panel hero__search"', home)
             self.assertIn('class="type-filters"', home)
-            self.assertIn('data-type="guide" data-label="실무 가이드"', home)
+            self.assertIn('class="filter-controls"', home)
+            self.assertIn('id="sort-select"', home)
+            self.assertIn('<option value="latest">최신 적용일순</option>', home)
+            self.assertIn('id="pagination"', home)
+            self.assertIn('id="page-prev"', home)
+            self.assertIn('id="page-status"', home)
+            self.assertIn('id="page-next"', home)
+            self.assertNotIn('class="current-strip"', home)
+            self.assertNotIn('class="topic-index"', home)
+            self.assertNotIn('class="topic-shortcuts"', home)
+            self.assertNotIn('id="load-more"', home)
+            self.assertNotIn('class="decision-path__steps"', home)
+            self.assertNotIn('class="judgment-paths"', home)
+            result_start = home.index('<div class="results" id="results">')
+            pagination_start = home.index('<nav class="pagination"', result_start)
+            self.assertEqual(home[result_start:pagination_start].count('<article class="result-card">'), 10)
+            self.assertEqual(home.count('<article class="recent-document">'), 4)
+            self.assertEqual(home.count('class="recent-document__summary"'), 4)
             type_buttons = re.findall(r'<button\b[^>]*class="type-filter(?: is-active)?"[^>]*>', home)
             self.assertEqual(len(type_buttons), 10)
-            self.assertIn('data-type="all"', type_buttons[0])
+            self.assertEqual(
+                [re.search(r'data-type="([^"]+)"', button).group(1) for button in type_buttons],
+                ["all", "law", "case", "interpretation", "fact_pattern", "discussion", "guide", "rule", "concept", "history"],
+            )
             self.assertIn('aria-pressed="true"', type_buttons[0])
             self.assertEqual(sum('aria-pressed="true"' in button for button in type_buttons), 1)
             self.assertTrue(all('aria-pressed="false"' in button for button in type_buttons[1:]))
             self.assertIn('<main id="main" tabindex="-1">', home)
             self.assertIn(f"전체 문서 {expected_entities}개", home)
+            hero = home[home.index('<section class="hero"'):home.index('<section class="explorer"')]
+            self.assertNotIn('class="hero__folio"', hero)
+            self.assertIn('class="search-panel hero__search"', hero)
             for removed_control in (
                 "filter-grid",
                 "status-filter",
                 "legal-filter",
                 "date-filter",
-                "sort-filter",
                 "effective-filter",
                 "reset-filters",
                 "show-all",
@@ -73,12 +94,15 @@ class SiteBuildTests(unittest.TestCase):
             self.assertFalse(any("raw" in path.relative_to(output).parts for path in output.rglob("*")))
             flowchart_pages = []
             temporal_metadata_pages = []
+            decision_path_pages = []
             for page_path in (output / "entities").glob("*/index.html"):
                 page = page_path.read_text(encoding="utf-8")
                 if "<h1>보장시간 합의 후 법정수당 재산정</h1>" in page:
                     flowchart_pages.append(page)
                 if "<h1>대법원 2013. 12. 18. 선고 2012다89399 전원합의체 판결</h1>" in page:
                     temporal_metadata_pages.append(page)
+                if 'class="decision-path__steps"' in page:
+                    decision_path_pages.append(page)
                 relation_aside = re.search(r'<aside class="relations".*?</aside>', page, flags=re.S)
                 if not relation_aside:
                     continue
@@ -88,6 +112,7 @@ class SiteBuildTests(unittest.TestCase):
             self.assertEqual(flowchart_pages[0].count('<figure class="flowchart '), 2)
             self.assertEqual(flowchart_pages[0].count('<svg class="flowchart__svg"'), 2)
             self.assertNotIn("language-mermaid", flowchart_pages[0])
+            self.assertTrue(decision_path_pages)
             self.assertEqual(len(temporal_metadata_pages), 1)
             primary_metadata = re.search(
                 r'<dl class="document-meta__primary">(.*?)</dl>', temporal_metadata_pages[0], flags=re.S
@@ -99,6 +124,27 @@ class SiteBuildTests(unittest.TestCase):
             self.assertIn("<dt>적용 종료</dt><dd>종료일 없음</dd>", primary_metadata.group(1))
             checked = check_site(output)
             self.assertEqual(checked["issues"], 0, checked["details"])
+
+    def test_home_recent_documents_are_limited_ordered_and_escaped(self) -> None:
+        records = [
+            {
+                "number": f"GU-0{index}",
+                "typeLabel": "실무 가이드",
+                "asOfDate": f"2026-07-0{index}",
+                "sortDate": f"2026-07-0{index}",
+                "url": f"entities/guide-{index}/",
+                "title": "<script>title()</script>" if index == 5 else f"문서 {index}",
+                "summary": "<img src=x onerror=alert(1)>" if index == 5 else f"요약 {index}",
+            }
+            for index in range(1, 6)
+        ]
+        rendered = _home_recent_documents(records)
+        self.assertEqual(rendered.count('<article class="recent-document">'), 4)
+        self.assertNotIn("문서 1", rendered)
+        self.assertIn("&lt;script&gt;title()&lt;/script&gt;", rendered)
+        self.assertIn("&lt;img src=x onerror=alert(1)&gt;", rendered)
+        self.assertNotIn("<script>title()</script>", rendered)
+        self.assertNotIn("<img src=x", rendered)
 
     def test_output_must_stay_inside_repository(self) -> None:
         with self.assertRaises(ValueError):
