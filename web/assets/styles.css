@@ -503,7 +503,7 @@ svg {
 
 .home-page .recent-document__link {
   display: grid;
-  grid-template-columns: minmax(72px, 1fr) minmax(220px, 4.65fr) minmax(220px, 4.35fr);
+  grid-template-columns: clamp(176px, 14vw, 204px) minmax(0, 1.08fr) minmax(0, 1fr);
   align-items: center;
   min-height: 96px;
   color: inherit;
@@ -520,7 +520,8 @@ svg {
 
 .home-page .recent-document__number {
   color: var(--blue);
-  font-size: clamp(1.8rem, 3vw, 3.25rem);
+  padding-inline: 0.75rem;
+  font-size: clamp(1.8rem, 2.7vw, 3rem);
   font-weight: 800;
   letter-spacing: -0.07em;
   line-height: 0.9;
@@ -529,6 +530,9 @@ svg {
 }
 
 .home-page .recent-document__body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-self: stretch;
   border-left: 1px solid var(--line);
 }
@@ -542,6 +546,15 @@ svg {
   font-size: 0.76rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+.home-page .recent-document__meta span {
+  min-width: 0;
+}
+
+.home-page .recent-document__meta time {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .home-page .recent-document h3 {

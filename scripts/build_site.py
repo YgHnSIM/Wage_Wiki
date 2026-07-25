@@ -609,7 +609,7 @@ def _home_recent_documents(records: list[dict[str, Any]], limit: int = 4) -> str
         )
     return f"""<section class="recent-documents" aria-labelledby="recent-documents-title">
   <div class="section-heading section-heading--split">
-    <div><p class="section-label">최근 반영</p><h2 id="recent-documents-title">최근 추가 문서</h2></div>
+    <div><h2 id="recent-documents-title">최근 추가 문서</h2></div>
     <p class="section-note">자료 기준일이 최근인 문서입니다.</p>
   </div>
   <div class="recent-documents__list">{''.join(items)}</div>
