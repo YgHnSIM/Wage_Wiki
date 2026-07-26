@@ -29,10 +29,12 @@ from claim_contract import (
 from graph_contract import RELATED_FIELDS
 from kg_common import (
     Entity,
+    SCHEMA_VERSION,
     as_list,
     entity_lookup,
     load_entities,
     load_json,
+    legacy_entity_view,
     resolve_entity_ref,
     scalar_text,
     wiki_targets,
@@ -163,7 +165,7 @@ def entity_slug(entity_id: str) -> str:
 
 
 def _date_info(entity: Entity) -> tuple[str, str]:
-    data = entity.data
+    data = legacy_entity_view(entity.data)
     entity_type = scalar_text(data.get("entity_type"))
     candidates: list[tuple[str, str]] = []
     if entity_type == "case":
@@ -191,13 +193,13 @@ def _format_date(value: str) -> str:
 
 
 def _sort_date(entity: Entity) -> str:
-    return _date_info(entity)[1] or scalar_text(entity.data.get("as_of_date")) or "0000-00-00"
+    return _date_info(entity)[1] or scalar_text(legacy_entity_view(entity.data).get("as_of_date")) or "0000-00-00"
 
 
 def _effective_on(data: dict[str, Any], as_of: str) -> bool:
     start = scalar_text(data.get("effective_from")) or "1900-01-01"
-    end = scalar_text(data.get("effective_to")) or "9999-12-31"
-    return start <= as_of <= end
+    end = scalar_text(data.get("effective_to"))
+    return start <= as_of and (not end or end == "9999-12-31" or as_of < end)
 
 
 def _entity_records(entities: list[Entity], slugs: dict[str, str]) -> list[dict[str, Any]]:
@@ -211,7 +213,7 @@ def _entity_records(entities: list[Entity], slugs: dict[str, str]) -> list[dict[
     counters: Counter[str] = Counter()
     records: list[dict[str, Any]] = []
     for entity in ordered:
-        data = entity.data
+        data = legacy_entity_view(entity.data)
         entity_type = scalar_text(data.get("entity_type"))
         entity_id = scalar_text(data.get("id"))
         counters[entity_type] += 1
@@ -275,20 +277,24 @@ def _first_related_entity(
     names: dict[str, list[Entity]],
 ) -> Entity | None:
     field_by_type = {
+        "guide": "related_guides",
         "rule": "related_rules",
         "case": "related_cases",
         "law": "related_laws",
         "interpretation": "related_interpretations",
         "fact_pattern": "related_fact_patterns",
         "concept": "related_concepts",
+        "history": "related_history",
+        "discussion": "related_discussions",
     }
     field = field_by_type.get(target_type)
     if field:
-        for target_name in wiki_targets(entity.data.get(field)):
+        view = legacy_entity_view(entity.data)
+        for target_name in wiki_targets(view.get(field)):
             matches = resolve_entity_ref(target_name, names)
             if len(matches) == 1 and scalar_text(matches[0].data.get("entity_type")) == target_type:
                 return matches[0]
-    for relation in as_list(entity.data.get("relations")):
+    for relation in as_list(legacy_entity_view(entity.data).get("relations")):
         if not isinstance(relation, dict):
             continue
         target = by_id.get(scalar_text(relation.get("target_id")))
@@ -309,10 +315,10 @@ def _decision_path(
     fact = entity if entity_type == "fact_pattern" else _first_related_entity(rule, "fact_pattern", by_id, names)
     if not fact:
         fact = _first_related_entity(entity, "fact_pattern", by_id, names)
-    authority = by_id.get(scalar_text(rule.data.get("primary_authority_id")))
+    authority = by_id.get(scalar_text(legacy_entity_view(rule.data).get("primary_authority_id")))
     if not authority and entity_type in {"case", "law", "interpretation"}:
         authority = entity
-    conclusion = _plain_text(scalar_text(rule.data.get("conclusion")))
+    conclusion = _plain_text(scalar_text(legacy_entity_view(rule.data).get("conclusion")))
     if not fact or not authority or not conclusion:
         return []
     return [
@@ -706,7 +712,7 @@ def _related_entities(
     by_id: dict[str, Entity],
     names: dict[str, list[Entity]],
 ) -> list[tuple[Entity, list[str], list[str]]]:
-    data = entity.data
+    data = legacy_entity_view(entity.data)
     source_id = scalar_text(data.get("id"))
     found: dict[str, dict[str, Any]] = {}
 
@@ -913,7 +919,7 @@ def _entity_page(
     branch: str,
     source_titles: dict[str, str],
 ) -> str:
-    data = entity.data
+    data = legacy_entity_view(entity.data)
     entity_id = scalar_text(data.get("id"))
     title = scalar_text(data.get("title"))
     current_slug = slugs[entity_id]
@@ -1332,7 +1338,7 @@ def build_site(
     robots_sitemap = f"Sitemap: {_canonical(site_url, 'sitemap.xml')}\n" if site_url else ""
     (output / "robots.txt").write_text(f"User-agent: *\nAllow: /\n{robots_sitemap}", encoding="utf-8", newline="\n")
     build_info = {
-        "schema_version": "1.3",
+        "schema_version": SCHEMA_VERSION,
         "as_of_date": as_of,
         "entities": len(records),
         "redirects": redirect_count,

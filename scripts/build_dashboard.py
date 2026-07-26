@@ -10,7 +10,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from kg_common import SCHEMA_VERSION, load_entities, scalar_text
+from kg_common import SCHEMA_VERSION, legacy_entity_view, load_entities, scalar_text
 from lint_wiki import lint_repository
 from temporal_policy import repository_today
 
@@ -27,8 +27,8 @@ def build_dashboard(root: Path, today: dt.date | None = None) -> str:
     entities, _ = load_entities(root)
     report = lint_repository(root, today=today)
     by_type = Counter(scalar_text(entity.data.get("entity_type")) for entity in entities)
-    by_status = Counter(scalar_text(entity.data.get("status")) or "missing" for entity in entities)
-    by_legal = Counter(scalar_text(entity.data.get("legal_status")) or "unmigrated" for entity in entities)
+    by_status = Counter(scalar_text(legacy_entity_view(entity.data).get("status")) or "missing" for entity in entities)
+    by_legal = Counter(scalar_text(legacy_entity_view(entity.data).get("legal_status")) or "unmigrated" for entity in entities)
     summary = report["summary"]
     lines = [
         "# Wage Wiki 품질 대시보드",

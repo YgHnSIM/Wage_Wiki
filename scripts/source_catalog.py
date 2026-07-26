@@ -22,22 +22,47 @@ class SourceRegistryError(ValueError):
         self.kind = kind
 
 
-def load_source_records(root: Path, *, missing_ok: bool = False) -> list[Any]:
-    """Load raw registry records, preserving invalid items for strict validators."""
+def load_source_registry(root: Path, *, missing_ok: bool = False) -> dict[str, Any]:
+    """Load the complete registry document for v1.0/v1.1 validators."""
 
     path = root / "sources" / "registry.yaml"
     if not path.exists():
         if missing_ok:
-            return []
+            return {}
         raise SourceRegistryError("missing", "source registry does not exist")
     try:
         data = _SubsetYamlParser(path.read_text(encoding="utf-8-sig")).parse()
     except (OSError, UnicodeError, FrontmatterError) as exc:
         raise SourceRegistryError("parse", str(exc)) from exc
+    if not isinstance(data, dict):
+        raise SourceRegistryError("type", "source registry must be a mapping")
+    return data
+
+
+def load_source_records(root: Path, *, missing_ok: bool = False) -> list[Any]:
+    """Load raw registry records, preserving invalid items for strict validators."""
+
+    data = load_source_registry(root, missing_ok=missing_ok)
+    if not data:
+        return []
     records = data.get("sources")
     if not isinstance(records, list):
         raise SourceRegistryError("type", "sources must be a list")
     return records
+
+
+def source_location(record: Any) -> tuple[str, str]:
+    """Return ``(kind, value)`` for normalized or legacy source records."""
+
+    if not isinstance(record, dict):
+        return "", ""
+    location = record.get("location")
+    if isinstance(location, dict):
+        kind = scalar_text(location.get("kind"))
+        value = scalar_text(location.get("path")) if kind == "path" else scalar_text(location.get("url"))
+        return kind, value
+    path = scalar_text(record.get("path"))
+    return ("path", path) if path else ("", "")
 
 
 def tolerant_source_records(root: Path) -> list[dict[str, Any]]:
@@ -89,8 +114,8 @@ def registry_path_map(root: Path) -> dict[str, str]:
     result: dict[str, str] = {}
     for record in tolerant_source_records(root):
         source_id = scalar_text(record.get("source_id"))
-        source_path = scalar_text(record.get("path"))
-        if source_id and source_path:
+        kind, source_path = source_location(record)
+        if source_id and kind == "path" and source_path:
             result[normalized_ref(source_path)] = source_id
     return result
 

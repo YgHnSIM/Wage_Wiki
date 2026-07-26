@@ -15,10 +15,14 @@ import re
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, Iterator
+from typing import Any, Iterable, Iterator, Mapping
 
 
-SCHEMA_VERSION = "1.3"
+# v1.3 remains available for historical migration tooling.  v1.4 is the
+# active contract used by the repository after the single-batch cutover.
+LEGACY_SCHEMA_VERSION = "1.3"
+SCHEMA_VERSION = "1.4"
+CURRENT_SCHEMA_VERSION = SCHEMA_VERSION
 SEVERITIES = ("critical", "high", "medium", "low", "info")
 WIKILINK_RE = re.compile(r"\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]")
 URL_RE = re.compile(r"^https?://", re.I)
@@ -42,6 +46,25 @@ class Entity:
     relative_path: str
     data: dict[str, Any]
     body: str
+
+
+class V14EntityData(dict[str, Any]):
+    """Expose a minimal read-only compatibility view for older callers.
+
+    The projected keys are not inserted into the mapping, so serialized v1.4
+    frontmatter remains strictly normalized and JSON Schema validation remains
+    unchanged.
+    """
+
+    def get(self, key: str, default: Any = None) -> Any:  # type: ignore[override]
+        if key not in self:
+            provenance = dict.get(self, "provenance")
+            if isinstance(provenance, dict):
+                if key == "evidence":
+                    return provenance.get("evidence", default)
+                if key == "verification":
+                    return provenance.get("verification", default)
+        return dict.get(self, key, default)
 
 
 def _strip_comment(value: str) -> str:
@@ -332,6 +355,8 @@ def load_entities(repo_root: Path) -> tuple[list[Entity], list[dict[str, Any]]]:
         if not data.get("entity_type"):
             issues.append(issue("high", "ENTITY_TYPE_MISSING", relative, "entity_type is missing"))
             continue
+        if scalar_text(data.get("schema_version")) == CURRENT_SCHEMA_VERSION:
+            data = V14EntityData(data)
         entities.append(Entity(path, relative, data, body))
     return entities, issues
 
@@ -348,6 +373,202 @@ def as_list(value: Any) -> list[Any]:
 
 def scalar_text(value: Any) -> str:
     return "" if value is None else str(value).strip()
+
+
+def _mapping(value: Any) -> dict[str, Any]:
+    """Return a mapping value or an empty mapping for tolerant consumers."""
+
+    return value if isinstance(value, dict) else {}
+
+
+def workflow_data(data: Mapping[str, Any]) -> dict[str, Any]:
+    """Read v1.4 workflow metadata while tolerating v1.3 flat fields."""
+
+    workflow = _mapping(data.get("workflow"))
+    return {
+        "editorial_status": scalar_text(workflow.get("editorial_status") or data.get("status")),
+        "ingestion_status": scalar_text(workflow.get("ingestion_status") or data.get("ingestion_status")),
+        "updated_on": scalar_text(workflow.get("updated_on") or data.get("last_updated")),
+        "review": _mapping(workflow.get("review"))
+        or {
+            "cycle": scalar_text(data.get("review_cycle")),
+            "checked_on": scalar_text(data.get("last_checked")),
+            "triggers": as_list(data.get("review_trigger")),
+        },
+    }
+
+
+def legal_data(data: Mapping[str, Any]) -> dict[str, Any]:
+    """Read v1.4 legal metadata while tolerating v1.3 flat fields."""
+
+    legal = _mapping(data.get("legal"))
+    validity = _mapping(legal.get("validity"))
+    return {
+        "status": scalar_text(legal.get("status") or data.get("legal_status")),
+        "as_of": scalar_text(legal.get("as_of") or data.get("as_of_date")),
+        "validity": {
+            "from": scalar_text(validity.get("from") or data.get("effective_from")),
+            "until": scalar_text(validity.get("until") or data.get("effective_to")),
+        },
+        "superseded_by": scalar_text(legal.get("superseded_by") or data.get("superseded_by")),
+        "superseded_on": scalar_text(legal.get("superseded_on") or data.get("superseded_date")),
+    }
+
+
+def authority_records(data: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Return canonical v1.4 authority records or adapt v1.3 IDs."""
+
+    records = data.get("authorities")
+    if isinstance(records, list):
+        return [item for item in records if isinstance(item, dict)]
+    primary = scalar_text(data.get("primary_authority_id"))
+    result: list[dict[str, Any]] = []
+    if primary:
+        result.append({"target_id": primary, "role": "primary", "note": ""})
+    for target_id in as_list(data.get("authority_ids")):
+        target = scalar_text(target_id)
+        if target and target != primary:
+            result.append({"target_id": target, "role": "supporting", "note": ""})
+    return result
+
+
+def authority_target_ids(data: Mapping[str, Any]) -> list[str]:
+    return list(dict.fromkeys(
+        scalar_text(item.get("target_id"))
+        for item in authority_records(data)
+        if scalar_text(item.get("target_id"))
+    ))
+
+
+def provenance_data(data: Mapping[str, Any]) -> dict[str, Any]:
+    """Return canonical provenance metadata with v1.3 compatibility."""
+
+    provenance = _mapping(data.get("provenance"))
+    verification = _mapping(provenance.get("verification"))
+    if not verification:
+        verification = _mapping(data.get("verification"))
+    external_links = provenance.get("external_links")
+    if not isinstance(external_links, list):
+        external_links = [
+            {"url": scalar_text(url), "role": "official", "note": ""}
+            for url in as_list(data.get("source_urls"))
+            if scalar_text(url)
+        ]
+    evidence = provenance.get("evidence")
+    if not isinstance(evidence, list):
+        evidence = data.get("evidence") if isinstance(data.get("evidence"), list) else []
+    source_ids = provenance.get("source_ids")
+    if not isinstance(source_ids, list):
+        source_ids = [
+            scalar_text(item.get("source_id"))
+            for item in evidence
+            if isinstance(item, dict) and scalar_text(item.get("source_id"))
+        ]
+    availability = scalar_text(provenance.get("availability"))
+    if not availability:
+        legacy = scalar_text(data.get("source_availability"))
+        availability = {
+            "available": "complete",
+            "partial": "partial",
+            "unavailable_official": "official_unavailable",
+        }.get(legacy, "not_applicable")
+    return {
+        "availability": availability,
+        "note": scalar_text(provenance.get("note") or data.get("source_availability_note")),
+        "source_ids": [scalar_text(item) for item in source_ids if scalar_text(item)],
+        "external_links": [item for item in external_links if isinstance(item, dict)],
+        "evidence": evidence,
+        "verification": verification,
+    }
+
+
+def relation_records(data: Mapping[str, Any]) -> list[dict[str, Any]]:
+    records = data.get("relations")
+    if not isinstance(records, list):
+        return []
+    return [item for item in records if isinstance(item, dict)]
+
+
+def conflict_records(data: Mapping[str, Any]) -> list[dict[str, Any]]:
+    records = data.get("conflicts")
+    if isinstance(records, list):
+        return [item for item in records if isinstance(item, dict)]
+    status = scalar_text(data.get("conflict_status"))
+    resolution = scalar_text(data.get("conflict_resolution"))
+    conflict_type = scalar_text(data.get("conflict_type"))
+    if status == "active" or resolution in {"pending", "resolved", "unresolvable"}:
+        return [{
+            "conflict_id": "legacy-conflict",
+            "type": conflict_type if conflict_type and conflict_type != "none" else "interpretive",
+            "status": resolution if resolution in {"pending", "resolved", "unresolvable"} else "pending",
+            "target_ids": [],
+            "note": scalar_text(data.get("conflict_resolution_note")),
+            "resolved_on": scalar_text(data.get("conflict_resolved_date")) or None,
+            "review_triggers": as_list(data.get("review_trigger")),
+        }]
+    return []
+
+
+def related_projection(data: Mapping[str, Any], field: str) -> list[Any]:
+    """Return generated related_* projection values from a v1.4 document."""
+
+    return as_list(data.get(field))
+
+
+def legacy_entity_view(data: dict[str, Any]) -> dict[str, Any]:
+    """Flatten v1.4 metadata for renderers and legacy graph consumers.
+
+    This is a read-only compatibility view; callers must not write it back to
+    the entity frontmatter.
+    """
+
+    if scalar_text(data.get("schema_version")) != CURRENT_SCHEMA_VERSION:
+        return data
+    view = dict(data)
+    workflow = workflow_data(data)
+    legal = legal_data(data)
+    provenance = provenance_data(data)
+    verification = provenance.get("verification") if isinstance(provenance.get("verification"), dict) else {}
+    view.update({
+        "status": workflow["editorial_status"],
+        "ingestion_status": workflow["ingestion_status"],
+        "last_updated": workflow["updated_on"],
+        "review_cycle": scalar_text(workflow["review"].get("cycle")),
+        "last_checked": scalar_text(workflow["review"].get("checked_on")),
+        "review_trigger": as_list(workflow["review"].get("triggers")),
+        "legal_status": legal["status"],
+        "as_of_date": legal["as_of"],
+        "effective_from": legal["validity"]["from"],
+        "effective_to": legal["validity"]["until"] or "9999-12-31",
+        "superseded_by": legal["superseded_by"],
+        "superseded_date": legal["superseded_on"] or "",
+        "authority_ids": authority_target_ids(data),
+        "primary_authority_id": next((scalar_text(item.get("target_id")) for item in authority_records(data) if item.get("role") == "primary"), ""),
+        "authority_level": (data.get("authority_profile") or {}).get("level") if isinstance(data.get("authority_profile"), dict) else None,
+        "enforcement_weight": (data.get("authority_profile") or {}).get("enforcement_weight", "") if isinstance(data.get("authority_profile"), dict) else "",
+        "source_urls": [scalar_text(item.get("url")) for item in provenance.get("external_links", []) if isinstance(item, dict) and scalar_text(item.get("url"))],
+        "source_availability": {"complete": "available", "partial": "partial", "official_unavailable": "unavailable_official", "not_applicable": "not_applicable"}.get(provenance.get("availability"), "not_applicable"),
+        "source_availability_note": provenance.get("note", ""),
+        "evidence": [dict(item, verified_on=(item.get("verified_on") or "")) for item in provenance.get("evidence", []) if isinstance(item, dict)],
+        "verification": verification,
+        "verified_by": as_list(verification.get("verifier_ids")),
+        "last_verified": scalar_text(verification.get("verified_on")),
+        "relations": [dict(item, effective_on=(item.get("effective_on") or "")) for item in relation_records(data)],
+    })
+    attrs = data.get("attributes") if isinstance(data.get("attributes"), dict) else {}
+    view.update(attrs)
+    if scalar_text(data.get("entity_type")) == "case":
+        numbers = attrs.get("case_numbers") if isinstance(attrs.get("case_numbers"), list) else []
+        view["case_number"] = next((scalar_text(item.get("number")) for item in numbers if isinstance(item, dict)), "")
+        view["case_numbers"] = [scalar_text(item.get("number")) for item in numbers if isinstance(item, dict)]
+    if scalar_text(data.get("entity_type")) == "rule":
+        view["temporal"] = {
+            "applicable_from": legal["validity"]["from"],
+            "applicable_to": legal["validity"]["until"] or "9999-12-31",
+            "rule_version": attrs.get("rule_version", "legacy"),
+            "transition_note": attrs.get("transition_note", ""),
+        }
+    return view
 
 
 def wiki_targets(value: Any) -> list[str]:

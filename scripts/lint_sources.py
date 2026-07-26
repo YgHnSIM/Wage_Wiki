@@ -4,11 +4,19 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
 from kg_common import issue, normalized_ref, scalar_text
-from source_catalog import SourceRegistryError, iter_raw_files, load_source_records
+from source_catalog import SourceRegistryError, iter_raw_files, load_source_records, load_source_registry, source_location
+
+
+SOURCE_ID_RE = re.compile(r"^[a-z0-9가-힣][a-z0-9가-힣-]{2,95}$")
+SOURCE_TYPES = {
+    "case", "case_press_release", "case_search_result", "law", "law_amendment", "law_notice",
+    "interpretation", "official_guidance", "official_database", "research", "manual", "database",
+}
 
 
 def _raw_index(root: Path) -> set[str]:
@@ -24,7 +32,15 @@ def _validate_source_registry(root: Path, issues: list[dict[str, Any]]) -> set[s
     path = root / "sources" / "registry.yaml"
     relative = path.relative_to(root).as_posix()
     try:
-        records = load_source_records(root)
+        registry = load_source_registry(root)
+        records = registry.get("sources")
+        if registry.get("format_version") == "1.1":
+            if not scalar_text(registry.get("last_updated")):
+                issues.append(issue("high", "SOURCE_REGISTRY_HEADER", relative, "last_updated is required"))
+            if not scalar_text(registry.get("id_policy")):
+                issues.append(issue("high", "SOURCE_REGISTRY_HEADER", relative, "id_policy is required"))
+        if not isinstance(records, list):
+            raise SourceRegistryError("type", "sources must be a list")
     except SourceRegistryError as exc:
         severity, code = {
             "missing": ("high", "SOURCE_REGISTRY_MISSING"),
@@ -42,12 +58,25 @@ def _validate_source_registry(root: Path, issues: list[dict[str, Any]]) -> set[s
             issues.append(issue("high", "SOURCE_REGISTRY_RECORD", relative, f"{field} must be a mapping"))
             continue
         source_id = scalar_text(record.get("source_id"))
+        if registry.get("format_version") == "1.1" and source_id and not SOURCE_ID_RE.fullmatch(source_id):
+            issues.append(issue("high", "SOURCE_REGISTRY_ID_FORMAT", relative, f"invalid source_id: {source_id}", f"{field}.source_id"))
         if not source_id or source_id in ids:
             issues.append(issue("critical", "SOURCE_REGISTRY_ID", relative, f"{field}.source_id is missing or duplicated"))
         if source_id:
             ids.add(source_id)
-        source_path = scalar_text(record.get("path"))
-        if source_path:
+        location_kind, source_path = source_location(record)
+        if registry.get("format_version") == "1.1":
+            for required_field in ("title", "publisher", "source_type", "jurisdiction", "authority_level"):
+                if not scalar_text(record.get(required_field)):
+                    issues.append(issue("high", "SOURCE_REGISTRY_FIELD", relative, f"{field}.{required_field} is required", f"{field}.{required_field}"))
+            if scalar_text(record.get("source_type")) not in SOURCE_TYPES:
+                issues.append(issue("high", "SOURCE_REGISTRY_SOURCE_TYPE", relative, f"invalid source_type: {record.get('source_type')}", f"{field}.source_type"))
+            authority_level = record.get("authority_level")
+            if not isinstance(authority_level, int) or isinstance(authority_level, bool) or not 1 <= authority_level <= 7:
+                issues.append(issue("high", "SOURCE_REGISTRY_AUTHORITY_LEVEL", relative, f"authority_level must be an integer 1..7: {authority_level}", f"{field}.authority_level"))
+            if location_kind not in {"path", "url"} or not source_path:
+                issues.append(issue("high", "SOURCE_REGISTRY_LOCATION", relative, f"{field}.location must contain a path or URL", f"{field}.location"))
+        if location_kind == "path" and source_path:
             normalized = normalized_ref(source_path)
             if normalized in paths and paths[normalized] != source_id:
                 issues.append(issue("critical", "SOURCE_REGISTRY_PATH_DUPLICATE", relative, f"path has multiple source IDs: {source_path}"))
@@ -62,6 +91,9 @@ def _validate_source_registry(root: Path, issues: list[dict[str, Any]]) -> set[s
                     issues.append(issue("critical", "SOURCE_REGISTRY_PATH_BROKEN", relative, f"source path does not exist: {source_path}"))
                 elif not normalized.startswith("raw/"):
                     issues.append(issue("high", "SOURCE_REGISTRY_PATH_SCOPE", relative, f"source path must be under raw/: {source_path}"))
+        elif location_kind == "url" and source_path:
+            if not source_path.casefold().startswith(("http://", "https://")):
+                issues.append(issue("high", "SOURCE_REGISTRY_URL_INVALID", relative, f"location URL must be http(s): {source_path}"))
     return ids
 
 

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wage-wiki.local/schemas/quality-baseline-v1.json",
+  "format_version": "1.0",
+  "policy": "no-growth",
+  "claim_unresolved": {
+    "count": 162,
+    "sha256": "3d80814403ec6c86d7a0f6927c7328ae0c448c9a302e2fce019b7a3caef21323"
+  },
+  "generic_relations": {
+    "count": 1757,
+    "sha256": "daf9e6a154b2fab8961faf7c3760d67de193437ee2d9531f10e15ee9d3612e12"
+  }
+}

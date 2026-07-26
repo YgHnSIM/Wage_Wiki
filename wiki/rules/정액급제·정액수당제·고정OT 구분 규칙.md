@@ -1,127 +1,132 @@
 ---
-schema_version: "1.3"
+schema_version: "1.4"
 id: "rule-inclusive-wage-types-fixed-overtime"
 id_aliases: []
 entity_type: "rule"
 title: "정액급제·정액수당제·고정OT 구분 규칙"
 aliases: []
 jurisdiction: "KR"
-status: "verified"
-legal_status: "current"
-ingestion_status: "verified"
-primary_authority: "대법원 2022. 2. 10. 선고 2018다298904 판결"
-primary_authority_id: "case-2018다298904"
-authority_ids:
-  - "case-2018다298904"
-  - "case-2020다300299"
-  - "interpretation-moel-inclusive-wage-guideline-2026-04-09"
-authority_level: 3
-enforcement_weight: "high"
-conflict_status: "active"
-conflict_type: "interpretive"
-conflict_resolution: "unresolvable"
-conflict_resolution_note: "판례상 정액급·정액수당 포괄임금 유형과 2026년 고용노동부가 구분 산정·시정 대상으로 제시한 행정상 분류를 함께 적용한다. 법령 또는 판례·지침 변경 전까지 두 기준을 병기한다."
-conflict_resolved_date: ""
-effective_from: "2022-02-10"
-effective_to: "9999-12-31"
-as_of_date: "2026-07-21"
-superseded_by: ""
-superseded_date: ""
-review_cycle: "quarterly"
-review_trigger:
-  - "포괄임금 유형 또는 고정OT 관련 판례·행정지침 변경"
-related_concepts:
-  - "[[포괄임금약정]]"
-  - "[[고정OT 약정]]"
-related_rules:
-  - "[[포괄임금약정 종합 판단 로드맵]]"
-  - "[[포괄임금약정 성립 판단 규칙]]"
-  - "[[포괄임금 최저임금 비교대상 시급 산정 규칙]]"
-related_cases:
-  - "[[대법원 2022. 2. 10. 선고 2018다298904 판결]]"
-  - "[[대법원 2024. 12. 26. 선고 2020다300299 판결]]"
-related_laws:
-  - "[[근로기준법 제17조 근로조건의 명시]]"
-  - "[[근로기준법 제56조 연장 야간 및 휴일 근로]]"
-related_interpretations:
-  - "[[고용노동부 2026. 4. 9. 포괄임금 오남용 방지 지도 지침]]"
-related_fact_patterns:
-  - "[[기본급과 법정수당이 구분되지 않은 정액급제]]"
-  - "[[실근로시간보다 적은 고정OT 지급]]"
-related_raw:
-  - "[[raw/cases/대법원 2022. 2. 10. 선고 2018다298904 판결.pdf]]"
-  - "[[raw/interpretations/공짜노동 근절을 위한 포괄임금 오남용 방지 지도지침.pdf]]"
-source_urls:
-  - "https://www.scourt.go.kr/supreme/news/NewsViewAction2.work?gubun=4&searchOption=000100&searchWord=&seqnum=8240"
-  - "https://www.moel.go.kr/news/enews/report/enewsView.do?news_seq=19208"
-source_excerpt:
-  - "기본임금의 분리 여부, 법정수당의 특정 여부와 실제 정산 구조로 유형을 구분"
-evidence:
-  - evidence_id: "ev-rule-inclusive-types"
-    source_id: "raw-case-2018da298904"
-    locator: "PDF pp.2-4, 이유 1-3"
-    excerpt: "포괄임금의 유형을 정의하고 실제 임금 산식과 수당별 지급 범위로 약정을 분류한다."
-    supports:
-      - "claim-rule-inclusive-types"
-      - "claim-rule-inclusive-types-effects"
-    verified_on: "2026-07-21"
-  - evidence_id: "ev-rule-fixed-ot-type"
-    source_id: "raw-interpretation-moel-inclusive-wage-guideline-2026-04"
-    locator: "PDF pp.2-3, 기본원칙"
-    excerpt: "고정OT를 예정시간분 수당 지급과 실근로시간 차액 정산 구조로 설명한다."
-    supports:
-      - "claim-rule-fixed-ot-type"
-      - "claim-rule-inclusive-types-administration"
-    verified_on: "2026-07-21"
+workflow:
+  editorial_status: "verified"
+  ingestion_status: "verified"
+  updated_on: "2026-07-22"
+  review:
+    cycle: "quarterly"
+    checked_on: "2026-07-22"
+    triggers:
+      - "포괄임금 유형 또는 고정OT 관련 판례·행정지침 변경"
+legal:
+  status: "current"
+  as_of: "2026-07-21"
+  validity:
+    from: "2022-02-10"
+    until: null
+  superseded_by: null
+  superseded_on: null
+authority_profile: null
+authorities:
+  - target_id: "case-2018다298904"
+    role: "primary"
+    note: ""
+  - target_id: "case-2020다300299"
+    role: "supporting"
+    note: ""
+  - target_id: "interpretation-moel-inclusive-wage-guideline-2026-04-09"
+    role: "supporting"
+    note: ""
+provenance:
+  availability: "not_applicable"
+  note: ""
+  source_ids:
+    - "raw-case-2018da298904"
+    - "raw-interpretation-moel-inclusive-wage-guideline-2026-04"
+  external_links:
+    - url: "https://www.scourt.go.kr/supreme/news/NewsViewAction2.work?gubun=4&searchOption=000100&searchWord=&seqnum=8240"
+      role: "official"
+      note: ""
+    - url: "https://www.moel.go.kr/news/enews/report/enewsView.do?news_seq=19208"
+      role: "official"
+      note: ""
+  evidence:
+    - evidence_id: "evidence:rule-inclusive-wage-types-fixed-overtime-ev-rule-inclusive-types"
+      source_id: "raw-case-2018da298904"
+      locator: "PDF pp.2-4, 이유 1-3"
+      excerpt: "포괄임금의 유형을 정의하고 실제 임금 산식과 수당별 지급 범위로 약정을 분류한다."
+      supports:
+        - "claim-rule-inclusive-types"
+        - "claim-rule-inclusive-types-effects"
+      verified_on: "2026-07-21"
+    - evidence_id: "evidence:rule-inclusive-wage-types-fixed-overtime-ev-rule-fixed-ot-type"
+      source_id: "raw-interpretation-moel-inclusive-wage-guideline-2026-04"
+      locator: "PDF pp.2-3, 기본원칙"
+      excerpt: "고정OT를 예정시간분 수당 지급과 실근로시간 차액 정산 구조로 설명한다."
+      supports:
+        - "claim-rule-fixed-ot-type"
+        - "claim-rule-inclusive-types-administration"
+      verified_on: "2026-07-21"
+  verification:
+    verified_on: "2026-07-22"
+    verifier_ids:
+      - "codex"
+    methods:
+      - "official_source_review"
+    note: "legacy verified_by: codex-official-source-review"
+conflicts:
+  - conflict_id: "conflict:rule-inclusive-wage-types-fixed-overtime-legacy"
+    type: "interpretive"
+    status: "unresolvable"
+    target_ids:
+      - "interpretation-moel-inclusive-wage-guideline-2026-04-09"
+    note: "판례상 정액급·정액수당 포괄임금 유형과 2026년 고용노동부가 구분 산정·시정 대상으로 제시한 행정상 분류를 함께 적용한다. 법령 또는 판례·지침 변경 전까지 두 기준을 병기한다."
+    resolved_on: null
+    review_triggers:
+      - "포괄임금 유형 또는 고정OT 관련 판례·행정지침 변경"
 relations:
   - relation_type: "cites"
     target_id: "case-2018다298904"
-    target: "[[대법원 2022. 2. 10. 선고 2018다298904 판결]]"
     note: "포괄임금의 두 유형과 수당별 범위를 제시한다."
+    effective_on: null
   - relation_type: "interprets"
     target_id: "interpretation-moel-inclusive-wage-guideline-2026-04-09"
-    target: "[[고용노동부 2026. 4. 9. 포괄임금 오남용 방지 지도 지침]]"
     note: "감독 실무상 고정OT 구분을 반영한다."
-  - relation_type: "conflicts_with"
-    target_id: "interpretation-moel-inclusive-wage-guideline-2026-04-09"
-    target: "[[고용노동부 2026. 4. 9. 포괄임금 오남용 방지 지도 지침]]"
-    note: "판례상 계약 유형과 행정상 시정 대상 분류 사이의 해석상 긴장을 표시한다."
-last_checked: "2026-07-22"
-last_verified: "2026-07-22"
-last_updated: "2026-07-22"
-verified_by:
-  - "codex-official-source-review"
-verification:
-  verifier_ids:
-    - "codex"
-  methods:
-    - "official_source_review"
-  note: ""
-rule_type: "calculation"
-issue: "정액 임금 구조를 정액급제·정액수당제·고정OT 중 무엇으로 분류할지"
-elements:
-  - "기본임금이 별도로 정해졌는지"
-  - "법정수당이 항목별 정액으로 특정되었는지"
-  - "예정시간과 실근로시간의 차액을 정산하는지"
-exceptions: []
-conclusion: "명칭이 아니라 임금 항목, 산식, 예정시간과 실제 정산 구조로 유형을 정한다."
-temporal:
-  applicable_from: "2022-02-10"
-  applicable_to: "9999-12-31"
+    effective_on: null
+attributes:
+  rule_type: "calculation"
+  issue: "정액 임금 구조를 정액급제·정액수당제·고정OT 중 무엇으로 분류할지"
+  elements:
+    - "기본임금이 별도로 정해졌는지"
+    - "법정수당이 항목별 정액으로 특정되었는지"
+    - "예정시간과 실근로시간의 차액을 정산하는지"
+  exceptions: []
+  conclusion: "명칭이 아니라 임금 항목, 산식, 예정시간과 실제 정산 구조로 유형을 정한다."
   rule_version: "2018다298904 판결 및 2026년 고용노동부 지침"
   transition_note: "행정지침이 판례상 정액수당형과 실무상 고정OT를 정산 여부로 세분한다."
-law_version: "근로기준법 제17조·제56조 현행"
-law_revision_date: "2024-10-22"
-wage_criteria: []
-decision_factors:
-  - "총액에서 기본임금과 법정수당을 분리할 수 있는지"
-  - "수당 명목마다 예정시간이 기재되어 있는지"
-  - "실제 초과근로가 예정시간을 넘을 때 추가 지급하는지"
-wage_type:
-  - "임금"
-worker_scope: "정액 임금 또는 고정 시간외수당을 지급받는 근로자"
-calculation_unit: "임금지급기별 임금 구조"
-extinction_period: "3년"
+  law_version: "근로기준법 제17조·제56조 현행"
+  law_revision_date: "2024-10-22"
+  wage_criteria: []
+  decision_factors:
+    - "총액에서 기본임금과 법정수당을 분리할 수 있는지"
+    - "수당 명목마다 예정시간이 기재되어 있는지"
+    - "실제 초과근로가 예정시간을 넘을 때 추가 지급하는지"
+  wage_type:
+    - "임금"
+  worker_scope: "정액 임금 또는 고정 시간외수당을 지급받는 근로자"
+  calculation_unit: "임금지급기별 임금 구조"
+  extinction_period: "3년"
+related_guides: []
+related_concepts: []
+related_rules: []
+related_cases:
+  - "[[대법원 2022. 2. 10. 선고 2018다298904 판결]]"
+related_laws: []
+related_interpretations:
+  - "[[고용노동부 2026. 4. 9. 포괄임금 오남용 방지 지도 지침]]"
+related_history: []
+related_discussions: []
+related_fact_patterns: []
+related_raw:
+  - "[[raw/cases/대법원 2022. 2. 10. 선고 2018다298904 판결.pdf]]"
+  - "[[raw/interpretations/공짜노동 근절을 위한 포괄임금 오남용 방지 지도지침.pdf]]"
 ---
 # 정액급제·정액수당제·고정OT 구분 규칙
 

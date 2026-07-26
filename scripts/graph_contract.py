@@ -8,11 +8,14 @@ from types import MappingProxyType
 
 RELATED_FIELD_TYPES = MappingProxyType(
     {
+        "related_guides": "guide",
         "related_concepts": "concept",
         "related_rules": "rule",
         "related_cases": "case",
         "related_laws": "law",
         "related_interpretations": "interpretation",
+        "related_history": "history",
+        "related_discussions": "discussion",
         "related_fact_patterns": "fact_pattern",
     }
 )

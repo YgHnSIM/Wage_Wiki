@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wage-wiki.local/schemas/frontmatter-v1.4.schema.json",
+  "title": "Wage Wiki entity frontmatter v1.4",
+  "type": "object",
+  "required": [
+    "schema_version", "id", "id_aliases", "entity_type", "title", "aliases",
+    "jurisdiction", "workflow", "legal", "authority_profile", "authorities",
+    "provenance", "conflicts", "relations", "attributes",
+    "related_guides", "related_concepts", "related_rules", "related_cases",
+    "related_laws", "related_interpretations", "related_history",
+    "related_discussions", "related_fact_patterns", "related_raw"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.4"},
+    "id": {"$ref": "#/$defs/entityId"},
+    "id_aliases": {"$ref": "#/$defs/entityIdArray"},
+    "entity_type": {"enum": ["guide", "concept", "rule", "case", "law", "interpretation", "history", "discussion", "fact_pattern"]},
+    "title": {"$ref": "#/$defs/nonBlank"},
+    "aliases": {"$ref": "#/$defs/stringArray"},
+    "jurisdiction": {"const": "KR"},
+    "workflow": {"$ref": "#/$defs/workflow"},
+    "legal": {"$ref": "#/$defs/legal"},
+    "authority_profile": {"$ref": "#/$defs/authorityProfile"},
+    "authorities": {"type": "array", "items": {"$ref": "#/$defs/authority"}, "uniqueItems": true},
+    "provenance": {"$ref": "#/$defs/provenance"},
+    "conflicts": {"type": "array", "items": {"$ref": "#/$defs/conflict"}, "uniqueItems": true},
+    "relations": {"type": "array", "items": {"$ref": "#/$defs/relation"}, "uniqueItems": true},
+    "attributes": {"type": "object"},
+    "related_guides": {"$ref": "#/$defs/stringArray"},
+    "related_concepts": {"$ref": "#/$defs/stringArray"},
+    "related_rules": {"$ref": "#/$defs/stringArray"},
+    "related_cases": {"$ref": "#/$defs/stringArray"},
+    "related_laws": {"$ref": "#/$defs/stringArray"},
+    "related_interpretations": {"$ref": "#/$defs/stringArray"},
+    "related_history": {"$ref": "#/$defs/stringArray"},
+    "related_discussions": {"$ref": "#/$defs/stringArray"},
+    "related_fact_patterns": {"$ref": "#/$defs/stringArray"},
+    "related_raw": {"$ref": "#/$defs/stringArray"}
+  },
+  "allOf": [
+    {"if": {"properties": {"entity_type": {"const": "case"}}, "required": ["entity_type"]}, "then": {"properties": {"attributes": {"$ref": "#/$defs/caseAttributes"}}}},
+    {"if": {"properties": {"entity_type": {"const": "rule"}}, "required": ["entity_type"]}, "then": {"properties": {"attributes": {"$ref": "#/$defs/ruleAttributes"}}}},
+    {"if": {"properties": {"entity_type": {"const": "law"}}, "required": ["entity_type"]}, "then": {"properties": {"attributes": {"$ref": "#/$defs/lawAttributes"}}}},
+    {"if": {"properties": {"entity_type": {"const": "interpretation"}}, "required": ["entity_type"]}, "then": {"properties": {"attributes": {"$ref": "#/$defs/interpretationAttributes"}}}}
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "nonBlank": {"type": "string", "minLength": 1, "pattern": "^\\S(?:.*\\S)?$"},
+    "date": {"type": "string", "format": "date"},
+    "nullableDate": {"anyOf": [{"$ref": "#/$defs/date"}, {"type": "null"}]},
+    "entityId": {"type": "string", "minLength": 1, "maxLength": 96, "pattern": "^(?!claim:|evidence:|source:|conflict:)[a-z0-9가-힣][a-z0-9가-힣-]*$"},
+    "entityIdArray": {"type": "array", "items": {"$ref": "#/$defs/entityId"}, "uniqueItems": true},
+    "stringArray": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "workflow": {
+      "type": "object", "required": ["editorial_status", "ingestion_status", "updated_on", "review"],
+      "properties": {
+        "editorial_status": {"enum": ["draft", "review", "verified"]},
+        "ingestion_status": {"enum": ["imported", "extracted", "linked", "verified"]},
+        "updated_on": {"$ref": "#/$defs/date"},
+        "review": {
+          "type": "object", "required": ["cycle", "checked_on", "triggers"],
+          "properties": {"cycle": {"enum": ["monthly", "quarterly", "annual"]}, "checked_on": {"$ref": "#/$defs/nullableDate"}, "triggers": {"$ref": "#/$defs/stringArray"}},
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "legal": {
+      "type": "object", "required": ["status", "as_of", "validity", "superseded_by", "superseded_on"],
+      "properties": {
+        "status": {"enum": ["current", "historical", "superseded", "overruled", "future", "unknown"]},
+        "as_of": {"$ref": "#/$defs/date"},
+        "validity": {"type": "object", "required": ["from", "until"], "properties": {"from": {"$ref": "#/$defs/date"}, "until": {"$ref": "#/$defs/nullableDate"}}, "additionalProperties": false},
+        "superseded_by": {"anyOf": [{"$ref": "#/$defs/entityId"}, {"type": "null"}]},
+        "superseded_on": {"$ref": "#/$defs/nullableDate"}
+      },
+      "additionalProperties": false
+    },
+    "authorityProfile": {
+      "anyOf": [
+        {"type": "null"},
+        {"type": "object", "required": ["level", "enforcement_weight"], "properties": {"level": {"type": "integer", "minimum": 1, "maximum": 7}, "enforcement_weight": {"enum": ["critical", "high", "medium", "low"]}}, "additionalProperties": false}
+      ]
+    },
+    "authority": {
+      "type": "object", "required": ["target_id", "role", "note"],
+      "properties": {"target_id": {"$ref": "#/$defs/entityId"}, "role": {"enum": ["primary", "supporting"]}, "note": {"type": "string"}},
+      "additionalProperties": false
+    },
+    "externalLink": {
+      "type": "object", "required": ["url", "role", "note"],
+      "properties": {"url": {"type": "string", "format": "uri", "pattern": "^https?://"}, "role": {"enum": ["official", "official_search", "reference"]}, "note": {"type": "string"}},
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object", "required": ["evidence_id", "source_id", "locator", "supports", "excerpt", "verified_on"],
+      "properties": {
+        "evidence_id": {"type": "string", "pattern": "^evidence:[a-z0-9-]{1,80}$"},
+        "source_id": {"type": "string", "minLength": 1},
+        "locator": {"$ref": "#/$defs/nonBlank"},
+        "excerpt": {"type": "string"},
+        "supports": {"type": "array", "items": {"$ref": "#/$defs/claimId"}, "minItems": 1, "uniqueItems": true},
+        "verified_on": {"$ref": "#/$defs/nullableDate"}
+      },
+      "additionalProperties": false
+    },
+    "claimId": {"type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$"},
+    "provenance": {
+      "type": "object", "required": ["availability", "note", "source_ids", "external_links", "evidence", "verification"],
+      "properties": {
+        "availability": {"enum": ["complete", "partial", "official_unavailable", "not_applicable"]},
+        "note": {"type": "string"},
+        "source_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "external_links": {"type": "array", "items": {"$ref": "#/$defs/externalLink"}, "uniqueItems": true},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidence"}, "uniqueItems": true},
+        "verification": {
+          "type": "object", "required": ["verified_on", "verifier_ids", "methods", "note"],
+          "properties": {"verified_on": {"$ref": "#/$defs/nullableDate"}, "verifier_ids": {"type": "array", "items": {"type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$"}, "uniqueItems": true}, "methods": {"type": "array", "items": {"enum": ["official_source_review", "source_cross_check"]}, "uniqueItems": true}, "note": {"type": "string"}},
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "conflict": {
+      "type": "object", "required": ["conflict_id", "type", "status", "target_ids", "note", "resolved_on", "review_triggers"],
+      "properties": {
+        "conflict_id": {"type": "string", "pattern": "^conflict:[a-z0-9-]{1,80}$"},
+        "type": {"enum": ["authority", "temporal", "interpretive", "jurisdictional"]},
+        "status": {"enum": ["pending", "resolved", "unresolvable"]},
+        "target_ids": {"$ref": "#/$defs/entityIdArray"},
+        "note": {"type": "string"},
+        "resolved_on": {"$ref": "#/$defs/nullableDate"},
+        "review_triggers": {"$ref": "#/$defs/stringArray"}
+      },
+      "additionalProperties": false
+    },
+    "relation": {
+      "type": "object", "required": ["relation_type", "target_id", "note", "effective_on"],
+      "properties": {
+        "relation_type": {"enum": ["related_to", "establishes", "applies", "interprets", "distinguishes", "overrules", "supersedes", "exception_to", "illustrated_by", "supports", "cites", "amends", "implements"]},
+        "target_id": {"$ref": "#/$defs/entityId"},
+        "note": {"type": "string"},
+        "effective_on": {"$ref": "#/$defs/nullableDate"}
+      },
+      "additionalProperties": false
+    },
+    "wageCriteriaArray": {"type": "array", "items": {"enum": ["정기성", "일률성", "소정근로대가성", "근로대가성", "계속성", "정기지급성", "사전확정성", "고정성"]}, "uniqueItems": true},
+    "wageTypeArray": {"type": "array", "items": {"enum": ["임금", "통상임금", "평균임금", "최저임금", "비과세"]}, "uniqueItems": true},
+    "caseNumber": {
+      "type": "object", "required": ["number", "role"],
+      "properties": {"number": {"$ref": "#/$defs/nonBlank"}, "role": {"enum": ["primary", "joined", "principal_action", "counterclaim"]}},
+      "additionalProperties": false
+    },
+    "caseAttributes": {
+      "type": "object", "required": ["court_name", "case_numbers", "decision_date", "case_role", "holding_summary", "legal_principles"],
+      "properties": {"court_name": {"$ref": "#/$defs/nonBlank"}, "case_numbers": {"type": "array", "items": {"$ref": "#/$defs/caseNumber"}, "minItems": 1, "uniqueItems": true}, "decision_date": {"$ref": "#/$defs/date"}, "case_role": {"enum": ["leading", "persuasive", "conflicting", "overruling"]}, "holding_summary": {"$ref": "#/$defs/nonBlank"}, "legal_principles": {"type": "array", "items": {"$ref": "#/$defs/nonBlank"}, "minItems": 1, "uniqueItems": true}},
+      "additionalProperties": false
+    },
+    "ruleAttributes": {
+      "type": "object", "required": ["rule_type", "issue", "elements", "exceptions", "conclusion", "rule_version", "transition_note", "law_version", "law_revision_date", "wage_criteria", "decision_factors", "wage_type", "worker_scope", "calculation_unit", "extinction_period"],
+      "properties": {"rule_type": {"enum": ["inclusion", "exclusion", "calculation", "limitation", "procedure"]}, "issue": {"$ref": "#/$defs/nonBlank"}, "elements": {"type": "array", "items": {"$ref": "#/$defs/nonBlank"}, "minItems": 1, "uniqueItems": true}, "exceptions": {"$ref": "#/$defs/stringArray"}, "conclusion": {"$ref": "#/$defs/nonBlank"}, "rule_version": {"$ref": "#/$defs/nonBlank"}, "transition_note": {"type": "string"}, "law_version": {"anyOf": [{"$ref": "#/$defs/nonBlank"}, {"type": "null"}]}, "law_revision_date": {"$ref": "#/$defs/nullableDate"}, "wage_criteria": {"$ref": "#/$defs/wageCriteriaArray"}, "decision_factors": {"$ref": "#/$defs/stringArray"}, "wage_type": {"$ref": "#/$defs/wageTypeArray"}, "worker_scope": {"type": "string"}, "calculation_unit": {"type": "string"}, "extinction_period": {"$ref": "#/$defs/nonBlank"}},
+      "additionalProperties": false
+    },
+    "lawAttributes": {
+      "type": "object", "required": ["law_version", "law_revision_date", "promulgation_date", "enforcement_date"],
+      "properties": {"law_version": {"$ref": "#/$defs/nonBlank"}, "law_revision_date": {"$ref": "#/$defs/date"}, "promulgation_date": {"$ref": "#/$defs/date"}, "enforcement_date": {"$ref": "#/$defs/date"}},
+      "additionalProperties": false
+    },
+    "interpretationAttributes": {
+      "type": "object", "required": ["issuing_agency", "document_number", "issue_date", "interpretation_type", "legal_effect"],
+      "properties": {"issuing_agency": {"$ref": "#/$defs/nonBlank"}, "document_number": {"$ref": "#/$defs/nonBlank"}, "issue_date": {"$ref": "#/$defs/date"}, "interpretation_type": {"enum": ["guideline", "official_reply", "directive", "notice", "manual"]}, "legal_effect": {"enum": ["binding_internal", "persuasive", "informational"]}},
+      "additionalProperties": false
+    }
+  }
+}

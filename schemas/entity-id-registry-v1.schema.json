@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wage-wiki.local/schemas/entity-id-registry-v1.schema.json",
+  "type": "object",
+  "required": ["format_version", "entities"],
+  "properties": {"format_version": {"const": "1.0"}, "entities": {"type": "array", "items": {"$ref": "#/$defs/record"}, "uniqueItems": true}},
+  "additionalProperties": false,
+  "$defs": {
+    "id": {"type": "string", "pattern": "^(?!claim:|evidence:|source:|conflict:)[a-z0-9가-힣][a-z0-9가-힣-]{0,95}$"},
+    "record": {"type": "object", "required": ["id", "path", "first_seen", "aliases"], "properties": {"id": {"$ref": "#/$defs/id"}, "path": {"type": "string", "pattern": "^wiki/.*\\.md$"}, "first_seen": {"type": "string", "format": "date"}, "aliases": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}}, "additionalProperties": false}
+  }
+}

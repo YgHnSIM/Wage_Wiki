@@ -10,12 +10,12 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Mapping
 
-from kg_common import as_list, scalar_text
+from kg_common import as_list, parse_date, scalar_text
 
 
 VERIFIER_REGISTRY_SCHEMA_VERSION = "1.0"
 VERIFIER_ID_RE = re.compile(r"^[a-z][a-z0-9-]{0,63}$")
-VERIFICATION_FIELDS = frozenset({"verifier_ids", "methods", "note"})
+VERIFICATION_FIELDS = frozenset({"verified_on", "verifier_ids", "methods", "note"})
 LEGACY_VERIFICATION_MAP: Mapping[str, tuple[str, str, str]] = MappingProxyType(
     {
         "codex-official-source-review": ("codex", "official_source_review", ""),
@@ -204,6 +204,7 @@ def validate_verification(
     raw_ids = value.get("verifier_ids")
     raw_methods = value.get("methods")
     note = value.get("note")
+    verified_on = value.get("verified_on")
     ids = [scalar_text(item) for item in raw_ids] if isinstance(raw_ids, list) else []
     methods = [scalar_text(item) for item in raw_methods] if isinstance(raw_methods, list) else []
     string_ids = [item for item in raw_ids if isinstance(item, str)] if isinstance(raw_ids, list) else []
@@ -219,6 +220,8 @@ def validate_verification(
         problems.append(VerificationProblem("medium", "VERIFICATION_METHOD_DUPLICATE", "verification.methods contains duplicates"))
     if not isinstance(note, str):
         problems.append(VerificationProblem("high", "VERIFICATION_NOTE_TYPE", "verification.note must be a string"))
+    if verified_on is not None and (not isinstance(verified_on, str) or (verified_on and not parse_date(verified_on))):
+        problems.append(VerificationProblem("high", "VERIFICATION_DATE_INVALID", "verification.verified_on must be a valid date or null", "verification.verified_on"))
 
     if isinstance(raw_ids, list):
         for raw_id in raw_ids:

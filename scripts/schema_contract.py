@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Load and cross-check the machine-readable v1.3 schema contract."""
+"""Load and cross-check a machine-readable frontmatter contract."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Mapping
 
-from kg_common import SCHEMA_VERSION
+from kg_common import LEGACY_SCHEMA_VERSION, SCHEMA_VERSION
 
 
 class SchemaContractError(ValueError):
@@ -86,6 +86,39 @@ def _schema_controlled_values(
     definitions: Mapping[str, Any],
 ) -> frozenset[str] | None:
     definition = properties.get(field)
+    # Legacy v1.3 keeps controlled values as top-level properties. Prefer
+    # those declarations when present; v1.4 fields are normalized into nested
+    # definitions and fall through to the path table below.
+    if isinstance(definition, dict):
+        direct_values = definition.get("enum")
+        if not isinstance(direct_values, list):
+            direct_items = definition.get("items")
+            direct_values = direct_items.get("enum") if isinstance(direct_items, dict) else None
+        if isinstance(direct_values, list):
+            return frozenset(str(value) for value in direct_values)
+    nested_paths = {
+        "status": ("workflow", "properties", "editorial_status"),
+        "ingestion_status": ("workflow", "properties", "ingestion_status"),
+        "legal_status": ("legal", "properties", "status"),
+        "review_cycle": ("workflow", "properties", "review", "properties", "cycle"),
+        "enforcement_weight": ("authorityProfile", "anyOf", 1, "properties", "enforcement_weight"),
+        "case_role": ("caseAttributes", "properties", "case_role"),
+        "rule_type": ("ruleAttributes", "properties", "rule_type"),
+        "interpretation_type": ("interpretationAttributes", "properties", "interpretation_type"),
+        "legal_effect": ("interpretationAttributes", "properties", "legal_effect"),
+    }
+    if field in nested_paths:
+        definition = definitions
+        try:
+            for path_part in nested_paths[field]:
+                definition = definition[path_part]
+        except (KeyError, IndexError, TypeError):
+            return None
+    if field in {"wage_criteria", "wage_type"}:
+        try:
+            definition = definitions["ruleAttributes"]["properties"][field]
+        except (KeyError, TypeError):
+            return None
     if field == "relation_type":
         try:
             definition = definitions["relation"]["properties"]["relation_type"]
@@ -93,11 +126,16 @@ def _schema_controlled_values(
             return None
     if field == "verification_method":
         try:
-            definition = definitions["verificationMetadata"]["properties"]["methods"]
+            definition = definitions["provenance"]["properties"]["verification"]["properties"]["methods"]
         except (KeyError, TypeError):
-            return None
+            try:
+                definition = definitions["verificationMetadata"]["properties"]["methods"]
+            except (KeyError, TypeError):
+                return None
     if not isinstance(definition, dict):
         return None
+    if isinstance(definition.get("$ref"), str) and definition["$ref"].startswith("#/$defs/"):
+        definition = definitions.get(definition["$ref"].removeprefix("#/$defs/"), definition)
     values = definition.get("enum")
     if not isinstance(values, list):
         const = definition.get("const")
@@ -111,11 +149,15 @@ def _schema_controlled_values(
     return frozenset(str(value) for value in values)
 
 
-def load_schema_contract(root: Path) -> SchemaContract:
+def load_schema_contract(root: Path, version: str = LEGACY_SCHEMA_VERSION) -> SchemaContract:
     """Load schema/vocabulary artifacts and report any contract drift."""
 
-    schema = _read_json_object(root / "schemas" / "frontmatter-v1.3.schema.json")
-    vocabulary = _read_json_object(root / "schemas" / "vocabularies.json")
+    schema_path = root / "schemas" / f"frontmatter-v{version}.schema.json"
+    vocabulary_path = root / "schemas" / (
+        "vocabularies.json" if version == LEGACY_SCHEMA_VERSION else f"vocabularies-v{version}.json"
+    )
+    schema = _read_json_object(schema_path)
+    vocabulary = _read_json_object(vocabulary_path)
     properties = schema.get("properties")
     definitions = schema.get("$defs")
     if not isinstance(properties, dict) or not isinstance(definitions, dict):
@@ -137,12 +179,13 @@ def load_schema_contract(root: Path) -> SchemaContract:
 
     problems: list[ContractProblem] = []
     vocab_version = str(vocabulary.get("schema_version", ""))
-    for source, version in (("Python", SCHEMA_VERSION), ("vocabulary", vocab_version)):
-        if version != schema_version:
+    expected_version = version
+    for source, artifact_version in (("Python", expected_version), ("vocabulary", vocab_version)):
+        if artifact_version != schema_version:
             problems.append(
                 ContractProblem(
                     "SCHEMA_VERSION_DRIFT",
-                    f"{source} schema version {version or '<missing>'} differs from JSON Schema {schema_version or '<missing>'}",
+                    f"{source} schema version {artifact_version or '<missing>'} differs from JSON Schema {schema_version or '<missing>'}",
                     "schema_version",
                 )
             )

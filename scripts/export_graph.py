@@ -22,12 +22,19 @@ from claim_contract import (
 )
 from graph_contract import RELATED_FIELD_TYPES
 from kg_common import (
+    CURRENT_SCHEMA_VERSION,
+    LEGACY_SCHEMA_VERSION,
     SCHEMA_VERSION,
     as_list,
     entity_lookup,
     issue,
     load_entities,
     load_json,
+    authority_records,
+    conflict_records,
+    legacy_entity_view,
+    provenance_data,
+    relation_records,
     resolve_entity_ref,
     scalar_text,
     wiki_targets,
@@ -37,7 +44,7 @@ from source_catalog import known_source_ids
 
 
 RELATED_FIELDS = RELATED_FIELD_TYPES
-GRAPH_SCHEMA_VERSION = "2.0"
+GRAPH_SCHEMA_VERSION = "3.0"
 
 
 def _edge_id(source: str, relation: str, target: str) -> str:
@@ -57,6 +64,9 @@ def export_graph(root: Path) -> dict[str, Any]:
     nodes: list[dict[str, Any]] = []
     for entity in entities:
         data = entity.data
+        view = legacy_entity_view(data)
+        legal = data.get("legal") if isinstance(data.get("legal"), dict) else {}
+        validity = legal.get("validity") if isinstance(legal.get("validity"), dict) else {}
         entity_id = scalar_text(data.get("id"))
         nodes.append({
             "id": entity_id,
@@ -65,16 +75,19 @@ def export_graph(root: Path) -> dict[str, Any]:
             "aliases": as_list(data.get("aliases")),
             "id_aliases": list(dict.fromkeys(as_list(data.get("id_aliases")) + aliases_by_canonical.get(scalar_text(data.get("id")), []))),
             "path": entity.relative_path,
-            "status": scalar_text(data.get("status")),
-            "legal_status": scalar_text(data.get("legal_status")),
+            "status": scalar_text(view.get("status")),
+            "legal_status": scalar_text(view.get("legal_status")),
             "jurisdiction": scalar_text(data.get("jurisdiction")) or "KR",
-            "authority_level": data.get("authority_level"),
-            "effective_from": scalar_text(data.get("effective_from")),
-            "effective_to": scalar_text(data.get("effective_to")),
-            "as_of_date": scalar_text(data.get("as_of_date")),
+            "authority_level": (data.get("authority_profile") or {}).get("level") if isinstance(data.get("authority_profile"), dict) else view.get("authority_level"),
+            "valid_from": scalar_text(validity.get("from")) or scalar_text(view.get("effective_from")),
+            "valid_until": scalar_text(validity.get("until")) or (None if scalar_text(view.get("effective_to")) in {"", "9999-12-31"} else scalar_text(view.get("effective_to"))),
+            "effective_from": scalar_text(view.get("effective_from")),
+            "effective_to": scalar_text(view.get("effective_to")),
+            "as_of_date": scalar_text(view.get("as_of_date")),
         })
         resolved_anchors = resolved_claim_ids(data, entity.body)
-        for claim_id in evidence_claim_ids(data.get("evidence")):
+        evidence_records = provenance_data(data).get("evidence", [])
+        for claim_id in evidence_claim_ids(evidence_records):
             nodes.append({
                 "id": global_claim_id(entity_id, claim_id),
                 "node_type": "claim",
@@ -149,21 +162,30 @@ def export_graph(root: Path) -> dict[str, Any]:
     for entity in entities:
         data = entity.data
         source_id = scalar_text(data.get("id"))
-        for relation in as_list(data.get("relations")):
+        evidence_records = provenance_data(data).get("evidence", [])
+        for relation in relation_records(data):
             if isinstance(relation, dict):
                 target_id = canonical_entity_id(scalar_text(relation.get("target_id")))
                 add_edge(source_id, scalar_text(relation.get("relation_type")), target_id, "relations", scalar_text(relation.get("note")))
-        for field in RELATED_FIELDS:
-            for target in wiki_targets(data.get(field)):
-                matches = resolve_entity_ref(target, names)
-                if len(matches) == 1:
-                    add_edge(source_id, "related_to", scalar_text(matches[0].data.get("id")), field)
-        primary = scalar_text(data.get("primary_authority_id"))
-        if primary:
-            add_edge(source_id, "has_primary_authority", canonical_entity_id(primary), "primary_authority_id")
-        for authority_id in as_list(data.get("authority_ids")):
-            add_edge(source_id, "has_authority", canonical_entity_id(scalar_text(authority_id)), "authority_ids")
-        for evidence in as_list(data.get("evidence")):
+        if scalar_text(data.get("schema_version")) != CURRENT_SCHEMA_VERSION:
+            for field in RELATED_FIELDS:
+                for target in wiki_targets(data.get(field)):
+                    matches = resolve_entity_ref(target, names)
+                    if len(matches) == 1:
+                        add_edge(source_id, "related_to", scalar_text(matches[0].data.get("id")), field)
+        records = authority_records(data)
+        for authority in records:
+            authority_id = canonical_entity_id(scalar_text(authority.get("target_id")))
+            relation = "has_primary_authority" if scalar_text(authority.get("role")) == "primary" else "has_authority"
+            add_edge(source_id, relation, authority_id, "authorities", scalar_text(authority.get("note")))
+        for conflict in conflict_records(data):
+            conflict_id = scalar_text(conflict.get("conflict_id"))
+            conflict_node = f"conflict:{source_id}#{conflict_id}"
+            nodes.append({"id": conflict_node, "node_type": "conflict", "title": conflict_id, "owner_id": source_id, "status": scalar_text(conflict.get("status")), "conflict_type": scalar_text(conflict.get("type"))})
+            add_edge(source_id, "has_conflict", conflict_node, "conflicts")
+            for target_id in as_list(conflict.get("target_ids")):
+                add_edge(conflict_node, "conflicts_with", canonical_entity_id(scalar_text(target_id)), "conflicts", scalar_text(conflict.get("note")))
+        for evidence in evidence_records:
             if isinstance(evidence, dict):
                 evidence_id = scalar_text(evidence.get("evidence_id"))
                 evidence_source = scalar_text(evidence.get("source_id"))
@@ -265,7 +287,10 @@ def export_graph(root: Path) -> dict[str, Any]:
                 )
     return {
         "schema_version": GRAPH_SCHEMA_VERSION,
-        "entity_schema_version": SCHEMA_VERSION,
+        # Keep the historical key for downstream readers; the explicit
+        # canonical key is the v1.4 contract used by new consumers.
+        "entity_schema_version": LEGACY_SCHEMA_VERSION,
+        "canonical_entity_schema_version": SCHEMA_VERSION,
         "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
         "root": root.as_posix(),
         "stats": {"nodes": len(nodes), "edges": len(edges), "parse_issues": len(graph_issues)},

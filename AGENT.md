@@ -292,11 +292,58 @@ Knowledge Graph 편입
 
 ---
 
-## 8. Canonical Frontmatter Schema v1.3
+## 8. Canonical Frontmatter Schema v1.4
 
-`schemas/frontmatter-v1.3.schema.json`과 `schemas/vocabularies.json`을 기계 판독 기준으로 삼는다. 기존 v1.2 문서는 `scripts/migrate_schema_v13.py`의 dry-run 보고서를 검토한 뒤에만 이관한다.
+`schemas/frontmatter-v1.4.schema.json`과 `schemas/vocabularies-v1.4.json`을 기계 판독 기준으로 삼는다. v1.3은 `scripts/migrate_schema_v14.py`와 호환 검증을 위한 동결 계약으로 보존한다.
 
-### 8.1 공통 필드 (모든 entity_type 적용)
+### 8.1 v1.4 공통 필드 (모든 entity_type 적용)
+
+현재 작성 기준은 다음과 같은 중첩 구조다. 세부 필드와 enum은 JSON Schema를 따른다.
+
+```yaml
+schema_version: "1.4"
+id: "entity-example"
+id_aliases: []
+entity_type: concept
+title: ""
+aliases: []
+jurisdiction: KR
+workflow:
+  editorial_status: draft
+  ingestion_status: imported
+  updated_on: "2026-07-26"
+  review: {cycle: quarterly, checked_on: null, triggers: []}
+legal:
+  status: current
+  as_of: "2026-07-26"
+  validity: {from: "1900-01-01", until: null}
+  superseded_by: null
+  superseded_on: null
+authority_profile: null
+authorities: []
+provenance:
+  availability: not_applicable
+  note: ""
+  source_ids: []
+  external_links: []
+  evidence: []
+  verification: {verified_on: null, verifier_ids: [], methods: [], note: ""}
+conflicts: []
+relations: []
+attributes: {}
+related_guides: []
+related_concepts: []
+related_rules: []
+related_cases: []
+related_laws: []
+related_interpretations: []
+related_history: []
+related_discussions: []
+related_fact_patterns: []
+related_raw: []
+```
+
+아래의 평면 예시는 v1.3 동결 계약과 이관 전 문서를 설명하기 위한 참고용이다.
 
 ```yaml
 ---
@@ -369,7 +416,7 @@ relations:
     note: ""
 ```
 
-`source_id`는 `sources/registry.yaml` 또는 raw manifest에 등록한다. `supports`는 본문의 claim ID를 가리킨다. `locator` 없는 발췌는 verified 근거로 인정하지 않는다. 관계 허용값은 Section 9와 vocab 파일을 따른다.
+`source_id`는 v1.1 `sources/registry.yaml` 또는 raw manifest에 등록한다. `supports`는 본문의 claim ID를 가리킨다. `locator` 없는 발췌는 verified 근거로 인정하지 않는다. 관계 허용값은 Section 9와 vocab 파일을 따른다.
 
 claim ID는 `^[a-z][a-z0-9-]{0,63}$` 형식을 사용하고 같은 문서 안에서만 유일하면 된다. 실제 주장 문단·목록 항목·인용문 끝에 Obsidian block marker를 둔다. heading·표·코드 fence에는 두지 않고 하나의 렌더링 블록에 둘 이상의 marker를 배치하지 않는다.
 
@@ -536,7 +583,7 @@ evidence:
     supports: ["holding-001"]
 ```
 
-`source_id`는 `raw-<source_type>-<stable-number-or-slug>` 형식을 권장한다. 경로가 바뀌어도 ID는 유지하며 `sources/registry.yaml`의 `path`만 갱신한다. 등록되지 않은 raw는 `scripts/build_manifest.py`가 `raw-sha256-<16자리>` fallback ID를 부여한다. manifest의 SHA-256 불일치는 Raw Integrity 위반이다.
+`source_id`는 `raw-<source_type>-<stable-number-or-slug>` 형식을 권장한다. 경로가 바뀌어도 ID는 유지하며 v1.1 registry의 `location.path` 또는 `location.url`만 갱신한다. 등록되지 않은 raw는 `scripts/build_manifest.py`가 `raw-sha256-<16자리>` fallback ID를 부여한다. manifest의 SHA-256 불일치는 Raw Integrity 위반이다.
 
 ---
 
@@ -797,9 +844,9 @@ docs(agent): 커밋 메시지 규칙 추가
 
 Lint 항목은 심각도(Severity)에 따라 처리 우선순위를 부여한다.
 
-표준 실행은 `python scripts/lint_wiki.py --output <report.json>`이다. 파서는 YAML tag·anchor·객체 생성을 허용하지 않으며 nested `evidence`, `relations`, `temporal`을 안전한 자료형으로만 읽는다. CI는 Critical 이상에서 실패하고, 전체 v1.3 전환 후 High 이상 실패로 강화한다.
+표준 실행은 `python scripts/validate_frontmatter.py --version 1.4`와 `python scripts/lint_wiki.py --strict-v14 --output <report.json>`이다. 파서는 YAML tag·anchor·객체 생성을 허용하지 않으며 nested provenance·relations·attributes를 안전한 자료형으로만 읽는다. CI는 v1.4 JSON Schema와 semantic lint를 모두 High 이상에서 실패시킨다.
 
-v1.3 공통 추가 검사:
+v1.4 공통 추가 검사:
 
 - canonical ID·graph namespace·`id_aliases` 충돌 및 `primary_authority_id`·`authority_ids` 존재 여부
 - `status`와 `legal_status` 분리, verified 날짜·검증자 정합성
@@ -914,7 +961,7 @@ GitHub Pages 사이트는 `wiki/`와 `schemas/`를 source of truth로 삼아 빌
 
 1. `python scripts/build_site.py --output build/site --site-url <배포 URL>`로 정적 사이트를 생성한다.
 2. `python scripts/check_site.py build/site`로 내부 링크, 프로젝트 Pages 상대경로, 중복 ID, 로컬 경로 노출을 검사한다.
-3. 배포 전에 strict v1.3 lint, 단위 테스트, QA regression, raw manifest 검사를 모두 통과한다.
+3. 배포 전에 v1.4 JSON Schema/strict lint, 단위 테스트, QA regression, raw manifest 검사를 모두 통과한다.
 4. `raw/` 파일은 Pages artifact에 포함하지 않는다. 공개 화면에는 엔티티의 `source_urls`만 외부 링크로 표시한다.
 5. 문서 URL은 제목이나 파일명이 아니라 canonical `id`에서 계산한 안정 slug를 사용한다. `id_aliases`는 별도 redirect 경로로 생성한다.
 6. 홈 탐색은 공개된 전체 문서를 최신순으로 표시하고 제목·별칭·사건번호·본문 검색과 문서 유형 필터를 제공한다. 편집 상태와 법적 상태는 숨은 필터로 사용하지 않고 문서 카드의 배지로 명시한다.
