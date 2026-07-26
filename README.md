@@ -1,12 +1,12 @@
 # 대한민국 임금법 Legal Knowledge Graph
 
-대한민국 임금법의 법령·판례·행정해석을 Rule 중심으로 연결하는 Obsidian 호환 지식 그래프다. 원문은 `raw/`에 불변 보존하고, `wiki/`에는 출처 위치와 법적 시점을 추적할 수 있는 원자적 엔티티를 둔다.
+대한민국 임금법의 법령·판례·행정해석을 Rule 중심으로 연결하는 Obsidian 호환 지식 그래프다. 원문은 `raw/`에 변경 없이 보존하고, `wiki/`에는 출처 위치와 법적 시점을 추적할 수 있는 원자적 엔티티를 둔다.
 
 ## v1.3 핵심 모델
 
 - `status`는 편집 상태(`draft`, `review`, `verified`)만 나타낸다.
 - 법적 효력은 `legal_status`(`current`, `historical`, `superseded`, `overruled`, `future`, `unknown`)로 분리한다.
-- 사람이 읽는 `primary_authority`와 함께 기계 해소 가능한 `primary_authority_id`, `authority_ids`를 사용한다.
+- 사람이 읽을 수 있는 `primary_authority`와 함께 기계적으로 해소할 수 있는 `primary_authority_id`, `authority_ids`를 사용한다.
 - `evidence`는 `source_id`, 정확한 `locator`, 짧은 `excerpt`, 근거가 되는 문서 로컬 claim ID인 `supports`를 한 레코드로 묶는다. claim ID는 본문 블록 끝의 `^claim-id`로 해소한다.
 - `verification`은 안정적인 `verifier_ids`와 통제된 `methods`, 자유형 `note`를 분리한다. 기존 `verified_by`는 v1.3 호환 필드로 유지하되 값이 있으면 구조화 metadata와 의미가 일치해야 한다.
 - `relations`는 `relation_type`과 `target_id`로 법적 의미가 있는 간선을 표현한다. 기존 `related_*` 링크는 Obsidian 탐색과 v1.2 호환을 위해 유지한다.
@@ -15,7 +15,7 @@
 - Rule은 `issue → elements → exceptions → conclusion`과 `temporal` 적용기간을 명시한다.
 - canonical `id`는 변경하지 않는다. 교정 ID와 한글 사건번호는 `id_aliases` 및 `schemas/id-aliases.json`으로 해소한다. 그래프 내부 namespace인 `claim:`, `evidence:`, `source:` 접두사는 엔티티 ID에 사용할 수 없다.
 
-정확한 필드와 허용값은 `schemas/frontmatter-v1.3.schema.json`, `schemas/vocabularies.json`, 예시는 `templates/`를 따른다.
+정확한 필드와 허용값은 `schemas/frontmatter-v1.3.schema.json`과 `schemas/vocabularies.json`을 따르고, 예시는 `templates/`에서 확인한다.
 
 ## 폴더
 
