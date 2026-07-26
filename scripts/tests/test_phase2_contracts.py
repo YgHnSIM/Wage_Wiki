@@ -29,8 +29,10 @@ from claim_contract import (
     validate_claim_anchors,
 )
 from export_graph import GRAPH_SCHEMA_VERSION, export_graph
-from kg_common import Entity, as_list, load_entities
+from kg_common import Entity, as_list, legacy_entity_view, load_entities
 from lint_wiki import (
+    _v14_compat_view,
+    _validate_case_source_gate,
     _validate_dates,
     _validate_evidence,
     _validate_list_of_strings,
@@ -781,6 +783,173 @@ class MetadataPolicyTests(unittest.TestCase):
         targets = {"law": law, "case": case}
         self.assertEqual(inferred_authority_levels(data, targets), {1, 2})
         self.assertEqual(authority_diagnostics(data, targets), ())
+
+
+class EntityProjectionContractTests(unittest.TestCase):
+    @staticmethod
+    def _v14_data(entity_type: str = "case") -> dict[str, object]:
+        return {
+            "schema_version": "1.4",
+            "id": "case-projection",
+            "entity_type": entity_type,
+            "title": "Projection",
+            "workflow": {
+                "editorial_status": "verified",
+                "ingestion_status": "verified",
+                "updated_on": "2026-07-20",
+                "review": {
+                    "cycle": "quarterly",
+                    "checked_on": "2026-07-21",
+                    "triggers": [],
+                },
+            },
+            "legal": {
+                "status": "current",
+                "as_of": "2026-07-21",
+                "validity": {"from": "2026-01-01", "until": None},
+                "superseded_by": None,
+                "superseded_on": None,
+            },
+            "authority_profile": {"level": 3, "enforcement_weight": "high"},
+            "authorities": [
+                {"target_id": "law-authority", "role": "primary", "note": ""},
+                {"target_id": "case-authority", "role": "supporting", "note": ""},
+            ],
+            "provenance": {
+                "availability": "complete",
+                "note": "공식 원문",
+                "source_ids": ["raw-case"],
+                "external_links": [
+                    {"url": "https://www.scourt.go.kr/example", "role": "official", "note": ""}
+                ],
+                "evidence": [],
+                "verification": {
+                    "verified_on": "2026-07-21",
+                    "verifier_ids": ["codex"],
+                    "methods": ["official_source_review"],
+                    "note": "",
+                },
+            },
+            "conflicts": [
+                {
+                    "conflict_id": "conflict:projection",
+                    "type": "interpretive",
+                    "status": "resolved",
+                    "target_ids": ["case-authority"],
+                    "note": "상위 판례로 해소",
+                    "resolved_on": "2026-07-19",
+                    "review_triggers": [],
+                }
+            ],
+            "relations": [],
+            "attributes": {
+                "case_numbers": [
+                    {"number": "2025다217529(본소)", "role": "principal_action"}
+                ],
+                "court_name": "대법원",
+            },
+        }
+
+    def test_shared_projection_owns_legacy_fields_including_conflicts(self) -> None:
+        data = self._v14_data()
+        shared = legacy_entity_view(data)
+        lint_view = _v14_compat_view(data)
+
+        for field in (
+            "status",
+            "ingestion_status",
+            "last_updated",
+            "legal_status",
+            "primary_authority_id",
+            "authority_ids",
+            "source_urls",
+            "case_number",
+            "conflict_status",
+            "conflict_type",
+            "conflict_resolution",
+            "conflict_resolution_note",
+            "conflict_resolved_date",
+        ):
+            self.assertEqual(lint_view[field], shared[field], field)
+        self.assertEqual(shared["case_number"], "2025다217529(본소)")
+        self.assertEqual(shared["conflict_status"], "active")
+        self.assertEqual(shared["conflict_resolution"], "resolved")
+        self.assertEqual(shared["conflict_resolved_date"], "2026-07-19")
+
+    def test_lint_projection_keeps_only_explicit_policy_overrides(self) -> None:
+        data = self._v14_data("concept")
+        data["authority_profile"] = None
+
+        shared = legacy_entity_view(data)
+        lint_view = _v14_compat_view(data)
+
+        self.assertEqual(shared["authority_ids"], ["law-authority", "case-authority"])
+        self.assertEqual(shared["primary_authority_id"], "law-authority")
+        self.assertIsNone(shared["authority_level"])
+        self.assertEqual(shared["enforcement_weight"], "")
+        self.assertEqual(lint_view["authority_ids"], [])
+        self.assertEqual(lint_view["primary_authority_id"], "")
+        self.assertEqual(lint_view["authority_level"], 7)
+        self.assertEqual(lint_view["enforcement_weight"], "low")
+
+    def test_case_source_gate_normalizes_joined_case_role_locally(self) -> None:
+        entity = _entity(
+            {
+                "schema_version": "1.4",
+                "entity_type": "case",
+                "source_availability": "available",
+                "source_availability_note": "",
+                "source_urls": [],
+                "related_raw": ["[[2025다217529_판결]]"],
+                "case_number": "2025다217529(본소)",
+            }
+        )
+        issues: list[dict[str, object]] = []
+
+        _validate_case_source_gate(entity, {"2025다217529_판결"}, {}, issues)
+
+        self.assertEqual(issues, [])
+
+    def test_lint_repository_does_not_replace_loaded_entity_data(self) -> None:
+        target_data = self._v14_data("concept")
+        target_data.update(
+            {
+                "id": "concept-target",
+                "title": "Canonical target",
+                "authority_profile": None,
+                "authorities": [],
+                "attributes": {"title": "Shadow target"},
+            }
+        )
+        source_data = self._v14_data("concept")
+        source_data.update(
+            {
+                "id": "concept-source",
+                "title": "Source",
+                "authority_profile": None,
+                "authorities": [],
+                "attributes": {},
+                "related_concepts": ["[[Canonical target]]"],
+            }
+        )
+        target = _entity(target_data)
+        source = _entity(source_data)
+        target_data_before = target.data
+        source_data_before = source.data
+
+        with patch("lint_wiki.load_entities", return_value=([source, target], [])):
+            report = lint_repository(ROOT, today=repository_today(), strict_v13=True)
+
+        self.assertIs(target.data, target_data_before)
+        self.assertIs(source.data, source_data_before)
+        self.assertFalse(
+            any(
+                item["code"] == "BROKEN_REFERENCE"
+                and "Canonical target" in item["message"]
+                for item in report["issues"]
+            ),
+            report["issues"],
+        )
 
 
 class RepositoryPhaseTwoTests(unittest.TestCase):

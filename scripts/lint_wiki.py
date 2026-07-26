@@ -15,26 +15,22 @@ from authority_policy import authority_diagnostics
 from claim_contract import validate_claim_anchors
 from graph_contract import RELATED_FIELDS, RELATED_FIELD_TYPES
 from kg_common import (
+    Entity,
     SCHEMA_VERSION,
     URL_RE,
     as_list,
-    authority_records,
-    conflict_records,
     entity_lookup,
     issue,
+    legacy_entity_view,
     load_entities,
     load_json,
     load_path_aliases,
     normalized_ref,
     parse_date,
-    provenance_data,
     report_summary,
-    relation_records,
     resolve_entity_ref,
     scalar_text,
     severity_fails,
-    workflow_data,
-    legal_data,
     wiki_targets,
     write_json,
 )
@@ -71,63 +67,19 @@ TEMPORAL_FIELDS = frozenset(
 
 
 def _v14_compat_view(data: dict[str, Any]) -> dict[str, Any]:
-    """Expose normalized v1.4 values to the legacy semantic checks."""
+    """Apply only lint-specific policy defaults to the shared legacy projection."""
 
     if scalar_text(data.get("schema_version")) != SCHEMA_VERSION:
         return data
-    view = dict(data)
-    workflow = workflow_data(data)
-    legal = legal_data(data)
-    provenance = provenance_data(data)
-    view.update({
-        "status": workflow["editorial_status"],
-        "ingestion_status": workflow["ingestion_status"],
-        "last_updated": workflow["updated_on"],
-        "review_cycle": scalar_text(workflow["review"].get("cycle")),
-        "last_checked": scalar_text(workflow["review"].get("checked_on")),
-        "review_trigger": as_list(workflow["review"].get("triggers")),
-        "legal_status": legal["status"],
-        "as_of_date": legal["as_of"],
-        "effective_from": legal["validity"]["from"],
-        "effective_to": legal["validity"]["until"] or "9999-12-31",
-        "superseded_by": legal["superseded_by"],
-        "superseded_date": legal["superseded_on"] or "",
-        "authority_ids": [item.get("target_id") for item in authority_records(data) if scalar_text(item.get("target_id"))],
-        "primary_authority_id": next((item.get("target_id") for item in authority_records(data) if item.get("role") == "primary"), ""),
-        "authority_level": (data.get("authority_profile") or {}).get("level") if isinstance(data.get("authority_profile"), dict) else 7,
-        "enforcement_weight": (data.get("authority_profile") or {}).get("enforcement_weight", "low") if isinstance(data.get("authority_profile"), dict) else "low",
-        "source_urls": [item.get("url") for item in provenance.get("external_links", []) if isinstance(item, dict) and scalar_text(item.get("url"))],
-        "source_availability": {"complete": "available", "partial": "partial", "official_unavailable": "unavailable_official", "not_applicable": "not_applicable"}.get(provenance.get("availability"), "not_applicable"),
-        "source_availability_note": provenance.get("note", ""),
-        "evidence": [dict(item, verified_on=(item.get("verified_on") or "")) for item in provenance.get("evidence", []) if isinstance(item, dict)],
-        "verification": provenance.get("verification", {}),
-        "verified_by": as_list((provenance.get("verification") or {}).get("verifier_ids")) if isinstance(provenance.get("verification"), dict) else [],
-        "last_verified": scalar_text((provenance.get("verification") or {}).get("verified_on")) if isinstance(provenance.get("verification"), dict) else "",
-        "conflict_status": "active" if conflict_records(data) else "none",
-        "conflict_type": (conflict_records(data)[0].get("type") if conflict_records(data) else "none"),
-        "conflict_resolution": (conflict_records(data)[0].get("status") if conflict_records(data) else ""),
-        "conflict_resolution_note": (conflict_records(data)[0].get("note") if conflict_records(data) else ""),
-        "conflict_resolved_date": (conflict_records(data)[0].get("resolved_on") or "" if conflict_records(data) else ""),
-        "relations": [dict(item, effective_on=(item.get("effective_on") or "")) for item in relation_records(data)],
-    })
+    view = legacy_entity_view(data)
+    if not isinstance(data.get("authority_profile"), dict):
+        view["authority_level"] = 7
+        view["enforcement_weight"] = "low"
     if scalar_text(data.get("entity_type")) in {"concept", "guide", "history", "discussion", "fact_pattern"}:
         # v1.4 keeps authority links for context, but authority level and
         # enforcement weight describe only authority-bearing entities.
         view["authority_ids"] = []
         view["primary_authority_id"] = ""
-    attrs = data.get("attributes") if isinstance(data.get("attributes"), dict) else {}
-    view.update(attrs)
-    if scalar_text(data.get("entity_type")) == "case":
-        numbers = attrs.get("case_numbers") if isinstance(attrs.get("case_numbers"), list) else []
-        view["case_number"] = next((re.split(r"\(", scalar_text(item.get("number")))[0] for item in numbers if isinstance(item, dict)), "")
-        view["case_numbers"] = [scalar_text(item.get("number")) for item in numbers if isinstance(item, dict)]
-    if scalar_text(data.get("entity_type")) == "rule":
-        view["temporal"] = {
-            "applicable_from": legal["validity"]["from"],
-            "applicable_to": legal["validity"]["until"] or "9999-12-31",
-            "rule_version": attrs.get("rule_version", "legacy"),
-            "transition_note": attrs.get("transition_note", ""),
-        }
     return view
 
 
@@ -365,7 +317,8 @@ def _validate_case_source_gate(entity: Any, raw_names: set[str], path_aliases: d
     note = scalar_text(entity.data.get("source_availability_note"))
     urls = [scalar_text(item) for item in as_list(entity.data.get("source_urls"))]
     raw_targets = wiki_targets(entity.data.get("related_raw"))
-    case_number = re.sub(r"\s+", "", scalar_text(entity.data.get("case_number"))).casefold()
+    raw_case_number = scalar_text(entity.data.get("case_number"))
+    case_number = re.sub(r"\s+", "", re.split(r"\(", raw_case_number, maxsplit=1)[0]).casefold()
     own_raw = False
     for target in raw_targets:
         compact_target = re.sub(r"\s+", "", normalized_ref(target))
@@ -465,7 +418,7 @@ def lint_repository(
 ) -> dict[str, Any]:
     root = root.resolve()
     today = today or repository_today()
-    entities, issues = load_entities(root)
+    loaded_entities, issues = load_entities(root)
     contract = None
     try:
         contract = load_schema_contract(root, version=SCHEMA_VERSION)
@@ -513,9 +466,18 @@ def lint_repository(
         verifier_ids = set(load_verifier_registry(root).ids)
     except VerifierRegistryError as exc:
         issues.append(issue("critical", "VERIFIER_REGISTRY_READ", "schemas/verifiers.json", str(exc)))
+    entities = [
+        Entity(
+            path=entity.path,
+            relative_path=entity.relative_path,
+            data=dict(entity.data),
+            body=entity.body,
+        )
+        for entity in loaded_entities
+    ]
     by_id, names = entity_lookup(entities)
     for entity in entities:
-        entity.data = _v14_compat_view(entity.data)
+        entity.data = dict(_v14_compat_view(entity.data))
     path_aliases = load_path_aliases(root)
     raw_names = _raw_index(root)
     registry_ids = _validate_source_registry(root, issues)

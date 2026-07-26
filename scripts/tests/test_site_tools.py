@@ -1,17 +1,22 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sys
 import tempfile
+import threading
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from unittest.mock import patch
 
 SCRIPTS = Path(__file__).resolve().parents[1]
 ROOT = SCRIPTS.parent
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
+import build_site as build_site_module
 from build_site import (
     _archive_card,
     _home_recent_documents,
@@ -254,6 +259,71 @@ class SiteBuildTests(unittest.TestCase):
             sitemap = (output / "sitemap.xml").read_text(encoding="utf-8")
             self.assertIn("https://example.test/Wage_Wiki/concept/", sitemap)
             self.assertIn("https://example.test/Wage_Wiki/history/", sitemap)
+
+    def test_parallel_builds_keep_asset_versions_isolated(self) -> None:
+        build_root = ROOT / "build"
+        build_root.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=build_root) as temporary:
+            workspace = Path(temporary)
+            asset_sources: list[Path] = []
+            outputs: list[Path] = []
+            for label in ("alpha", "beta"):
+                asset_source = workspace / f"assets-{label}"
+                asset_source.mkdir()
+                for asset_name in ("styles.css", "app.js", "favicon.svg"):
+                    content = (ROOT / "web" / "assets" / asset_name).read_bytes()
+                    if asset_name == "styles.css":
+                        content += f"\n/* parallel-build-{label} */\n".encode()
+                    (asset_source / asset_name).write_bytes(content)
+                asset_sources.append(asset_source)
+                outputs.append(workspace / f"site-{label}")
+
+            barrier = threading.Barrier(2)
+            original_home_page = build_site_module._home_page
+
+            def synchronized_home_page(*args: object, **kwargs: object) -> str:
+                barrier.wait(timeout=60)
+                return original_home_page(*args, **kwargs)
+
+            with patch.object(build_site_module, "_home_page", synchronized_home_page):
+                with ThreadPoolExecutor(max_workers=2) as executor:
+                    futures = [
+                        executor.submit(
+                            build_site,
+                            ROOT,
+                            output,
+                            site_url=f"https://example.test/{label}/",
+                            asset_source=asset_source,
+                        )
+                        for label, output, asset_source in zip(
+                            ("alpha", "beta"),
+                            outputs,
+                            asset_sources,
+                            strict=True,
+                        )
+                    ]
+                    for future in futures:
+                        future.result(timeout=120)
+
+            expected_versions: list[str] = []
+            for output in outputs:
+                digest = hashlib.sha256()
+                for asset_name in ("styles.css", "app.js", "favicon.svg", "entities.json"):
+                    digest.update((output / "assets" / asset_name).read_bytes())
+                expected_version = digest.hexdigest()[:12]
+                expected_versions.append(expected_version)
+                referenced_versions: set[str] = set()
+                for page_path in output.rglob("*.html"):
+                    page_versions = set(
+                        re.findall(
+                            r"(?:favicon\.svg|styles\.css|app\.js|entities\.json)\?v=([a-f0-9]{12})",
+                            page_path.read_text(encoding="utf-8"),
+                        )
+                    )
+                    self.assertLessEqual(page_versions, {expected_version}, page_path)
+                    referenced_versions.update(page_versions)
+                self.assertEqual(referenced_versions, {expected_version})
+            self.assertNotEqual(expected_versions[0], expected_versions[1])
 
     def test_home_recent_documents_are_limited_ordered_and_escaped(self) -> None:
         records = [

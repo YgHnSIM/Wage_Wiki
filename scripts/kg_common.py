@@ -529,6 +529,8 @@ def legacy_entity_view(data: dict[str, Any]) -> dict[str, Any]:
     legal = legal_data(data)
     provenance = provenance_data(data)
     verification = provenance.get("verification") if isinstance(provenance.get("verification"), dict) else {}
+    conflicts = conflict_records(data)
+    primary_conflict = conflicts[0] if conflicts else None
     view.update({
         "status": workflow["editorial_status"],
         "ingestion_status": workflow["ingestion_status"],
@@ -553,6 +555,15 @@ def legacy_entity_view(data: dict[str, Any]) -> dict[str, Any]:
         "verification": verification,
         "verified_by": as_list(verification.get("verifier_ids")),
         "last_verified": scalar_text(verification.get("verified_on")),
+        "conflict_status": "active" if primary_conflict is not None else "none",
+        "conflict_type": primary_conflict.get("type") if primary_conflict is not None else "none",
+        "conflict_resolution": primary_conflict.get("status") if primary_conflict is not None else "",
+        "conflict_resolution_note": primary_conflict.get("note") if primary_conflict is not None else "",
+        "conflict_resolved_date": (
+            primary_conflict.get("resolved_on") or ""
+            if primary_conflict is not None
+            else ""
+        ),
         "relations": [dict(item, effective_on=(item.get("effective_on") or "")) for item in relation_records(data)],
     })
     attrs = data.get("attributes") if isinstance(data.get("attributes"), dict) else {}

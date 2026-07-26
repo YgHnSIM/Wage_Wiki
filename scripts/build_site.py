@@ -12,6 +12,7 @@ import re
 import shutil
 import sys
 from collections import Counter
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote, urlparse
@@ -53,7 +54,17 @@ from source_catalog import registry_title_map
 SITE_TITLE = "대한민국 임금법 판례 지식베이스"
 SITE_DESCRIPTION = "통상임금·평균임금과 성과급, 지급조건, 최저임금 쟁점을 판례와 판단 규칙으로 연결한 지식베이스"
 DEFAULT_REPOSITORY_URL = "https://github.com/YgHnSIM/Wage_Wiki"
-ASSET_VERSION = "dev"
+
+
+@dataclass(frozen=True)
+class SiteRenderContext:
+    """Immutable deployment values shared by every renderer in one site build."""
+
+    site_url: str
+    repository_url: str
+    branch: str
+    asset_version: str
+
 
 TYPE_ORDER = {
     "guide": 0,
@@ -359,6 +370,7 @@ def _canonical(site_url: str, relative: str = "") -> str:
 
 def _document(
     *,
+    context: SiteRenderContext,
     title: str,
     description: str,
     body: str,
@@ -369,9 +381,9 @@ def _document(
 ) -> str:
     canonical_tag = f'<link rel="canonical" href="{html.escape(canonical_url, quote=True)}">' if canonical_url else ""
     social_url = f'<meta property="og:url" content="{html.escape(canonical_url, quote=True)}">' if canonical_url else ""
-    favicon_url = html.escape(f"{asset_prefix}favicon.svg?v={ASSET_VERSION}", quote=True)
-    stylesheet_url = html.escape(f"{asset_prefix}styles.css?v={ASSET_VERSION}", quote=True)
-    script_url = html.escape(f"{asset_prefix}app.js?v={ASSET_VERSION}", quote=True)
+    favicon_url = html.escape(f"{asset_prefix}favicon.svg?v={context.asset_version}", quote=True)
+    stylesheet_url = html.escape(f"{asset_prefix}styles.css?v={context.asset_version}", quote=True)
+    script_url = html.escape(f"{asset_prefix}app.js?v={context.asset_version}", quote=True)
     script = f'<script defer src="{script_url}"></script>' if include_app else ""
     return f"""<!doctype html>
 <html lang="ko">
@@ -400,8 +412,8 @@ def _document(
 
 
 def _site_header(
+    context: SiteRenderContext,
     home_prefix: str,
-    repository_url: str,
     *,
     current_section: str = "",
 ) -> str:
@@ -413,7 +425,7 @@ def _site_header(
   <nav aria-label="주요 메뉴">
     <a href="{safe_home}concept/"{concept_current}>개념</a>
     <a href="{safe_home}history/"{history_current}>연혁</a>
-    <a class="site-nav__repo" href="{html.escape(repository_url, quote=True)}">GitHub 저장소</a>
+    <a class="site-nav__repo" href="{html.escape(context.repository_url, quote=True)}">GitHub 저장소</a>
   </nav>
 </header>"""
 
@@ -500,8 +512,7 @@ def _archive_card(record: dict[str, Any], *, link_prefix: str = "") -> str:
 def _type_archive_page(
     records: list[dict[str, Any]],
     entity_type: str,
-    site_url: str,
-    repository_url: str,
+    context: SiteRenderContext,
 ) -> str:
     """Render a focused, static archive for a document type."""
     type_label = TYPE_LABELS[entity_type]
@@ -515,7 +526,7 @@ def _type_archive_page(
         "concept": "임금법 판단에 필요한 핵심 개념과 계산 구조를 정리한 문서입니다.",
         "history": "법리와 제도의 변화를 시기와 적용 기준에 따라 정리한 문서입니다.",
     }
-    body = f"""{_site_header('../', repository_url, current_section=entity_type)}
+    body = f"""{_site_header(context, '../', current_section=entity_type)}
 <main id="main" class="type-archive" tabindex="-1">
   <header class="type-archive__header">
     <p class="section-label">문서 아카이브</p>
@@ -546,11 +557,12 @@ def _type_archive_page(
 </main>
 <footer class="site-footer"><div class="site-footer__inner"><p>Wage Wiki · {html.escape(type_label)} {len(archive_records)}개 문서</p><p><a href="../#explore">전체 문서 보기</a></p></div></footer>"""
     return _document(
+        context=context,
         title=f"{type_label} | {SITE_TITLE}",
         description=f"Wage Wiki의 {type_label} 문서 {len(archive_records)}개",
         body=body,
         asset_prefix="../assets/",
-        canonical_url=_canonical(site_url, f"{entity_type}/"),
+        canonical_url=_canonical(context.site_url, f"{entity_type}/"),
         page_class=f"archive-page archive-page--{entity_type}",
         include_app=True,
     )
@@ -626,8 +638,7 @@ def _home_page(
     records: list[dict[str, Any]],
     counts: Counter[str],
     as_of: str,
-    site_url: str,
-    repository_url: str,
+    context: SiteRenderContext,
 ) -> str:
     ordered_records = sorted(records, key=lambda item: item["sortDate"], reverse=True)
     initial = ordered_records[:10]
@@ -644,9 +655,9 @@ def _home_page(
     initial_cards = "".join(_record_card(item) for item in initial)
     recent_documents_html = _home_recent_documents(records)
     formatted_as_of = html.escape(_format_date(as_of))
-    body = f"""{_site_header('./', repository_url)}
+    body = f"""{_site_header(context, './')}
 <main id="main" tabindex="-1">
-  <section class="explorer" id="explore" aria-labelledby="explore-title" data-index-url="assets/entities.json?v={ASSET_VERSION}">
+  <section class="explorer" id="explore" aria-labelledby="explore-title" data-index-url="assets/entities.json?v={context.asset_version}">
     <div class="explorer-console">
       <div class="explore-panel">
         <p class="section-label">전체 지식베이스</p>
@@ -695,13 +706,14 @@ def _home_page(
     <a class="text-link" href="about/">데이터 구성과 검증 기준 보기</a>
   </section>
 </main>
-<footer class="site-footer"><div class="site-footer__inner"><p>Wage Wiki · 기준일 {formatted_as_of}</p><p><a href="{html.escape(repository_url, quote=True)}">GitHub에서 원본 보기</a></p></div></footer>"""
+<footer class="site-footer"><div class="site-footer__inner"><p>Wage Wiki · 기준일 {formatted_as_of}</p><p><a href="{html.escape(context.repository_url, quote=True)}">GitHub에서 원본 보기</a></p></div></footer>"""
     return _document(
+        context=context,
         title=SITE_TITLE,
         description=SITE_DESCRIPTION,
         body=body,
         asset_prefix="assets/",
-        canonical_url=_canonical(site_url),
+        canonical_url=_canonical(context.site_url),
         page_class="home-page",
         include_app=True,
     )
@@ -914,9 +926,7 @@ def _entity_page(
     by_id: dict[str, Entity],
     names: dict[str, list[Entity]],
     slugs: dict[str, str],
-    site_url: str,
-    repository_url: str,
-    branch: str,
+    context: SiteRenderContext,
     source_titles: dict[str, str],
 ) -> str:
     data = legacy_entity_view(entity.data)
@@ -1038,7 +1048,10 @@ def _entity_page(
         for key in tech_fields
         if data.get(key) not in (None, "", [], {})
     )
-    repo_source = f"{repository_url.rstrip('/')}/blob/{quote(branch)}/{quote(entity.relative_path, safe='/')}"
+    repo_source = (
+        f"{context.repository_url.rstrip('/')}/blob/"
+        f"{quote(context.branch)}/{quote(entity.relative_path, safe='/')}"
+    )
     date_parts = record["date"].split("-") if record["date"] else []
     if len(date_parts) == 3:
         rail_date = f"<strong>{date_parts[0]}</strong><span>{date_parts[1]}.{date_parts[2]}</span>"
@@ -1047,7 +1060,7 @@ def _entity_page(
     type_archive_href = (
         f"../../{record['type']}/" if record["type"] in CATEGORY_ARCHIVE_TYPES else "../../#explore"
     )
-    body = f"""{_site_header('../../', repository_url)}
+    body = f"""{_site_header(context, '../../')}
 <main id="{DOCUMENT_MAIN_FRAGMENT_ID}" tabindex="-1">
   <nav class="breadcrumb" aria-label="현재 위치"><a href="../../">홈</a><span>/</span><a href="{html.escape(type_archive_href, quote=True)}">{html.escape(record['typeLabel'])}</a><span>/</span><span aria-current="page">{html.escape(record['number'])}</span></nav>
   <article class="document">
@@ -1090,11 +1103,12 @@ def _entity_page(
 </main>
 <footer class="site-footer"><div class="site-footer__inner"><p>Wage Wiki · {html.escape(record['id'])}</p><p><a href="../../#explore">전체 문서로 돌아가기</a></p></div></footer>"""
     return _document(
+        context=context,
         title=f"{title} | Wage Wiki",
         description=record["summary"][:160] or SITE_DESCRIPTION,
         body=body,
         asset_prefix="../../assets/",
-        canonical_url=_canonical(site_url, f"entities/{current_slug}/"),
+        canonical_url=_canonical(context.site_url, f"entities/{current_slug}/"),
         page_class=f"entity-page entity-page--{record['type']}",
         include_app=True,
     )
@@ -1106,8 +1120,7 @@ def _about_page(
     status_counts: Counter[str],
     legal_counts: Counter[str],
     as_of: str,
-    site_url: str,
-    repository_url: str,
+    context: SiteRenderContext,
 ) -> str:
     type_rows = "".join(
         f"<tr><th scope=\"row\">{html.escape(TYPE_LABELS.get(key, key))}</th><td>{counts[key]}</td></tr>"
@@ -1123,7 +1136,7 @@ def _about_page(
         for key in ("current", "future", "superseded", "overruled", "historical", "unknown")
         if legal_counts[key]
     )
-    body = f"""{_site_header('../', repository_url)}
+    body = f"""{_site_header(context, '../')}
 <main id="main" class="about" tabindex="-1">
   <header class="about-hero"><p class="section-label">데이터 안내</p><h1>무엇을, 어떤 기준으로<br>보여주는가</h1><p>Wage Wiki는 현재 통상임금·평균임금, 성과급, 지급조건, 최저임금과 반환약정 쟁점을 중심으로 구축 중입니다. Markdown 원본의 구조화된 메타데이터와 본문을 정적 HTML로 변환하며, 원문 PDF·HTML을 복제하지 않고 공식 외부 주소만 연결합니다.</p></header>
   <section class="about-grid" aria-labelledby="coverage-title">
@@ -1144,18 +1157,24 @@ def _about_page(
   </section>
   <section class="disclaimer"><h2>책임 범위</h2><p>이 사이트는 연구와 정보 제공을 위한 자료입니다. 실제 사건에는 사실관계, 적용 시점, 단체협약·취업규칙 등 추가 요소가 영향을 줄 수 있으므로 필요한 경우 전문가의 검토를 받으세요.</p><a class="text-link" href="../#explore">문서 탐색으로 돌아가기</a></section>
 </main>
-<footer class="site-footer"><div class="site-footer__inner"><p>Wage Wiki · 전체 {len(records)}개 문서</p><p><a href="{html.escape(repository_url, quote=True)}">GitHub 저장소</a></p></div></footer>"""
+<footer class="site-footer"><div class="site-footer__inner"><p>Wage Wiki · 전체 {len(records)}개 문서</p><p><a href="{html.escape(context.repository_url, quote=True)}">GitHub 저장소</a></p></div></footer>"""
     return _document(
+        context=context,
         title=f"데이터 안내 | {SITE_TITLE}",
         description="Wage Wiki의 수록 범위, 편집·법적 상태, 탐색 기준과 근거 표시 방법",
         body=body,
         asset_prefix="../assets/",
-        canonical_url=_canonical(site_url, "about/"),
+        canonical_url=_canonical(context.site_url, "about/"),
         page_class="about-page",
     )
 
 
-def _redirect_page(target: str, canonical_url: str) -> str:
+def _redirect_page(
+    target: str,
+    canonical_relative: str,
+    context: SiteRenderContext,
+) -> str:
+    canonical_url = _canonical(context.site_url, canonical_relative)
     return f"""<!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>문서 이동 | Wage Wiki</title><meta http-equiv="refresh" content="0; url={html.escape(target, quote=True)}">
@@ -1164,16 +1183,17 @@ def _redirect_page(target: str, canonical_url: str) -> str:
 """
 
 
-def _not_found(site_url: str, repository_url: str) -> str:
-    home_url = _canonical(site_url) if site_url else "./"
-    asset_prefix = _canonical(site_url, "assets/") if site_url else "assets/"
-    body = f"""{_site_header(home_url, repository_url)}<main id="main" class="not-found" tabindex="-1"><p class="error-code">404</p><h1>페이지를 찾을 수 없습니다.</h1><p>주소가 변경되었거나 존재하지 않는 문서입니다.</p><a class="text-link" href="{html.escape(home_url, quote=True)}#explore">전체 문서 보기</a></main>"""
+def _not_found(context: SiteRenderContext) -> str:
+    home_url = _canonical(context.site_url) if context.site_url else "./"
+    asset_prefix = _canonical(context.site_url, "assets/") if context.site_url else "assets/"
+    body = f"""{_site_header(context, home_url)}<main id="main" class="not-found" tabindex="-1"><p class="error-code">404</p><h1>페이지를 찾을 수 없습니다.</h1><p>주소가 변경되었거나 존재하지 않는 문서입니다.</p><a class="text-link" href="{html.escape(home_url, quote=True)}#explore">전체 문서 보기</a></main>"""
     return _document(
+        context=context,
         title=f"페이지를 찾을 수 없음 | {SITE_TITLE}",
         description="요청한 Wage Wiki 페이지를 찾을 수 없습니다.",
         body=body,
         asset_prefix=asset_prefix,
-        canonical_url=_canonical(site_url, "404.html"),
+        canonical_url=_canonical(context.site_url, "404.html"),
         page_class="error-page",
     )
 
@@ -1218,7 +1238,6 @@ def build_site(
     branch: str = "main",
     asset_source: Path | None = None,
 ) -> dict[str, Any]:
-    global ASSET_VERSION
     root = root.resolve()
     output = _safe_output(root, output)
     site_url = _validated_site_url(site_url)
@@ -1243,7 +1262,12 @@ def build_site(
     records = _entity_records(entities, slugs)
     records_json = json.dumps(records, ensure_ascii=False, separators=(",", ":")) + "\n"
     asset_digest.update(records_json.encode("utf-8"))
-    ASSET_VERSION = asset_digest.hexdigest()[:12]
+    context = SiteRenderContext(
+        site_url=site_url,
+        repository_url=repository_url,
+        branch=branch,
+        asset_version=asset_digest.hexdigest()[:12],
+    )
     records_by_id = {record["id"]: record for record in records}
     counts = Counter(record["type"] for record in records)
     status_counts = Counter(record["status"] for record in records)
@@ -1262,16 +1286,15 @@ def build_site(
             records,
             counts,
             as_of,
-            site_url,
-            repository_url,
+            context,
         ),
         encoding="utf-8",
         newline="\n",
     )
-    (output / "404.html").write_text(_not_found(site_url, repository_url), encoding="utf-8", newline="\n")
+    (output / "404.html").write_text(_not_found(context), encoding="utf-8", newline="\n")
     (output / "about").mkdir()
     (output / "about" / "index.html").write_text(
-        _about_page(records, counts, status_counts, legal_counts, as_of, site_url, repository_url),
+        _about_page(records, counts, status_counts, legal_counts, as_of, context),
         encoding="utf-8",
         newline="\n",
     )
@@ -1279,7 +1302,7 @@ def build_site(
         target = output / entity_type
         target.mkdir()
         (target / "index.html").write_text(
-            _type_archive_page(records, entity_type, site_url, repository_url),
+            _type_archive_page(records, entity_type, context),
             encoding="utf-8",
             newline="\n",
         )
@@ -1298,9 +1321,7 @@ def build_site(
                 by_id,
                 names,
                 slugs,
-                site_url,
-                repository_url,
-                branch,
+                context,
                 source_titles,
             ),
             encoding="utf-8",
@@ -1322,20 +1343,24 @@ def build_site(
         alias_dir.mkdir(parents=True, exist_ok=True)
         target = f"../../entities/{slugs[canonical_id]}/"
         alias_dir.joinpath("index.html").write_text(
-            _redirect_page(target, _canonical(site_url, f"entities/{slugs[canonical_id]}/")),
+            _redirect_page(target, f"entities/{slugs[canonical_id]}/", context),
             encoding="utf-8",
             newline="\n",
         )
         redirect_count += 1
 
-    sitemap_urls = [_canonical(site_url), _canonical(site_url, "about/")]
-    sitemap_urls.extend(_canonical(site_url, f"{entity_type}/") for entity_type in CATEGORY_ARCHIVE_TYPES)
-    sitemap_urls.extend(_canonical(site_url, record["url"]) for record in records)
+    sitemap_urls = [_canonical(context.site_url), _canonical(context.site_url, "about/")]
+    sitemap_urls.extend(
+        _canonical(context.site_url, f"{entity_type}/") for entity_type in CATEGORY_ARCHIVE_TYPES
+    )
+    sitemap_urls.extend(_canonical(context.site_url, record["url"]) for record in records)
     sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     sitemap += "".join(f"  <url><loc>{html.escape(url)}</loc></url>\n" for url in sitemap_urls if url)
     sitemap += "</urlset>\n"
     (output / "sitemap.xml").write_text(sitemap, encoding="utf-8", newline="\n")
-    robots_sitemap = f"Sitemap: {_canonical(site_url, 'sitemap.xml')}\n" if site_url else ""
+    robots_sitemap = (
+        f"Sitemap: {_canonical(context.site_url, 'sitemap.xml')}\n" if context.site_url else ""
+    )
     (output / "robots.txt").write_text(f"User-agent: *\nAllow: /\n{robots_sitemap}", encoding="utf-8", newline="\n")
     build_info = {
         "schema_version": SCHEMA_VERSION,
