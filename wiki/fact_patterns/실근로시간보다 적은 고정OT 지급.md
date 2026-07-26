@@ -1,39 +1,104 @@
 ---
-schema_version: "1.3"
+schema_version: "1.4"
 id: "fact-pattern-fixed-overtime-shortfall"
 id_aliases: []
 entity_type: "fact_pattern"
 title: "실근로시간보다 적은 고정OT 지급"
 aliases: []
 jurisdiction: "KR"
-status: "verified"
-legal_status: "current"
-ingestion_status: "verified"
-primary_authority: "고용노동부 2026. 4. 9. 포괄임금 오남용 방지 지도 지침"
-primary_authority_id: "interpretation-moel-inclusive-wage-guideline-2026-04-09"
-authority_ids:
-  - "case-2008다6052"
-  - "interpretation-moel-inclusive-wage-guideline-2026-04-09"
-authority_level: 5
-enforcement_weight: "medium"
-conflict_status: "none"
-conflict_type: "none"
-conflict_resolution: ""
-conflict_resolution_note: ""
-conflict_resolved_date: ""
-effective_from: "2026-04-09"
-effective_to: "9999-12-31"
-as_of_date: "2026-07-21"
-superseded_by: ""
-superseded_date: ""
-review_cycle: "quarterly"
-review_trigger:
-  - "포괄임금 지도지침 또는 법정수당 판례 변경"
+workflow:
+  editorial_status: "verified"
+  ingestion_status: "verified"
+  updated_on: "2026-07-21"
+  review:
+    cycle: "quarterly"
+    checked_on: "2026-07-21"
+    triggers:
+      - "포괄임금 지도지침 또는 법정수당 판례 변경"
+legal:
+  status: "current"
+  as_of: "2026-07-21"
+  validity:
+    from: "2026-04-09"
+    until: null
+  superseded_by: null
+  superseded_on: null
+authority_profile: null
+authorities:
+  - target_id: "interpretation-moel-inclusive-wage-guideline-2026-04-09"
+    role: "primary"
+    note: ""
+  - target_id: "case-2008다6052"
+    role: "supporting"
+    note: ""
+provenance:
+  availability: "not_applicable"
+  note: ""
+  source_ids:
+    - "raw-interpretation-moel-inclusive-wage-guideline-2026-04"
+  external_links:
+    - url: "https://www.moel.go.kr/news/enews/report/enewsView.do?news_seq=19208"
+      role: "official"
+      note: ""
+  evidence:
+    - evidence_id: "evidence:fact-pattern-fixed-overtime-shortfall-ev-fact-fixed-ot-shortfall"
+      source_id: "raw-interpretation-moel-inclusive-wage-guideline-2026-04"
+      locator: "PDF pp.2-6, 기본원칙 및 지도기준"
+      excerpt: "고정OT 예정시간보다 실제 연장·야간·휴일근로가 많으면 법정수당 차액을 지급하도록 한다."
+      supports:
+        - "claim-fact-fixed-ot"
+        - "claim-fact-fixed-ot-application"
+        - "claim-fact-fixed-ot-example"
+        - "claim-fact-fixed-ot-lower"
+      verified_on: "2026-07-21"
+  verification:
+    verified_on: "2026-07-21"
+    verifier_ids:
+      - "codex"
+    methods:
+      - "official_source_review"
+    note: "legacy verified_by: codex-official-source-review"
+conflicts: []
+relations:
+  - relation_type: "applies"
+    target_id: "rule-inclusive-wage-recording-reconciliation"
+    note: "매월 실근로시간과 고정OT 예정시간을 대조한다."
+    effective_on: null
+  - relation_type: "related_to"
+    target_id: "case-2008다6052"
+    note: ""
+    effective_on: null
+  - relation_type: "related_to"
+    target_id: "concept-fixed-overtime-agreement"
+    note: ""
+    effective_on: null
+  - relation_type: "related_to"
+    target_id: "interpretation-moel-inclusive-wage-guideline-2026-04-09"
+    note: ""
+    effective_on: null
+  - relation_type: "related_to"
+    target_id: "law-lsa-article-48-wage-ledger-statement"
+    note: ""
+    effective_on: null
+  - relation_type: "related_to"
+    target_id: "law-lsa-article-56-overtime-night-holiday-pay"
+    note: ""
+    effective_on: null
+  - relation_type: "related_to"
+    target_id: "rule-inclusive-wage-recording-reconciliation"
+    note: ""
+    effective_on: null
+  - relation_type: "related_to"
+    target_id: "rule-inclusive-wage-validity-statutory-difference"
+    note: ""
+    effective_on: null
+attributes: {}
+related_guides: []
 related_concepts:
   - "[[고정OT 약정]]"
 related_rules:
-  - "[[포괄임금약정 유효성과 법정수당 차액 지급 규칙]]"
   - "[[포괄임금의 임금대장·명세서 및 실근로시간 정산 규칙]]"
+  - "[[포괄임금약정 유효성과 법정수당 차액 지급 규칙]]"
 related_cases:
   - "[[대법원 2010. 5. 13. 선고 2008다6052 판결]]"
 related_laws:
@@ -41,40 +106,11 @@ related_laws:
   - "[[근로기준법 제56조 연장 야간 및 휴일 근로]]"
 related_interpretations:
   - "[[고용노동부 2026. 4. 9. 포괄임금 오남용 방지 지도 지침]]"
+related_history: []
+related_discussions: []
 related_fact_patterns: []
 related_raw:
   - "[[raw/interpretations/공짜노동 근절을 위한 포괄임금 오남용 방지 지도지침.pdf]]"
-source_urls:
-  - "https://www.moel.go.kr/news/enews/report/enewsView.do?news_seq=19208"
-source_excerpt:
-  - "약정한 고정OT보다 실제 법정수당이 많으면 차액 지급"
-evidence:
-  - evidence_id: "ev-fact-fixed-ot-shortfall"
-    source_id: "raw-interpretation-moel-inclusive-wage-guideline-2026-04"
-    locator: "PDF pp.2-6, 기본원칙 및 지도기준"
-    excerpt: "고정OT 예정시간보다 실제 연장·야간·휴일근로가 많으면 법정수당 차액을 지급하도록 한다."
-    supports:
-      - "claim-fact-fixed-ot"
-      - "claim-fact-fixed-ot-application"
-      - "claim-fact-fixed-ot-example"
-      - "claim-fact-fixed-ot-lower"
-    verified_on: "2026-07-21"
-relations:
-  - relation_type: "applies"
-    target_id: "rule-inclusive-wage-recording-reconciliation"
-    target: "[[포괄임금의 임금대장·명세서 및 실근로시간 정산 규칙]]"
-    note: "매월 실근로시간과 고정OT 예정시간을 대조한다."
-last_checked: "2026-07-21"
-last_verified: "2026-07-21"
-last_updated: "2026-07-21"
-verified_by:
-  - "codex-official-source-review"
-verification:
-  verifier_ids:
-    - "codex"
-  methods:
-    - "official_source_review"
-  note: ""
 ---
 # 실근로시간보다 적은 고정OT 지급
 

@@ -22,6 +22,7 @@ REQUIRED_FIELDS = frozenset(
         "forbidden_claims",
     }
 )
+AUTHORITY_ENTITY_TYPES = frozenset({"case", "law", "interpretation"})
 
 
 def _catalog_issue(line: int, code: str, message: str, **details: Any) -> dict[str, Any]:
@@ -103,12 +104,16 @@ def validate_qa_catalog(
                 _catalog_issue(line_number, "INVALID_AS_OF", "as_of must be a valid YYYY-MM-DD date")
             )
 
+        for field in ("question", "expected"):
+            if not isinstance(record.get(field), str) or not record[field].strip():
+                issues.append(_catalog_issue(line_number, "INVALID_TEXT", f"{field} must be a non-empty string", field=field))
+
         for field, expected_type in (
             ("required_authority_ids", "authority"),
             ("required_rule_ids", "rule"),
         ):
             values = record.get(field)
-            if not _is_string_list(values):
+            if not _is_string_list(values, allow_empty=False):
                 issues.append(
                     _catalog_issue(
                         line_number,
@@ -137,6 +142,16 @@ def validate_qa_catalog(
                             line_number,
                             "REQUIRED_ID_NOT_RULE",
                             f"required ID is not a rule: {required_id}",
+                            id=required_id,
+                            field=field,
+                        )
+                    )
+                elif expected_type == "authority" and scalar_text(target.data.get("entity_type")) not in AUTHORITY_ENTITY_TYPES:
+                    issues.append(
+                        _catalog_issue(
+                            line_number,
+                            "REQUIRED_ID_NOT_AUTHORITY",
+                            f"required ID is not an authority-bearing entity: {required_id}",
                             id=required_id,
                             field=field,
                         )

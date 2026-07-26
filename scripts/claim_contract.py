@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import Any
 from urllib.parse import quote
 
-from kg_common import as_list, scalar_text
+from kg_common import as_list, provenance_data, scalar_text
 
 
 CLAIM_ID_PATTERN = r"^[a-z][a-z0-9-]{0,63}$"
@@ -391,7 +391,7 @@ def validate_claim_anchors(
 ) -> tuple[ClaimProblem, ...]:
     """Validate formats always and resolution only after rollout is enabled."""
 
-    supported = evidence_claim_ids(data.get("evidence"))
+    supported = evidence_claim_ids(provenance_data(data).get("evidence"))
     anchors, rejected = _scan_claim_anchors(body)
     problems: list[ClaimProblem] = []
     by_id: dict[str, list[ClaimAnchor]] = {}

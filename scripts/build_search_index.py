@@ -16,7 +16,7 @@ from claim_contract import (
     markdown_plain_text,
     strip_claim_markers,
 )
-from kg_common import load_entities, scalar_text
+from kg_common import legacy_entity_view, load_entities, scalar_text
 
 
 def plain_text(text: str) -> str:
@@ -61,7 +61,7 @@ def build_chunks(root: Path) -> list[dict[str, str]]:
         raise RuntimeError(f"frontmatter parse failed: {messages}")
     chunks: list[dict[str, str]] = []
     for entity in entities:
-        data = entity.data
+        data = legacy_entity_view(entity.data)
         entity_id = scalar_text(data.get("id"))
         if not entity_id:
             continue
@@ -73,6 +73,10 @@ def build_chunks(root: Path) -> list[dict[str, str]]:
                 "entity_type": scalar_text(data.get("entity_type")),
                 "status": scalar_text(data.get("status")),
                 "legal_status": scalar_text(data.get("legal_status")) or "unknown",
+                "valid_from": scalar_text(data.get("effective_from")) or "1900-01-01",
+                "valid_until": scalar_text(data.get("effective_to")) not in {"", "9999-12-31"} and scalar_text(data.get("effective_to")) or None,
+                # Kept as generated compatibility columns for existing local
+                # consumers; temporal filtering uses the half-open fields.
                 "effective_from": scalar_text(data.get("effective_from")) or "1900-01-01",
                 "effective_to": scalar_text(data.get("effective_to")) or "9999-12-31",
                 "heading": heading,
@@ -104,6 +108,8 @@ def write_sqlite(chunks: list[dict[str, str]], output: Path) -> None:
               entity_type TEXT NOT NULL,
               status TEXT NOT NULL,
               legal_status TEXT NOT NULL,
+              valid_from TEXT NOT NULL,
+              valid_until TEXT,
               effective_from TEXT NOT NULL,
               effective_to TEXT NOT NULL,
               heading TEXT NOT NULL,
@@ -120,7 +126,7 @@ def write_sqlite(chunks: list[dict[str, str]], output: Path) -> None:
             """
         )
         columns = (
-            "chunk_id", "entity_id", "title", "entity_type", "status", "legal_status",
+            "chunk_id", "entity_id", "title", "entity_type", "status", "legal_status", "valid_from", "valid_until",
             "effective_from", "effective_to", "heading", "content", "path",
         )
         connection.executemany(

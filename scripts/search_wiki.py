@@ -25,7 +25,7 @@ def main() -> int:
     connection = sqlite3.connect(args.database)
     connection.row_factory = sqlite3.Row
     try:
-        clauses = ["chunks_fts MATCH ?", "c.effective_from <= ?", "c.effective_to >= ?"]
+        clauses = ["chunks_fts MATCH ?", "c.valid_from <= ?", "(c.valid_until IS NULL OR ? < c.valid_until)"]
         params: list[object] = [args.query, args.as_of, args.as_of]
         if args.include_review:
             clauses.append("c.status IN ('verified', 'review')")

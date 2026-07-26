@@ -55,6 +55,22 @@ def authority_diagnostics(
     authority_ids = data.get("authority_ids")
     level = data.get("authority_level")
 
+    # v1.4 separates an optional authority profile from contextual authority
+    # links.  Non-authority entities may cite authorities without inheriting
+    # their rank or satisfying the verified-source gate.  Keep the legacy
+    # behaviour for v1.3-shaped mappings (which do not carry this key).
+    normalized_profile = "authority_profile" in data
+    if normalized_profile and not isinstance(data.get("authority_profile"), dict):
+        return tuple(
+            diagnostic
+            for diagnostic in (
+                AuthorityDiagnostic("high", "PRIMARY_AUTHORITY_ID_TYPE", "primary_authority_id must be a string", "primary_authority_id")
+                if primary_id is not None and not isinstance(primary_id, str)
+                else None,
+            )
+            if diagnostic is not None
+        )
+
     if primary_id is not None and not isinstance(primary_id, str):
         diagnostics.append(AuthorityDiagnostic("high", "PRIMARY_AUTHORITY_ID_TYPE", "primary_authority_id must be a string", "primary_authority_id"))
     if ingestion == "verified" and not scalar_text(primary_id):

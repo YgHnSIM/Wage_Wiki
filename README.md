@@ -2,20 +2,20 @@
 
 대한민국 임금법의 법령·판례·행정해석을 Rule 중심으로 연결하는 Obsidian 호환 지식 그래프다. 원문은 `raw/`에 변경 없이 보존하고, `wiki/`에는 출처 위치와 법적 시점을 추적할 수 있는 원자적 엔티티를 둔다.
 
-## v1.3 핵심 모델
+## v1.4 핵심 모델
 
 - `status`는 편집 상태(`draft`, `review`, `verified`)만 나타낸다.
 - 법적 효력은 `legal_status`(`current`, `historical`, `superseded`, `overruled`, `future`, `unknown`)로 분리한다.
 - 사람이 읽을 수 있는 `primary_authority`와 함께 기계적으로 해소할 수 있는 `primary_authority_id`, `authority_ids`를 사용한다.
 - `evidence`는 `source_id`, 정확한 `locator`, 짧은 `excerpt`, 근거가 되는 문서 로컬 claim ID인 `supports`를 한 레코드로 묶는다. claim ID는 본문 블록 끝의 `^claim-id`로 해소한다.
 - `verification`은 안정적인 `verifier_ids`와 통제된 `methods`, 자유형 `note`를 분리한다. 기존 `verified_by`는 v1.3 호환 필드로 유지하되 값이 있으면 구조화 metadata와 의미가 일치해야 한다.
-- `relations`는 `relation_type`과 `target_id`로 법적 의미가 있는 간선을 표현한다. 기존 `related_*` 링크는 Obsidian 탐색과 v1.2 호환을 위해 유지한다.
+- `workflow`, `legal`, `provenance`, `authorities`, `conflicts`, `relations`, `attributes`로 저장 의미를 정규화한다. `related_*`는 `relations`에서 생성되는 Obsidian 탐색용 projection이다.
 - `guide`는 여러 Rule·Fact Pattern·Law를 하나의 실무 절차로 엮는 탐색 허브다. 독립적인 법적 결론은 Rule과 근거 엔티티에 두고 Guide는 이를 재사용한다.
 - 행정해석·지침은 `interpretation` 엔티티로 모델링한다.
 - Rule은 `issue → elements → exceptions → conclusion`과 `temporal` 적용기간을 명시한다.
 - canonical `id`는 변경하지 않는다. 교정 ID와 한글 사건번호는 `id_aliases` 및 `schemas/id-aliases.json`으로 해소한다. 그래프 내부 namespace인 `claim:`, `evidence:`, `source:` 접두사는 엔티티 ID에 사용할 수 없다.
 
-정확한 필드와 허용값은 `schemas/frontmatter-v1.3.schema.json`과 `schemas/vocabularies.json`을 따르고, 예시는 `templates/`에서 확인한다.
+정확한 필드와 허용값은 `schemas/frontmatter-v1.4.schema.json`과 `schemas/vocabularies-v1.4.json`을 따른다. v1.3 스키마는 마이그레이션 이력 검증용으로만 보존한다.
 
 ## 폴더
 
@@ -23,7 +23,7 @@
 |---|---|
 | `raw/` | 수정하지 않는 원문 자료 |
 | `wiki/` | Guide, Rule, Case, Law, Interpretation 등 그래프 엔티티 |
-| `templates/` | v1.3 신규 문서 템플릿 |
+| `templates/` | `frontmatter-v1.4.md`를 현재 신규 문서 템플릿으로 사용하며, 기존 type별 평면 템플릿은 v1.3 이관 참고용으로 보존 |
 | `schemas/` | JSON Schema, 통제 어휘, ID alias |
 | `sources/` | source registry, 과거 경로 alias, raw manifest |
 | `scripts/` | 외부 패키지가 필요 없는 검사·생성 도구 |
@@ -32,9 +32,9 @@
 
 ## 요구 환경
 
-Python 3.10 이상만 필요하다. PyYAML이나 jsonschema 등 외부 패키지를 설치하지 않는다. frontmatter는 저장소가 사용하는 YAML subset을 안전하게 읽으며 YAML tag, anchor, 임의 객체 생성은 거부한다.
+Python 3.10 이상이 필요하다. 표준 JSON Schema 검증기는 `requirements-dev.txt`의 `jsonschema`를 사용하며, frontmatter 파서는 저장소 YAML subset을 안전하게 읽는다.
 
-검증 정책은 `scripts/`의 공통 계약 모듈을 단일 진실원으로 사용한다. `schema_contract.py`는 JSON Schema와 통제 어휘의 버전·enum·필수 필드를 교차 점검하고, `source_catalog.py`는 source registry와 raw 파일 열거를 담당한다. `claim_contract.py`와 `verification_contract.py`는 claim block ID와 검증자 registry·방법을 정의하며, `authority_policy.py`, `temporal_policy.py`, `verification_policy.py`는 서로 독립적인 권위·기간·검증 상태축을 진단한다. CLI 도구는 이 계약과 종료 코드를 공유한다. claim·source namespace와 결합 evidence provenance를 추가한 graph export는 `schema_version: 2.0`이며 원본 frontmatter 버전은 `entity_schema_version`에 기록한다.
+검증 정책은 `scripts/`의 공통 계약 모듈을 단일 진실원으로 사용한다. `schema_contract.py`는 JSON Schema와 통제 어휘의 버전·enum·필수 필드를 교차 점검하고, `source_catalog.py`는 source registry와 raw 파일 열거를 담당한다. `claim_contract.py`와 `verification_contract.py`는 claim block ID와 검증자 registry·방법을 정의하며, `authority_policy.py`, `temporal_policy.py`, `verification_policy.py`는 서로 독립적인 권위·기간·검증 상태축을 진단한다. CLI 도구는 이 계약과 종료 코드를 공유한다. claim·source namespace와 결합 evidence provenance를 추가한 graph export는 `schema_version: 3.0`이며, 하위 호환용 `entity_schema_version`과 현재 계약을 나타내는 `canonical_entity_schema_version`을 함께 기록한다.
 
 ## 웹사이트
 
@@ -61,7 +61,12 @@ python -m http.server 8000 --directory build/site
 아래 명령은 Windows, macOS, Linux에서 동일하다. `--output`을 생략하면 표준 출력으로 내보낸다.
 
 ```text
-python scripts/lint_wiki.py --output build/lint-report.json --strict-v13 --fail-on high
+python scripts/validate_frontmatter.py --version 1.4 --output build/frontmatter-report.json --fail-on high
+python scripts/validate_source_registry.py --output build/source-registry-report.json --fail-on high
+python scripts/lint_wiki.py --output build/lint-report.json --strict-v14 --fail-on high
+python scripts/check_quality_baseline.py --output build/quality-baseline-report.json
+python scripts/check_id_registry.py --output build/id-registry-report.json
+python scripts/check_path_aliases.py --output build/path-alias-report.json
 python scripts/check_qa_regression.py
 python scripts/check_commit_messages.py --all --output build/commit-message-report.json
 python scripts/check_commit_messages.py --all --audit --output build/commit-message-history-audit.json
@@ -80,19 +85,20 @@ python -m unittest discover -s scripts/tests -v
 
 커밋 메시지는 `schemas/commit-message-v1.json`의 type·scope 조합과 `<type>(<scope>): <한국어 요약>` 형식을 따른다. 전체 이력은 `--all`로 엄격 검사하고, `--audit`을 함께 사용하면 위반 보고를 생성하되 종료 코드를 실패로 만들지 않는다. `ingest`·`migrate`·`deprecate`·`remove`·`revert`, raw 또는 schema 변경, 10개 이상 파일 변경에는 `Source`, `Changes`, `Verify` 본문이 필요하다.
 
-Lint JSON에는 심각도별 집계와 모든 문제의 `code`, `path`, `field`, `message`가 담긴다. 최종 CI 기준은 `--strict-v13 --fail-on high`다. 이관 작업 중 임시 진단에만 `--fail-on critical`을 사용할 수 있으며 완료 판정에는 사용할 수 없다. QA 회귀셋은 `check_qa_regression.py`와 lint 양쪽에서 JSONL 구문, 중복 test ID, 날짜, `required_authority_ids`, `required_rule_ids`의 실제 존재와 Rule 유형을 검사한다.
+Lint JSON에는 심각도별 집계와 모든 문제의 `code`, `path`, `field`, `message`가 담긴다. 최종 CI 기준은 `--strict-v14 --fail-on high`다. 이관 작업 중 임시 진단에만 `--fail-on critical`을 사용할 수 있으며 완료 판정에는 사용할 수 없다. QA 회귀셋은 `check_qa_regression.py`와 lint 양쪽에서 JSONL 구문, 중복 test ID, 날짜, `required_authority_ids`, `required_rule_ids`의 실제 존재와 Rule 유형을 검사한다.
 
-정적 대시보드와 graph export는 생성물이다. 위키 내용처럼 수동 편집하지 않는다. graph JSON은 v1.3 typed relation, 권위, evidence edge를 우선하고 v1.2 `related_*` 간선에는 `related_to`를 사용한다.
+정적 대시보드와 graph export는 생성물이다. 위키 내용처럼 수동 편집하지 않는다. graph JSON은 v3.0 canonical relation·authority·evidence·conflict edge를 내보낸다.
 
 검색 인덱스는 섹션 단위 JSONL chunk와 SQLite FTS5 데이터베이스를 만든다. `.sqlite`와 chunk는 재생성 산출물이므로 커밋하지 않는다. 검색 기본값은 실행일 기준 `verified + current`다. `--include-review`는 편집 상태를 `review + verified`로 넓히되 `draft`는 계속 제외한다. `--include-historical`은 법적 상태 필터만 완화하고 `--as-of` 유효기간 필터는 유지하므로, 기준일보다 뒤에 시행되는 future 문서가 무차별 포함되지 않는다. 과거 시점 질의는 `--as-of YYYY-MM-DD`를 명시한다.
 
-## v1.2 → v1.3 이관
+## v1.3 → v1.4 이관
 
 이관기는 기본적으로 dry-run이며 `--write` 없이는 어떤 wiki 파일도 바꾸지 않는다.
 
 ```text
-python scripts/migrate_schema_v13.py --as-of-date 2026-07-10 --output build/migration-plan.json
-python scripts/migrate_schema_v13.py --as-of-date 2026-07-10 --write
+python scripts/migrate_source_registry_v11.py --output build/source-registry-v11-plan.json
+python scripts/migrate_schema_v14.py --as-of-date 2026-07-26 --output build/migration-plan.json
+python scripts/migrate_schema_v14.py --as-of-date 2026-07-26 --write
 ```
 
 이관기는 다음을 수행한다.
@@ -147,7 +153,7 @@ PowerShell에서는 줄 연속 문자를 쓰지 않고 한 줄로 실행하거�
 
 ## 출처와 원문 무결성
 
-source ID는 `raw-<source_type>-<stable-number-or-slug>` 형식을 권장한다. 예: `raw-case-2020da219454`. ID는 파일 경로가 바뀌어도 유지하며 `sources/registry.yaml`의 `path`만 갱신한다. 등록되지 않은 원문에는 manifest가 내용 기반 `raw-sha256-<16자리>` ID를 부여한다.
+source ID는 `raw-<source_type>-<stable-number-or-slug>` 형식을 권장한다. 예: `raw-case-2020da219454`. ID는 파일 경로가 바뀌어도 유지하며 v1.1 registry의 `location.path` 또는 `location.url`만 갱신한다. 등록되지 않은 원문에는 manifest가 내용 기반 `raw-sha256-<16자리>` ID를 부여한다.
 
 `sources/raw-manifest.jsonl`은 경로, 분류, 미디어 타입, 바이트 크기, SHA-256을 저장한다. `.gitattributes`에서 LF로 고정한 텍스트 형식은 매니페스트도 CRLF를 LF로 정규화한 Git 기준 바이트를 사용하므로 Windows와 Linux에서 같은 결과가 나온다. 재생성 후 diff가 생기면 원문 신규 편입인지 무결성 훼손인지 확인하고, 관련 로그를 append-only로 남긴다. 과거 로그의 옛 파일 경로는 로그를 고치지 않고 `sources/path_aliases.yaml`에 추가한다.
 
@@ -166,7 +172,7 @@ manifest는 `.gitkeep`, OS 메타파일, 미완료 다운로드와 임시 확장
 
 변경이 탐지되면 `authority_ids`, `relations`, `review_trigger`로 영향을 받는 Rule만 우선 재검증한다. `last_checked`는 존재·최신성 점검일, `last_verified`는 법률 내용 검증일이므로 서로 대체하지 않는다.
 
-GitHub Actions는 push/PR 외에 매주 월요일 UTC 00:00(한국시간 09:00)에 실행되며 수동 실행도 지원한다. 예약 실행은 별도 고정일을 주지 않아 실행 당일을 기준으로 `review_cycle` 초과를 계산하고 strict v1.3 High 기준을 적용한다.
+GitHub Actions는 push/PR 외에 매주 월요일 UTC 00:00(한국시간 09:00)에 실행되며 수동 실행도 지원한다. 예약 실행은 별도 고정일을 주지 않아 실행 당일을 기준으로 `review_cycle` 초과를 계산하고 strict v1.4 High 기준을 적용한다.
 
 ## 완료 기준
 

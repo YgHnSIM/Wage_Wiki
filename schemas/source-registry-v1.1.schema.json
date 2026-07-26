@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wage-wiki.local/schemas/source-registry-v1.1.schema.json",
+  "title": "Wage Wiki source registry v1.1",
+  "type": "object",
+  "required": ["format_version", "last_updated", "id_policy", "sources"],
+  "properties": {
+    "format_version": {"const": "1.1"},
+    "last_updated": {"type": "string", "format": "date"},
+    "id_policy": {"type": "string", "minLength": 1},
+    "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}, "uniqueItems": true}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "sourceId": {"type": "string", "pattern": "^[a-z0-9가-힣][a-z0-9가-힣-]{2,95}$"},
+    "source": {
+      "type": "object",
+      "required": ["source_id", "title", "publisher", "source_type", "jurisdiction", "authority_level", "location"],
+      "properties": {
+        "source_id": {"$ref": "#/$defs/sourceId"},
+        "title": {"type": "string", "minLength": 1},
+        "publisher": {"type": "string", "minLength": 1},
+        "source_type": {"enum": ["case", "case_press_release", "case_search_result", "law", "law_amendment", "law_notice", "interpretation", "official_guidance", "official_database", "research", "manual", "database"]},
+        "jurisdiction": {"type": "string", "pattern": "^[A-Z]{2}$"},
+        "authority_level": {"type": "integer", "minimum": 1, "maximum": 7},
+        "location": {
+          "oneOf": [
+            {"type": "object", "required": ["kind", "path"], "properties": {"kind": {"const": "path"}, "path": {"type": "string", "pattern": "^raw/"}}, "additionalProperties": false},
+            {"type": "object", "required": ["kind", "url"], "properties": {"kind": {"const": "url"}, "url": {"type": "string", "format": "uri", "pattern": "^https?://"}}, "additionalProperties": false}
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

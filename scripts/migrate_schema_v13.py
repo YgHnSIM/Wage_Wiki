@@ -19,7 +19,7 @@ from typing import Any
 
 from graph_contract import RELATED_FIELDS
 from kg_common import (
-    SCHEMA_VERSION,
+    LEGACY_SCHEMA_VERSION,
     URL_RE,
     as_list,
     dump_subset_yaml,
@@ -33,6 +33,10 @@ from kg_common import (
     wiki_targets,
     write_json,
 )
+
+# This script is the frozen v1.2 -> v1.3 migration path.  Keep its target
+# pinned to the legacy contract even though the active repository is v1.4.
+SCHEMA_VERSION = LEGACY_SCHEMA_VERSION
 from review_policy import recommended_review_cycle as _recommended_cycle
 from source_catalog import iter_raw_files
 

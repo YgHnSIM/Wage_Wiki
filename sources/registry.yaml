@@ -1,5 +1,4 @@
-registry_version: "1.0"
-schema_version: "1.3"
+format_version: "1.1"
 last_updated: "2026-07-26"
 id_policy: "raw-<source_type>-<stable-number-or-slug>; canonical ID는 파일명이 바뀌어도 유지한다."
 sources:
@@ -8,761 +7,979 @@ sources:
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 1995. 12. 21. 선고 94다26721 전원합의체 판결.html"
     authority_level: 2
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 1995. 12. 21. 선고 94다26721 전원합의체 판결.html"
   - source_id: "raw-case-91da36307"
     title: "대법원 1992. 3. 27. 선고 91다36307 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 1992. 3. 27. 선고 91다36307 판결.html"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 1992. 3. 27. 선고 91다36307 판결.html"
   - source_id: "raw-case-2012da55518"
     title: "대법원 2015. 6. 11. 선고 2012다55518 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2015. 6. 11. 선고 2012다55518 판결.html"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2015. 6. 11. 선고 2012다55518 판결.html"
   - source_id: "raw-case-2016da48785"
     title: "대법원 2019. 8. 22. 선고 2016다48785 전원합의체 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2019. 8. 22. 선고 2016다48785 전원합의체 판결.pdf"
     authority_level: 2
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2019. 8. 22. 선고 2016다48785 전원합의체 판결.pdf"
   - source_id: "raw-case-2017da202272"
     title: "대법원 2022. 3. 11. 선고 2017다202272 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2022. 3. 11. 선고 2017다202272 판결.html"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2022. 3. 11. 선고 2017다202272 판결.html"
   - source_id: "raw-case-2020다247190"
     title: "대법원 2024. 12. 19. 선고 2020다247190 전원합의체 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2024. 12. 19. 선고 2020다247190 전원합의체 판결.pdf"
     authority_level: 2
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2024. 12. 19. 선고 2020다247190 전원합의체 판결.pdf"
   - source_id: "raw-case-2023다302838"
     title: "대법원 2024. 12. 19. 선고 2023다302838 전원합의체 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2024. 12. 19. 선고 2023다302838 전원합의체 판결.pdf"
     authority_level: 2
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2024. 12. 19. 선고 2023다302838 전원합의체 판결.pdf"
   - source_id: "raw-case-2012다89399"
     title: "대법원 2013. 12. 18. 선고 2012다89399 전원합의체 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2013. 12. 18. 선고 2012다89399 전원합의체판결.pdf"
     authority_level: 2
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2013. 12. 18. 선고 2012다89399 전원합의체판결.pdf"
   - source_id: "raw-case-2019다204876"
     title: "대법원 2025. 1. 23. 선고 2019다204876 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2025. 1. 23. 선고 2019다204876 판결.pdf"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2025. 1. 23. 선고 2019다204876 판결.pdf"
   - source_id: "raw-law-lsa-current"
     title: "근로기준법 현행본"
     publisher: "법제처"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/근로기준법.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/근로기준법.html"
   - source_id: "raw-law-lsa-article-20"
     title: "근로기준법 제20조 위약 예정의 금지"
     publisher: "법제처"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/근로기준법 제20조 위약 예정의 금지.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/근로기준법 제20조 위약 예정의 금지.html"
   - source_id: "raw-law-minimum-wage-2026"
     title: "2026년 적용 최저임금 고시(확정, 고용노동부고시 제2025-47호)"
     publisher: "고용노동부"
     source_type: "law_notice"
     jurisdiction: "KR"
-    path: "raw/laws/2026년 적용 최저임금 고시(확정) 고용노동부고시 제2025-47호.pdf"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/2026년 적용 최저임금 고시(확정) 고용노동부고시 제2025-47호.pdf"
   - source_id: "raw-law-minimum-wage-proposal-2027"
     title: "2027년 적용 최저임금안 고시(미확정, 고용노동부고시 제2026-55호)"
     publisher: "고용노동부"
     source_type: "law_notice"
     jurisdiction: "KR"
-    path: "raw/laws/2027년 적용 최저임금안 고시(미확정) 고용노동부고시 제2026-55호.pdf"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/2027년 적용 최저임금안 고시(미확정) 고용노동부고시 제2026-55호.pdf"
   - source_id: "raw-law-lsa-21533-amendment-text"
     title: "근로기준법 법률 제21533호 2026. 4. 7. 제정·개정문"
     publisher: "법제처"
     source_type: "law_amendment"
     jurisdiction: "KR"
-    path: "raw/laws/근로기준법 법률 제21533호 2026. 4. 7. 제정개정문.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/근로기준법 법률 제21533호 2026. 4. 7. 제정개정문.html"
   - source_id: "raw-law-lsa-21784-amendment-text"
     title: "근로기준법 법률 제21784호 2026. 6. 9. 제정·개정문"
     publisher: "법제처"
     source_type: "law_amendment"
     jurisdiction: "KR"
-    path: "raw/laws/근로기준법 법률 제21784호 2026. 6. 9. 제정개정문.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/근로기준법 법률 제21784호 2026. 6. 9. 제정개정문.html"
   - source_id: "raw-case-2020da219454"
     title: "대법원 2025. 8. 28. 선고 2020다219454·219461·219478 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2025. 8. 28. 선고 2020다219454·219461·219478 판결.html"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2025. 8. 28. 선고 2020다219454·219461·219478 판결.html"
   - source_id: "raw-case-2022da255454"
     title: "대법원 2026. 1. 29. 선고 2022다255454 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2026. 1. 29. 선고 2022다255454 판결.pdf"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2026. 1. 29. 선고 2022다255454 판결.pdf"
   - source_id: "raw-case-2025da217529"
     title: "대법원 2026. 1. 29. 선고 2025다217529·217530 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2026. 1. 29. 선고 2025다217529·217530 판결.pdf"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2026. 1. 29. 선고 2025다217529·217530 판결.pdf"
   - source_id: "raw-case-2025da210219"
     title: "대법원 2026. 3. 12. 선고 2025다210219 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2026. 3. 12. 선고 2025다210219 판결.pdf"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2026. 3. 12. 선고 2025다210219 판결.pdf"
   - source_id: "raw-case-2025da210219-press"
     title: "대법원 2026. 3. 12. 선고 2025다210219 판결 보도자료"
     publisher: "대한민국 법원"
     source_type: "case_press_release"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2026. 3. 12. 선고 2025다210219 판결 보도자료.pdf"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2026. 3. 12. 선고 2025다210219 판결 보도자료.pdf"
   - source_id: "raw-case-2024da316599"
     title: "대법원 2026. 4. 16. 선고 2024다316599 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2026. 4. 16. 선고 2024다316599 판결.pdf"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2026. 4. 16. 선고 2024다316599 판결.pdf"
   - source_id: "raw-case-2024da316599-press"
     title: "대법원 2026. 4. 16. 선고 2024다316599 판결 보도자료"
     publisher: "대한민국 법원"
     source_type: "case_press_release"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2026. 4. 16. 선고 2024다316599 판결 보도자료.pdf"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2026. 4. 16. 선고 2024다316599 판결 보도자료.pdf"
   - source_id: "raw-case-2025da219757"
     title: "대법원 2026. 4. 30. 선고 2025다219757·219758 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2026. 4. 30. 선고 2025다219757·219758 판결.html"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2026. 4. 30. 선고 2025다219757·219758 판결.html"
   - source_id: "raw-case-2025da202901"
     title: "대법원 2026. 5. 14. 선고 2025다202901 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2026. 5. 14. 선고 2025다202901 판결.pdf"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2026. 5. 14. 선고 2025다202901 판결.pdf"
   - source_id: "raw-case-2020다272646"
     title: "대법원 2025. 2. 13. 선고 2020다272646 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2025. 2. 13. 선고 2020다272646 판결.html"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2025. 2. 13. 선고 2020다272646 판결.html"
   - source_id: "raw-case-2021다216957"
     title: "대법원 2025. 2. 20. 선고 2021다216957 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2025. 2. 20. 선고 2021다216957 판결.pdf"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2025. 2. 20. 선고 2021다216957 판결.pdf"
   - source_id: "raw-case-2022다257238"
     title: "대법원 2025. 7. 18. 선고 2022다257238 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2025. 7. 18. 선고 2022다257238 판결.pdf"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2025. 7. 18. 선고 2022다257238 판결.pdf"
   - source_id: "raw-interpretation-moel-ordinary-wage-guideline-2025-02-06"
     title: "2025. 2. 6. 개정 통상임금 노사지도 지침"
     publisher: "고용노동부"
     source_type: "interpretation"
     jurisdiction: "KR"
-    path: "raw/interpretations/고용노동부 2025-02-06 개정 통상임금 노사지도 지침.pdf"
     authority_level: 5
+    location:
+      kind: "path"
+      path: "raw/interpretations/고용노동부 2025-02-06 개정 통상임금 노사지도 지침.pdf"
   - source_id: "raw-interpretation-moel-ordinary-wage-calculation-directive-47"
     title: "고용노동부예규 제47호 통상임금 산정지침"
     publisher: "고용노동부"
     source_type: "interpretation"
     jurisdiction: "KR"
-    path: "raw/interpretations/고용노동부예규 제47호 통상임금 산정지침.html"
     authority_level: 5
+    location:
+      kind: "path"
+      path: "raw/interpretations/고용노동부예규 제47호 통상임금 산정지침.html"
   - source_id: "raw-interpretation-moel-ordinary-wage-calculation-directive-47-repeal-2025-12-30"
     title: "통상임금 산정지침 폐지 기록"
     publisher: "고용노동부"
     source_type: "interpretation"
     jurisdiction: "KR"
-    path: "raw/interpretations/고용노동부 2025-12-30 통상임금 산정지침 폐지.html"
     authority_level: 5
+    location:
+      kind: "path"
+      path: "raw/interpretations/고용노동부 2025-12-30 통상임금 산정지침 폐지.html"
   - source_id: "raw-law-lsa-enforcement-decree-article-6-20251023"
     title: "근로기준법 시행령 제6조 통상임금"
     publisher: "법제처"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/근로기준법 시행령 제6조 통상임금.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/근로기준법 시행령 제6조 통상임금.html"
   - source_id: "raw-law-lsa-article-56-20251023"
     title: "근로기준법 제56조 연장·야간 및 휴일 근로"
     publisher: "법제처"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/근로기준법 제56조 연장 야간 및 휴일 근로.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/근로기준법 제56조 연장 야간 및 휴일 근로.html"
   - source_id: "raw-case-92다11466-official-search"
     title: "대법원 1992. 6. 23. 선고 92다11466 판결 공식 검색결과"
     publisher: "대한민국 법원"
     source_type: "case_search_result"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 1992. 6. 23. 선고 92다11466 판결 공식 전체검색결과.html"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 1992. 6. 23. 선고 92다11466 판결 공식 전체검색결과.html"
   - source_id: "raw-case-2023da216777"
     title: "대법원 2025. 8. 14. 선고 2023다216777 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2025. 8. 14. 선고 2023다216777 판결.html"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2025. 8. 14. 선고 2023다216777 판결.html"
   - source_id: "raw-case-2017na2016158"
     title: "서울고등법원 2023. 1. 13. 선고 2017나2016158 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/서울고등법원 2023. 1. 13. 선고 2017나2016158 판결.html"
     authority_level: 4
+    location:
+      kind: "path"
+      path: "raw/cases/서울고등법원 2023. 1. 13. 선고 2017나2016158 판결.html"
   - source_id: "raw-case-2013gahap64415"
     title: "서울중앙지방법원 2017. 2. 3. 선고 2013가합64415 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/서울중앙지방법원 2017. 2. 3. 선고 2013가합64415 판결.html"
     authority_level: 4
+    location:
+      kind: "path"
+      path: "raw/cases/서울중앙지방법원 2017. 2. 3. 선고 2013가합64415 판결.html"
   - source_id: "raw-research-2019da244942-commentary"
     title: "공공기관 성과급의 통상임금 해당 여부와 총인건비 문제"
     publisher: "학술 해설"
     source_type: "research"
     jurisdiction: "KR"
-    path: "raw/research_press/공공기관 성과급의 통상임금 해당 여부와 총인건비 문제 - 대법원 2025. 1. 23. 선고 2019다244942 판결.pdf"
     authority_level: 7
+    location:
+      kind: "path"
+      path: "raw/research_press/공공기관 성과급의 통상임금 해당 여부와 총인건비 문제 - 대법원 2025. 1. 23. 선고 2019다244942 판결.pdf"
   - source_id: "raw-research-wage-legislation-revisited-2024"
     title: "임금 법제의 재견(再見)"
     publisher: "노동법학 제90호"
     source_type: "research"
     jurisdiction: "KR"
-    path: "raw/research_press/임금 법제의 재견.pdf"
     authority_level: 7
+    location:
+      kind: "path"
+      path: "raw/research_press/임금 법제의 재견.pdf"
   - source_id: "raw-research-performance-pay-wage-character-2026"
     title: "경영성과급의 임금성 여부"
     publisher: "노동법학 제97호"
     source_type: "research"
     jurisdiction: "KR"
-    path: "raw/research_press/경영성과급의 임금성 여부.pdf"
     authority_level: 7
+    location:
+      kind: "path"
+      path: "raw/research_press/경영성과급의 임금성 여부.pdf"
   - source_id: "raw-research-recent-wage-rulings-review-2022"
     title: "임금에 관한 최근 판결 경향의 검토"
     publisher: "노동법포럼 제36호"
     source_type: "research"
     jurisdiction: "KR"
-    path: "raw/research_press/임금에 관한 최근 판결 경향의 검토.pdf"
     authority_level: 7
+    location:
+      kind: "path"
+      path: "raw/research_press/임금에 관한 최근 판결 경향의 검토.pdf"
   - source_id: "raw-case-2025do3844"
     title: "대법원 2025. 12. 11. 선고 2025도3844 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2025. 12. 11. 선고 2025도3844 판결.pdf"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2025. 12. 11. 선고 2025도3844 판결.pdf"
   - source_id: "raw-research-construction-wage-arrears-liability-2026"
     title: "건설업에서의 구조적 임금체불: 누구에게 책임을 물어야 하는가?"
     publisher: "노동법학 제97호"
     source_type: "research"
     jurisdiction: "KR"
-    path: "raw/research_press/건설업에서의 구조적 임금체불 누구에게 책임을 물어야 하는가.pdf"
     authority_level: 7
+    location:
+      kind: "path"
+      path: "raw/research_press/건설업에서의 구조적 임금체불 누구에게 책임을 물어야 하는가.pdf"
   - source_id: "raw-research-wage-claim-guarantee-basic-rights-2022"
     title: "임금채권보장에 대한 기본권적 접근과 과제"
     publisher: "노동법논총 제56집"
     source_type: "research"
     jurisdiction: "KR"
-    path: "raw/research_press/임금채권보장에 대한 기본권적 접근과 과제 – 2021년 임금채권보장법 개정에 부쳐.pdf"
     authority_level: 7
+    location:
+      kind: "path"
+      path: "raw/research_press/임금채권보장에 대한 기본권적 접근과 과제 – 2021년 임금채권보장법 개정에 부쳐.pdf"
   - source_id: "raw-research-criminal-issues-wage-arrears-2018"
     title: "임금체불의 형사법적 쟁점"
     publisher: "노동법포럼 제24호"
     source_type: "research"
     jurisdiction: "KR"
-    path: "raw/research_press/임금체불의 형사법적 쟁점.pdf"
     authority_level: 7
+    location:
+      kind: "path"
+      path: "raw/research_press/임금체불의 형사법적 쟁점.pdf"
   - source_id: "raw-interpretation-moel-inclusive-wage-guideline-2026-04"
     title: "공짜노동 근절을 위한 포괄임금 오남용 방지 지도 지침"
     publisher: "고용노동부"
     source_type: "interpretation"
     jurisdiction: "KR"
-    path: "raw/interpretations/공짜노동 근절을 위한 포괄임금 오남용 방지 지도지침.pdf"
     authority_level: 5
+    location:
+      kind: "path"
+      path: "raw/interpretations/공짜노동 근절을 위한 포괄임금 오남용 방지 지도지침.pdf"
   - source_id: "raw-research-inclusive-wage-formation-case-note-2025"
     title: "포괄임금약정의 성립 여부를 판단하는 방법"
     publisher: "택스파인더"
     source_type: "research"
     jurisdiction: "KR"
-    path: "raw/research_press/예규판례 포괄임금약정의 성립 여부를 판단하는 방법.pdf"
     authority_level: 7
+    location:
+      kind: "path"
+      path: "raw/research_press/예규판례 포괄임금약정의 성립 여부를 판단하는 방법.pdf"
   - source_id: "raw-research-oh-inclusive-wage-ban-abuse-2026"
     title: "공짜노동이란 무엇인가? 포괄임금 금지와 오남용 방지는 어떻게 다른가?"
     publisher: "노동법률"
     source_type: "research"
     jurisdiction: "KR"
-    path: "raw/research_press/공짜노동이란 무엇인가 포괄임금 ‘금지’와 ‘오남용 방지’는 어떻게 다른가 -포괄임금 오남용.pdf"
     authority_level: 7
+    location:
+      kind: "path"
+      path: "raw/research_press/공짜노동이란 무엇인가 포괄임금 ‘금지’와 ‘오남용 방지’는 어떻게 다른가 -포괄임금 오남용.pdf"
   - source_id: "raw-research-park-inclusive-wage-concept-2025"
     title: "임금의 개념에 비추어 본 포괄임금약정"
     publisher: "법제처 법제"
     source_type: "research"
     jurisdiction: "KR"
-    path: "raw/research_press/임금의 개념에 비추어 본 포괄임금약정.pdf"
     authority_level: 7
+    location:
+      kind: "path"
+      path: "raw/research_press/임금의 개념에 비추어 본 포괄임금약정.pdf"
   - source_id: "raw-research-lee-inclusive-wage-illegality-2025"
     title: "포괄임금 합의의 시대사적 의의와 불법성에 관한 고찰"
     publisher: "사회법연구 제57호"
     source_type: "research"
     jurisdiction: "KR"
-    path: "raw/research_press/포괄임금 합의의 시대사적 의의와 불법성에 관한 고찰.pdf"
     authority_level: 7
+    location:
+      kind: "path"
+      path: "raw/research_press/포괄임금 합의의 시대사적 의의와 불법성에 관한 고찰.pdf"
   - source_id: "raw-research-lim-hyein-inclusive-wage-change-2026"
     title: "포괄임금, 이제는 바꿔야 한다"
     publisher: "노동자가 만드는 일터"
     source_type: "research"
     jurisdiction: "KR"
-    path: "raw/research_press/포괄임금, 이제는 바꿔야 한다..pdf"
     authority_level: 7
+    location:
+      kind: "path"
+      path: "raw/research_press/포괄임금, 이제는 바꿔야 한다..pdf"
   - source_id: "raw-research-sung-inclusive-wage-validity-2025"
     title: "포괄임금계약의 유효요건에 관한 고찰 - 대법원 판례의 변화추이를 중심으로"
     publisher: "강원법학 제79권"
     source_type: "research"
     jurisdiction: "KR"
-    path: "raw/research_press/포괄임금계약의 유효요건에 관한 고찰 - ‘대법원 판례의 변화추이’를 중심으로 -.pdf"
     authority_level: 7
+    location:
+      kind: "path"
+      path: "raw/research_press/포괄임금계약의 유효요건에 관한 고찰 - ‘대법원 판례의 변화추이’를 중심으로 -.pdf"
   - source_id: "raw-research-kim-hongsuk-inclusive-wage-2023"
     title: "포괄임금제에 관한 법적 성격과 쟁점"
     publisher: "충남대학교 법학연구소 법학연구 제34권 제2호"
     source_type: "research"
     jurisdiction: "KR"
-    path: "raw/research_press/포괄임금제에 관한 법적 성격과 쟁점.pdf"
     authority_level: 7
+    location:
+      kind: "path"
+      path: "raw/research_press/포괄임금제에 관한 법적 성격과 쟁점.pdf"
   - source_id: "raw-research-kim-taewook-inclusive-wage-practice-2026"
     title: "포괄임금제와 관련된 실무상 쟁점들에 대한 검토"
     publisher: "서울대학교 노동법연구회 노동법연구 제60호"
     source_type: "research"
     jurisdiction: "KR"
-    path: "raw/research_press/포괄임금제와 관련된 실무상 쟁점들에 대한 검토.pdf"
     authority_level: 7
+    location:
+      kind: "path"
+      path: "raw/research_press/포괄임금제와 관련된 실무상 쟁점들에 대한 검토.pdf"
   - source_id: "raw-research-lim-sangmin-inclusive-wage-validity-2021"
     title: "포괄임금제의 성립 및 유효요건"
     publisher: "대한변호사협회 인권과 정의 제502호"
     source_type: "research"
     jurisdiction: "KR"
-    path: "raw/research_press/포괄임금제의 성립 및 유효요건.pdf"
     authority_level: 7
+    location:
+      kind: "path"
+      path: "raw/research_press/포괄임금제의 성립 및 유효요건.pdf"
   - source_id: "raw-research-shim-inclusive-wage-outlook-2017"
     title: "포괄임금제의 쟁점과 전망"
     publisher: "한국노동법학회 노동법학 제64호"
     source_type: "research"
     jurisdiction: "KR"
-    path: "raw/research_press/포괄임금제의 쟁점과 전망.pdf"
     authority_level: 7
+    location:
+      kind: "path"
+      path: "raw/research_press/포괄임금제의 쟁점과 전망.pdf"
   - source_id: "raw-case-2019da273803"
     title: "대법원 2025. 9. 11. 선고 2019다273803 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2025. 9. 11. 선고 2019다273803 판결.pdf"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2025. 9. 11. 선고 2019다273803 판결.pdf"
   - source_id: "raw-case-2018da298904"
     title: "대법원 2022. 2. 10. 선고 2018다298904 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2022. 2. 10. 선고 2018다298904 판결.pdf"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2022. 2. 10. 선고 2018다298904 판결.pdf"
   - source_id: "raw-case-2016do1060"
     title: "대법원 2016. 10. 13. 선고 2016도1060 판결"
     publisher: "법제처 국가법령정보센터"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2016. 10. 13. 선고 2016도1060 판결.html"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2016. 10. 13. 선고 2016도1060 판결.html"
   - source_id: "raw-case-2008da6052"
     title: "대법원 2010. 5. 13. 선고 2008다6052 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2010. 5. 13. 선고 2008다6052 판결.pdf"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2010. 5. 13. 선고 2008다6052 판결.pdf"
   - source_id: "raw-case-2008da57852"
     title: "대법원 2009. 12. 10. 선고 2008다57852 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2009. 12. 10. 선고 2008다57852 판결.pdf"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2009. 12. 10. 선고 2008다57852 판결.pdf"
   - source_id: "raw-case-2020da300299"
     title: "대법원 2024. 12. 26. 선고 2020다300299 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2024. 12. 26. 선고 2020다300299 판결.pdf"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2024. 12. 26. 선고 2020다300299 판결.pdf"
   - source_id: "raw-law-lsa-current-lawbook-2026-07"
     title: "노동법 현행 조문집 2026. 5. 26."
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/노동법 현행 조문집 2026-05-26.pdf"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/노동법 현행 조문집 2026-05-26.pdf"
   - source_id: "official-law-go-kr"
     title: "국가법령정보센터"
     publisher: "법제처"
     source_type: "official_database"
     jurisdiction: "KR"
-    base_url: "https://www.law.go.kr/"
     authority_level: 1
+    location:
+      kind: "url"
+      url: "https://www.law.go.kr/"
   - source_id: "official-japan-ndl-law-index"
     title: "일본법령색인"
     publisher: "일본 국립국회도서관"
     source_type: "official_database"
     jurisdiction: "JP"
-    base_url: "https://hourei.ndl.go.jp/"
     authority_level: 1
+    location:
+      kind: "url"
+      url: "https://hourei.ndl.go.jp/"
   - source_id: "official-japan-egov-laws"
     title: "e-Gov 법령검색"
     publisher: "일본 디지털청"
     source_type: "official_database"
     jurisdiction: "JP"
-    base_url: "https://laws.e-gov.go.jp/"
     authority_level: 1
+    location:
+      kind: "url"
+      url: "https://laws.e-gov.go.jp/"
   - source_id: "official-scourt-go-kr"
     title: "대한민국 법원 종합법률정보·판례공보"
     publisher: "대한민국 법원"
     source_type: "official_database"
     jurisdiction: "KR"
-    base_url: "https://www.scourt.go.kr/"
     authority_level: 2
+    location:
+      kind: "url"
+      url: "https://www.scourt.go.kr/"
   - source_id: "official-moel-go-kr"
     title: "고용노동부"
     publisher: "고용노동부"
     source_type: "official_database"
     jurisdiction: "KR"
-    base_url: "https://www.moel.go.kr/"
     authority_level: 5
+    location:
+      kind: "url"
+      url: "https://www.moel.go.kr/"
   - source_id: "raw-law-labor-relations-current-lawbook-2026-07"
     title: "노동관계법령 2026. 7. 1."
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/노동관계법령 2026-07-01.pdf"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/노동관계법령 2026-07-01.pdf"
   - source_id: "raw-manual-pay-item-legal-classification-2026-07-24"
     title: "급여항목 법적 분류 실무 매뉴얼"
     publisher: "Wage Wiki"
     source_type: "manual"
     jurisdiction: "KR"
-    path: "raw/research_press/급여항목 법적 분류 실무 매뉴얼 2026-07-24.pdf"
     authority_level: 7
+    location:
+      kind: "path"
+      path: "raw/research_press/급여항목 법적 분류 실무 매뉴얼 2026-07-24.pdf"
   - source_id: "raw-law-income-tax-act-art12-20260101"
     title: "소득세법 제12조 비과세소득"
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/소득세법 제12조.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/소득세법 제12조.html"
   - source_id: "raw-law-income-tax-decree-art12-20260701"
     title: "소득세법 시행령 제12조 실비변상적 급여의 범위"
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/소득세법 시행령 제12조.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/소득세법 시행령 제12조.html"
   - source_id: "raw-law-income-tax-decree-art17-20260701"
     title: "소득세법 시행령 제17조 생산직근로자가 받는 야간근로수당 등의 범위"
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/소득세법 시행령 제17조.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/소득세법 시행령 제17조.html"
   - source_id: "raw-law-income-tax-decree-art17-3-20260701"
     title: "소득세법 시행령 제17조의3 복리후생적 급여의 범위"
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/소득세법 시행령 제17조의3.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/소득세법 시행령 제17조의3.html"
   - source_id: "raw-law-nps-act-art3-20260101"
     title: "국민연금법 제3조 정의 등"
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/국민연금법 제3조.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/국민연금법 제3조.html"
   - source_id: "raw-law-nps-act-art88-20260101"
     title: "국민연금법 제88조 연금보험료의 부과·징수 등"
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/국민연금법 제88조.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/국민연금법 제88조.html"
   - source_id: "raw-law-nps-decree-art3-20250701"
     title: "국민연금법 시행령 제3조 소득의 범위"
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/국민연금법 시행령 제3조.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/국민연금법 시행령 제3조.html"
   - source_id: "raw-law-nhis-act-art70-20260102"
     title: "국민건강보험법 제70조 보수월액"
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/국민건강보험법 제70조.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/국민건강보험법 제70조.html"
   - source_id: "raw-law-nhis-act-art73-20260102"
     title: "국민건강보험법 제73조 보험료율 등"
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/국민건강보험법 제73조.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/국민건강보험법 제73조.html"
   - source_id: "raw-law-nhis-decree-art33-20260219"
     title: "국민건강보험법 시행령 제33조 보수가 지급되지 않는 사용자의 보수월액 결정"
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/국민건강보험법 시행령 제33조.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/국민건강보험법 시행령 제33조.html"
   - source_id: "raw-law-ltc-act-art9-20260526"
     title: "노인장기요양보험법 제9조 장기요양보험료의 산정"
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/노인장기요양보험법 제9조.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/노인장기요양보험법 제9조.html"
   - source_id: "raw-law-ltc-decree-art4-20260512"
     title: "노인장기요양보험법 시행령 제4조 장기요양보험료율"
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/노인장기요양보험법 시행령 제4조.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/노인장기요양보험법 시행령 제4조.html"
   - source_id: "raw-law-ei-wci-premium-act-art2-20230701"
     title: "고용산재보험료징수법 제2조 정의"
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/고용산재보험료징수법 제2조.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/고용산재보험료징수법 제2조.html"
   - source_id: "raw-law-ei-wci-premium-act-art14-20230701"
     title: "고용산재보험료징수법 제14조 보험료율의 결정"
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/고용산재보험료징수법 제14조.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/고용산재보험료징수법 제14조.html"
   - source_id: "raw-law-ei-wci-premium-act-art13-20230701"
     title: "고용산재보험료징수법 제13조 보험료"
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/고용산재보험료징수법 제13조.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/고용산재보험료징수법 제13조.html"
   - source_id: "raw-law-ei-wci-premium-decree-art12-20251223"
     title: "고용산재보험료징수법 시행령 제12조 고용보험료율"
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/고용산재보험료징수법 시행령 제12조.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/고용산재보험료징수법 시행령 제12조.html"
   - source_id: "raw-law-ei-wci-premium-decree-art13-20251223"
     title: "고용산재보험료징수법 시행령 제13조 산재보험료율의 고시"
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/고용산재보험료징수법 시행령 제13조.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/고용산재보험료징수법 시행령 제13조.html"
   - source_id: "raw-law-lsa-art60-20251023"
     title: "근로기준법 제60조 연차 유급휴가"
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/근로기준법 제60조.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/근로기준법 제60조.html"
   - source_id: "raw-law-invention-promotion-art15-20251001"
     title: "발명진흥법 제15조 직무발명에 대한 보상"
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/발명진흥법 제15조.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/발명진흥법 제15조.html"
   - source_id: "raw-law-nps-revisions-20260724"
     title: "국민연금법 개정문 및 부칙"
     publisher: "법제처 국가법령정보센터"
     source_type: "law_amendment"
     jurisdiction: "KR"
-    path: "raw/laws/국민연금법 개정문 및 부칙.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/국민연금법 개정문 및 부칙.html"
   - source_id: "raw-official-nps-income-rate-2026"
     title: "국민연금 기준소득월액 및 보험료율 2026"
     publisher: "국민연금공단"
     source_type: "official_guidance"
     jurisdiction: "KR"
-    path: "raw/laws/국민연금 기준소득월액 및 보험료율 2026.html"
     authority_level: 5
+    location:
+      kind: "path"
+      path: "raw/laws/국민연금 기준소득월액 및 보험료율 2026.html"
   - source_id: "raw-official-nhis-rates-2026"
     title: "건강보험 및 장기요양보험 보험료율 2026"
     publisher: "국민건강보험공단"
     source_type: "official_guidance"
     jurisdiction: "KR"
-    path: "raw/laws/건강보험 및 장기요양보험 보험료율 2026.html"
     authority_level: 5
+    location:
+      kind: "path"
+      path: "raw/laws/건강보험 및 장기요양보험 보험료율 2026.html"
   - source_id: "raw-law-industrial-accident-rates-2026"
     title: "2026년도 사업종류별 산재보험료율"
     publisher: "고용노동부"
     source_type: "law_notice"
     jurisdiction: "KR"
-    path: "raw/laws/2026년도 사업종류별 산재보험료율.pdf"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/2026년도 사업종류별 산재보험료율.pdf"
   - source_id: "raw-interpretation-nts-earned-income-nontax-2026-07-25"
     title: "국세청 근로소득 비과세 안내"
     publisher: "국세청"
     source_type: "official_guidance"
     jurisdiction: "KR"
-    path: "raw/interpretations/국세청 근로소득 비과세 안내 2026-07-25.html"
     authority_level: 5
+    location:
+      kind: "path"
+      path: "raw/interpretations/국세청 근로소득 비과세 안내 2026-07-25.html"
   - source_id: "raw-research-income-tax-act-revision-history-2026-07-25"
     title: "소득세법 전체 제정·개정이유"
     publisher: "법제처 국가법령정보센터"
     source_type: "law_amendment"
     jurisdiction: "KR"
-    path: "raw/research_press/소득세법 전체 제정개정이유 2026-07-25.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/research_press/소득세법 전체 제정개정이유 2026-07-25.html"
   - source_id: "raw-research-income-tax-decree-revision-history-2026-07-25"
     title: "소득세법 시행령 전체 제정·개정이유"
     publisher: "법제처 국가법령정보센터"
     source_type: "law_amendment"
     jurisdiction: "KR"
-    path: "raw/research_press/소득세법 시행령 전체 제정개정이유 2026-07-25.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/research_press/소득세법 시행령 전체 제정개정이유 2026-07-25.html"
   - source_id: "raw-case-2003da48549"
     title: "대법원 2005. 5. 27. 선고 2003다48549 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2005. 5. 27. 선고 2003다48549 판결.html"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2005. 5. 27. 선고 2003다48549 판결.html"
   - source_id: "raw-case-2021da227100"
     title: "대법원 2021. 10. 14. 선고 2021다227100 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2021. 10. 14. 선고 2021다227100 판결.html"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2021. 10. 14. 선고 2021다227100 판결.html"
   - source_id: "raw-case-2023da287168"
     title: "대법원 2024. 11. 14. 선고 2023다287168 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/대법원 2024. 11. 14. 선고 2023다287168 판결.pdf"
     authority_level: 3
+    location:
+      kind: "path"
+      path: "raw/cases/대법원 2024. 11. 14. 선고 2023다287168 판결.pdf"
   - source_id: "raw-case-2022na2176"
     title: "특허법원 2024. 12. 19. 선고 2022나2176 판결"
     publisher: "대한민국 법원"
     source_type: "case"
     jurisdiction: "KR"
-    path: "raw/cases/특허법원 2024. 12. 19. 선고 2022나2176 판결.pdf"
     authority_level: 4
+    location:
+      kind: "path"
+      path: "raw/cases/특허법원 2024. 12. 19. 선고 2022나2176 판결.pdf"
   - source_id: "raw-interpretation-moel-annual-leave-2006"
     title: "고용노동부 연차유급휴가수당 관련 행정해석 변경"
     publisher: "고용노동부"
     source_type: "official_guidance"
     jurisdiction: "KR"
-    path: "raw/interpretations/고용노동부 2006 연차유급휴가수당 행정해석 변경.html"
     authority_level: 5
+    location:
+      kind: "path"
+      path: "raw/interpretations/고용노동부 2006 연차유급휴가수당 행정해석 변경.html"
   - source_id: "raw-interpretation-moel-annual-leave-promotion-2024"
     title: "고용노동부 연차유급휴가 사용촉진 안내"
     publisher: "고용노동부"
     source_type: "official_guidance"
     jurisdiction: "KR"
-    path: "raw/interpretations/고용노동부 2024 연차유급휴가 사용촉진 안내.html"
     authority_level: 5
+    location:
+      kind: "path"
+      path: "raw/interpretations/고용노동부 2024 연차유급휴가 사용촉진 안내.html"
   - source_id: "raw-interpretation-moel-unused-annual-leave-pay"
     title: "고용노동부 연차유급휴가 미사용수당 산정 안내"
     publisher: "고용노동부"
     source_type: "official_guidance"
     jurisdiction: "KR"
-    path: "raw/interpretations/고용노동부 연차유급휴가 미사용수당 산정 안내.html"
     authority_level: 5
+    location:
+      kind: "path"
+      path: "raw/interpretations/고용노동부 연차유급휴가 미사용수당 산정 안내.html"
   - source_id: "raw-interpretation-nhis-edi-remuneration-report-2026"
     title: "국민건강보험공단 EDI 직장가입자 보수총액 통보 안내"
     publisher: "국민건강보험공단"
     source_type: "official_guidance"
     jurisdiction: "KR"
-    path: "raw/interpretations/국민건강보험공단 EDI 직장가입자 보수총액 통보 안내 2026-07-25.html"
     authority_level: 5
+    location:
+      kind: "path"
+      path: "raw/interpretations/국민건강보험공단 EDI 직장가입자 보수총액 통보 안내 2026-07-25.html"
   - source_id: "raw-interpretation-nhis-history-2023"
     title: "국민건강보험공단 건강보험 제도 연혁"
     publisher: "국민건강보험공단"
     source_type: "official_guidance"
     jurisdiction: "KR"
-    path: "raw/interpretations/국민건강보험공단 건강보험 제도 연혁 2023.html"
     authority_level: 5
+    location:
+      kind: "path"
+      path: "raw/interpretations/국민건강보험공단 건강보험 제도 연혁 2023.html"
   - source_id: "raw-interpretation-nhis-remuneration-change-form-2026"
     title: "국민건강보험공단 직장가입자 보수월액 변경신청서"
     publisher: "국민건강보험공단"
     source_type: "official_guidance"
     jurisdiction: "KR"
-    path: "raw/interpretations/국민건강보험공단 직장가입자 보수월액 변경신청서 2026-07-25.html"
     authority_level: 5
+    location:
+      kind: "path"
+      path: "raw/interpretations/국민건강보험공단 직장가입자 보수월액 변경신청서 2026-07-25.html"
   - source_id: "raw-interpretation-nhis-remuneration-report-form-2026"
     title: "국민건강보험공단 직장가입자 보수총액 통보서"
     publisher: "국민건강보험공단"
     source_type: "official_guidance"
     jurisdiction: "KR"
-    path: "raw/interpretations/국민건강보험공단 직장가입자 보수총액 통보서 2026-07-25.html"
     authority_level: 5
+    location:
+      kind: "path"
+      path: "raw/interpretations/국민건강보험공단 직장가입자 보수총액 통보서 2026-07-25.html"
   - source_id: "raw-interpretation-comwel-total-remuneration-2026"
     title: "근로복지공단 2026 보수총액 신고 안내"
     publisher: "근로복지공단"
     source_type: "official_guidance"
     jurisdiction: "KR"
-    path: "raw/interpretations/근로복지공단 2026 보수총액 신고 안내.pdf"
     authority_level: 5
+    location:
+      kind: "path"
+      path: "raw/interpretations/근로복지공단 2026 보수총액 신고 안내.pdf"
   - source_id: "raw-interpretation-kipo-employee-invention-2026"
     title: "특허청 직무발명보상제도 안내"
     publisher: "특허청"
     source_type: "official_guidance"
     jurisdiction: "KR"
-    path: "raw/interpretations/특허청 2026 직무발명보상제도 안내.html"
     authority_level: 5
+    location:
+      kind: "path"
+      path: "raw/interpretations/특허청 2026 직무발명보상제도 안내.html"
   - source_id: "raw-law-retirement-benefit-guarantee-act-art8-20260701"
     title: "근로자퇴직급여 보장법 제8조 퇴직금제도의 설정 등"
     publisher: "법제처 국가법령정보센터"
     source_type: "law"
     jurisdiction: "KR"
-    path: "raw/laws/근로자퇴직급여 보장법 제8조 2026-07-26 공식원문.html"
     authority_level: 1
+    location:
+      kind: "path"
+      path: "raw/laws/근로자퇴직급여 보장법 제8조 2026-07-26 공식원문.html"
