@@ -345,7 +345,10 @@ def load_entities(repo_root: Path) -> tuple[list[Entity], list[dict[str, Any]]]:
         return entities, [issue("critical", "WIKI_MISSING", "wiki", "wiki directory does not exist")]
     for path in iter_markdown(wiki_root):
         relative = path.relative_to(repo_root).as_posix()
-        if "logs" in path.relative_to(wiki_root).parts or path.name == "index.md":
+        if (
+            "logs" in path.relative_to(wiki_root).parts
+            or path.name in {"AGENTS.md", "index.md"}
+        ):
             continue
         try:
             data, body = load_frontmatter(path)

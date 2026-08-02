@@ -213,6 +213,11 @@ class ClaimAnchorContractTests(unittest.TestCase):
         self.assertLessEqual(sum(bool(claim["resolved"]) for claim in claims), len(claims))
         self.assertTrue(all(claim["valid_id"] for claim in claims))
 
+    def test_repository_knowledge_files_are_not_loaded_as_entities(self) -> None:
+        entities, parse_issues = load_entities(ROOT)
+        self.assertEqual(parse_issues, [])
+        self.assertNotIn("wiki/AGENTS.md", {entity.relative_path for entity in entities})
+
 
 class VerificationMetadataContractTests(unittest.TestCase):
     def test_exact_legacy_values_map_without_rewriting_legacy_field(self) -> None:

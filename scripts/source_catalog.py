@@ -12,6 +12,7 @@ from kg_common import FrontmatterError, _SubsetYamlParser, normalized_ref, scala
 
 TEMP_NAMES = frozenset({".gitkeep", ".ds_store", "thumbs.db"})
 TEMP_SUFFIXES = frozenset({".tmp", ".part", ".crdownload"})
+KNOWLEDGE_NAMES = frozenset({"agents.md"})
 
 
 class SourceRegistryError(ValueError):
@@ -133,7 +134,8 @@ def registry_title_map(root: Path) -> dict[str, str]:
 def is_control_or_temporary(path: Path, raw_root: Path, *, include_hidden: bool) -> bool:
     relative_parts = path.relative_to(raw_root).parts
     if (
-        path.name.casefold() in TEMP_NAMES
+        path.name.casefold() in KNOWLEDGE_NAMES
+        or path.name.casefold() in TEMP_NAMES
         or path.suffix.casefold() in TEMP_SUFFIXES
         or path.name.startswith("~$")
     ):
@@ -157,6 +159,8 @@ def iter_raw_files(
         key=lambda path: path.as_posix().casefold(),
     )
     for path in paths:
+        if path.name.casefold() in KNOWLEDGE_NAMES:
+            continue
         if not include_control_files and is_control_or_temporary(
             path, raw_root, include_hidden=include_hidden
         ):

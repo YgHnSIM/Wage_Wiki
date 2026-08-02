@@ -74,7 +74,7 @@ class RawFilePolicyTests(unittest.TestCase):
             root = Path(temporary)
             raw = root / "raw"
             raw.mkdir()
-            for name in ("source.pdf", ".hidden.pdf", "download.tmp", ".gitkeep"):
+            for name in ("source.pdf", "AGENTS.md", ".hidden.pdf", "download.tmp", ".gitkeep"):
                 (raw / name).write_text(name, encoding="utf-8")
 
             public = {path.name for path in iter_raw_files(root)}
