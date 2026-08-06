@@ -420,11 +420,15 @@ def _site_header(
     safe_home = html.escape(home_prefix, quote=True)
     concept_current = ' aria-current="page"' if current_section == "concept" else ""
     history_current = ' aria-current="page"' if current_section == "history" else ""
+    tools_current = ' aria-current="page"' if current_section == "tools" else ""
+    about_current = ' aria-current="page"' if current_section == "about" else ""
     return f"""<header class="site-header">
   <a class="wordmark" href="{safe_home}"><span>WAGE</span><span>WIKI</span></a>
   <nav aria-label="주요 메뉴">
     <a href="{safe_home}concept/"{concept_current}>개념</a>
     <a href="{safe_home}history/"{history_current}>연혁</a>
+    <a href="{safe_home}tools/"{tools_current}>진단·계산기</a>
+    <a href="{safe_home}about/"{about_current}>안내</a>
     <a class="site-nav__repo" href="{html.escape(context.repository_url, quote=True)}">GitHub 저장소</a>
   </nav>
 </header>"""
@@ -1114,6 +1118,293 @@ def _entity_page(
     )
 
 
+def _tools_page(
+    records: list[dict[str, Any]],
+    context: SiteRenderContext,
+) -> str:
+    body = f"""{_site_header(context, '../', current_section="tools")}
+<main id="main" class="tools-container" tabindex="-1">
+  <header class="tools-hero">
+    <p class="section-label">실무 법리 도구</p>
+    <h1>대화형 법리 진단 &<br>법정수당·퇴직금 계산기</h1>
+    <p>Wage_Wiki 판례 지식베이스의 판단 규칙(Rule)과 법령(Law)을 기반으로 구현된 대화형 의사결정 트리와 실시간 수당 산정 시뮬레이터입니다.</p>
+  </header>
+
+  <!-- Section 1: Decision Tree Wizards -->
+  <section class="tools-section" aria-labelledby="wizard-heading">
+    <div class="section-heading">
+      <p class="section-label">Interactive Decision Trees</p>
+      <h2 id="wizard-heading">대화형 법리 진단 트리</h2>
+    </div>
+    
+    <div class="tool-tabs" role="tablist" aria-label="진단 트리 목록">
+      <button class="tool-tab active" role="tab" aria-selected="true" aria-controls="wizard-ordinary-wage" id="tab-ordinary-wage">통상임금 3대 요건 진단</button>
+      <button class="tool-tab" role="tab" aria-selected="false" aria-controls="wizard-comprehensive-wage" id="tab-comprehensive-wage">포괄임금약정 무효 진단</button>
+      <button class="tool-tab" role="tab" aria-selected="false" aria-controls="wizard-under-5-scope" id="tab-under-5-scope">5인 미만 사업장 적용범위 진단</button>
+    </div>
+
+    <!-- Wizard 1: Ordinary Wage -->
+    <div id="wizard-ordinary-wage" class="wizard-panel" role="tabpanel" aria-labelledby="tab-ordinary-wage">
+      <div class="wizard-card" data-wizard="ordinary-wage">
+        <div class="wizard-header">
+          <span class="wizard-step-badge">Step <span class="current-step-num">1</span> / 3</span>
+          <h3>통상임금 3대 요건 (정기성·일률성·사전확정성) 진단</h3>
+        </div>
+        <div class="wizard-body">
+          <!-- Step 1 -->
+          <div class="wizard-step active" data-step="1">
+            <h4 class="step-question">Q1. 해당 수당이 1개월, 분기, 연 1회 등 일정한 주기로 정기적으로 지급되나요?</h4>
+            <p class="step-desc">근로기준법 시행령 제6조: 정기성은 일정한 간격을 두고 계속해서 지급되는 성질을 의미합니다.</p>
+            <div class="step-actions">
+              <button type="button" class="btn-option primary" data-next="2">예 (정기성 인정)</button>
+              <button type="button" class="btn-option secondary" data-result="neg-regularity">아니오 (임시/우발적 지급)</button>
+            </div>
+          </div>
+          <!-- Step 2 -->
+          <div class="wizard-step" data-step="2" style="display:none;">
+            <h4 class="step-question">Q2. 모든 근로자 또는 일정한 조건/자격을 갖춘 근로자 전원에게 일률적으로 지급되나요?</h4>
+            <p class="step-desc">일률성은 기술, 자격, 학력, 직급 등 일정한 조건에 달성한 근로자 모두에게 지급되는 성질입니다.</p>
+            <div class="step-actions">
+              <button type="button" class="btn-option primary" data-next="3">예 (일률성 인정)</button>
+              <button type="button" class="btn-option secondary" data-result="neg-uniformity">아니오 (개별/특정 근로자 대상)</button>
+              <button type="button" class="btn-back" data-prev="1">← 이전 단계</button>
+            </div>
+          </div>
+          <!-- Step 3 -->
+          <div class="wizard-step" data-step="3" style="display:none;">
+            <h4 class="step-question">Q3. 재직 조건이나 특정 성과 조건 없이, 소정근로를 제공하면 사전에 확정되어 지급되나요? (2024년 대법원 전원합의체 고정성 배제 법리 적용)</h4>
+            <p class="step-desc">2024년 대법원 전원합의체(2020다247190): '재직자 지급 조건'이 부과되어 있더라도 소정근로의 대가성이 인정되면 고정성 부재를 이유로 통상임금을 부정할 수 없습니다.</p>
+            <div class="step-actions">
+              <button type="button" class="btn-option primary" data-result="pos-ordinary-wage">예 (사전확정성/대가성 인정)</button>
+              <button type="button" class="btn-option secondary" data-result="neg-fixedness">아니오 (실제 성과 달성 조건)</button>
+              <button type="button" class="btn-back" data-prev="2">← 이전 단계</button>
+            </div>
+          </div>
+          <!-- Result Display -->
+          <div class="wizard-result" style="display:none;">
+            <div class="result-box"></div>
+            <button type="button" class="btn-reset">🔄 진단 다시 시작</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wizard 2: Comprehensive Wage -->
+    <div id="wizard-comprehensive-wage" class="wizard-panel" role="tabpanel" aria-labelledby="tab-comprehensive-wage" style="display:none;">
+      <div class="wizard-card" data-wizard="comprehensive-wage">
+        <div class="wizard-header">
+          <span class="wizard-step-badge">Step <span class="current-step-num">1</span> / 2</span>
+          <h3>포괄임금약정 무효 및 가산수당 재산정 대상 진단</h3>
+        </div>
+        <div class="wizard-body">
+          <div class="wizard-step active" data-step="1">
+            <h4 class="step-question">Q1. PC Off 시스템, 출퇴근 카드, 게이트 태그 등으로 실제 근로시간을 객관적으로 산정할 수 있나요?</h4>
+            <p class="step-desc">포괄임금제는 근로시간 산정이 객관적으로 불가능하거나 매우 곤란한 예외적 경우에만 성립합니다.</p>
+            <div class="step-actions">
+              <button type="button" class="btn-option primary" data-next="2">예 (근로시간 집계 가능)</button>
+              <button type="button" class="btn-option secondary" data-result="comp-valid-possible">아니오 (근로시간 산정 불가)</button>
+            </div>
+          </div>
+          <div class="wizard-step" data-step="2" style="display:none;">
+            <h4 class="step-question">Q2. 근로자의 직무가 일반 사무직, IT 개발·기획, 디자인 등 근로시간 관리가 용이한 업무인가요?</h4>
+            <p class="step-desc">대법원 판례: 일반 사무직 근로자에게 포괄임금약정을 체결하는 것은 근로기준법상 가산수당 지급 의무를 탈법하는 것으로서 무효입니다.</p>
+            <div class="step-actions">
+              <button type="button" class="btn-option primary" data-result="comp-invalid">예 (사무직·관리가능 직종)</button>
+              <button type="button" class="btn-option secondary" data-result="comp-valid-exception">아니오 (외근·사업장 밖 근로)</button>
+              <button type="button" class="btn-back" data-prev="1">← 이전 단계</button>
+            </div>
+          </div>
+          <div class="wizard-result" style="display:none;">
+            <div class="result-box"></div>
+            <button type="button" class="btn-reset">🔄 진단 다시 시작</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wizard 3: Under 5 Scope -->
+    <div id="wizard-under-5-scope" class="wizard-panel" role="tabpanel" aria-labelledby="tab-under-5-scope" style="display:none;">
+      <div class="wizard-card" data-wizard="under-5-scope">
+        <div class="wizard-header">
+          <span class="wizard-step-badge">Step <span class="current-step-num">1</span> / 2</span>
+          <h3>상시 5인 미만 사업장 근로기준법 적용 범위 진단</h3>
+        </div>
+        <div class="wizard-body">
+          <div class="wizard-step active" data-step="1">
+            <h4 class="step-question">Q1. 대표자를 제외한 상시 근로자 수가 4인 이하(5인 미만)인가요?</h4>
+            <p class="step-desc">근로기준법 제11조: 상시 4인 이하의 근로자를 사용하는 사업 또는 사업장에는 대통령령으로 정하는 바에 따라 법 일부 조항만 적용됩니다.</p>
+            <div class="step-actions">
+              <button type="button" class="btn-option primary" data-next="2">예 (상시 5인 미만)</button>
+              <button type="button" class="btn-option secondary" data-result="u5-full-apply">아니오 (상시 5인 이상)</button>
+            </div>
+          </div>
+          <div class="wizard-step" data-step="2" style="display:none;">
+            <h4 class="step-question">Q2. 구제받고자 하는 항목이 무엇인가요?</h4>
+            <div class="step-actions">
+              <button type="button" class="btn-option secondary" data-result="u5-excluded-items">연장·야간·휴일 가산수당, 연차휴가, 부당해고 구제신청</button>
+              <button type="button" class="btn-option primary" data-result="u5-mandatory-items">주휴수당, 최저임금, 퇴직금, 해고예고수당</button>
+              <button type="button" class="btn-back" data-prev="1">← 이전 단계</button>
+            </div>
+          </div>
+          <div class="wizard-result" style="display:none;">
+            <div class="result-box"></div>
+            <button type="button" class="btn-reset">🔄 진단 다시 시작</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Interactive Wage Calculators -->
+  <section class="tools-section" aria-labelledby="calc-heading">
+    <div class="section-heading">
+      <p class="section-label">Interactive Calculators</p>
+      <h2 id="calc-heading">실무 법정수당 & 퇴직금 시뮬레이션 계산기</h2>
+    </div>
+
+    <div class="calc-grid">
+      <!-- Calculator 1: Ordinary Wage -->
+      <div class="calc-card" id="calc-ordinary-hourly">
+        <div class="calc-card__header">
+          <h3>통상시급 & 월 통상임금 계산기</h3>
+          <span class="calc-badge-info">근로기준법 시행령 제6조</span>
+        </div>
+        <div class="calc-card__body">
+          <div class="calc-form">
+            <div class="input-group">
+              <label for="input-base-salary">월 기본급 (원)</label>
+              <input type="number" id="input-base-salary" value="2500000" step="10000">
+            </div>
+            <div class="input-group">
+              <label for="input-fixed-allowance">월 고정수당 (직책/자격/식대 등 통상임금성) (원)</label>
+              <input type="number" id="input-fixed-allowance" value="300000" step="10000">
+            </div>
+            <div class="input-group">
+              <label for="input-monthly-hours">월 소정근로시간 (주 40시간 기준 209시간)</label>
+              <input type="number" id="input-monthly-hours" value="209" step="1">
+            </div>
+          </div>
+          <div class="calc-result">
+            <div class="result-row"><span>월 통상임금:</span> <strong id="res-monthly-wage">2,800,000 원</strong></div>
+            <div class="result-row highlight"><span>통상시급 ($H$):</span> <strong id="res-ordinary-hourly">13,397 원</strong></div>
+            <div class="result-row"><span>1일 통상임금 ($8H$):</span> <strong id="res-daily-ordinary">107,177 원</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calculator 2: Overtime/Holiday Allowance -->
+      <div class="calc-card" id="calc-overtime-allowance">
+        <div class="calc-card__header">
+          <h3>연장·야간·휴일 가산수당 계산기</h3>
+          <span class="calc-badge-info">근로기준법 제56조</span>
+        </div>
+        <div class="calc-card__body">
+          <div class="calc-form">
+            <div class="input-group">
+              <label for="input-hourly-rate">적용 통상시급 (원)</label>
+              <input type="number" id="input-hourly-rate" value="13397" step="100">
+            </div>
+            <div class="input-group">
+              <label for="input-overtime-hours">월 연장근로시간 (시간, 150% 가산)</label>
+              <input type="number" id="input-overtime-hours" value="15" step="0.5">
+            </div>
+            <div class="input-group">
+              <label for="input-night-hours">월 야간근로시간 (22시~06시, 50% 가산)</label>
+              <input type="number" id="input-night-hours" value="5" step="0.5">
+            </div>
+            <div class="input-group">
+              <label for="input-holiday-hours">월 휴일근로시간 (8시간 이내 150%, 초과 200%)</label>
+              <input type="number" id="input-holiday-hours" value="8" step="0.5">
+            </div>
+          </div>
+          <div class="calc-result">
+            <div class="result-row"><span>연장가산수당 (150%):</span> <span id="res-overtime-pay">301,433 원</span></div>
+            <div class="result-row"><span>야간가산수당 (50%):</span> <span id="res-night-pay">33,493 원</span></div>
+            <div class="result-row"><span>휴일가산수당 (150%):</span> <span id="res-holiday-pay">160,764 원</span></div>
+            <div class="result-row highlight"><span>총 법정 가산수당:</span> <strong id="res-total-allowance">495,690 원</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calculator 3: Minimum Wage Comparison -->
+      <div class="calc-card" id="calc-minimum-wage">
+        <div class="calc-card__header">
+          <h3>최저임금 산입범위 & 준수 검증기</h3>
+          <span class="calc-badge-info">2026/2027 최저임금 고시</span>
+        </div>
+        <div class="calc-card__body">
+          <div class="calc-form">
+            <div class="input-group">
+              <label for="input-min-base">월 기본급 (원)</label>
+              <input type="number" id="input-min-base" value="2000000" step="10000">
+            </div>
+            <div class="input-group">
+              <label for="input-min-meal">매월 식대/복리후생비 (원)</label>
+              <input type="number" id="input-min-meal" value="150000" step="10000">
+            </div>
+            <div class="input-group">
+              <label for="input-min-bonus">매월 정기상여금 (원)</label>
+              <input type="number" id="input-min-bonus" value="100000" step="10000">
+            </div>
+          </div>
+          <div class="calc-result">
+            <div class="result-row"><span>최저임금 산입 총액:</span> <strong id="res-min-total">2,250,000 원</strong></div>
+            <div class="result-row"><span>환산 시급:</span> <strong id="res-min-hourly">10,766 원</strong></div>
+            <div class="result-row"><span>2026년 최저시급 (10,030원, 월 2,096,270원):</span></div>
+            <div class="compliance-box" id="res-min-status">
+              <span class="badge badge--success">✅ 최저임금 준수</span>
+              <p style="margin:4px 0 0 0;font-size:0.9em;color:var(--color-fg-muted);">기준액(월 2,096,270원) 대비 +153,730원 초과 지급 중입니다.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calculator 4: Severance Pay -->
+      <div class="calc-card" id="calc-severance-pay">
+        <div class="calc-card__header">
+          <h3>법정 퇴직금 산정기</h3>
+          <span class="calc-badge-info">근로자퇴직급여 보장법 제8조</span>
+        </div>
+        <div class="calc-card__body">
+          <div class="calc-form">
+            <div class="input-group">
+              <label for="input-3month-wage">퇴직 전 3개월간 임금 총액 (원)</label>
+              <input type="number" id="input-3month-wage" value="9000000" step="100000">
+            </div>
+            <div class="input-group">
+              <label for="input-annual-bonus">전년도 정기상여금 총액 (원)</label>
+              <input type="number" id="input-annual-bonus" value="3000000" step="100000">
+            </div>
+            <div class="input-group">
+              <label for="input-tenure-days">총 재직일수 (일)</label>
+              <input type="number" id="input-tenure-days" value="1095" step="1">
+            </div>
+            <div class="checkbox-group">
+              <label><input type="checkbox" id="check-childcare-leave" checked> 육아휴직 기간 포함 (남녀고용평등법 제19조 제4항 근속기간 100% 산입)</label>
+            </div>
+          </div>
+          <div class="calc-result">
+            <div class="result-row"><span>1일 평균임금 ($A$):</span> <strong id="res-daily-average">105,978 원</strong></div>
+            <div class="result-row highlight"><span>법정 퇴직금:</span> <strong id="res-total-severance">3,179,340 원</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer"><div class="site-footer__inner"><p>Wage Wiki · 대화형 법리 진단 & 계산기 도구</p><p><a href="{html.escape(context.repository_url, quote=True)}">GitHub 저장소</a></p></div></footer>"""
+    return _document(
+        context=context,
+        title=f"대화형 진단 & 법정수당 계산기 | {SITE_TITLE}",
+        description="통상임금 3대 요건, 포괄임금 무효, 5인 미만 적용범위 대화형 진단 트리 및 통상시급, 가산수당, 최저임금, 퇴직금 계산기",
+        body=body,
+        asset_prefix="../assets/",
+        canonical_url=_canonical(context.site_url, "tools/"),
+        page_class="tools-page",
+        include_app=True,
+    )
+
+
 def _about_page(
     records: list[dict[str, Any]],
     counts: Counter[str],
@@ -1295,6 +1586,12 @@ def build_site(
     (output / "about").mkdir()
     (output / "about" / "index.html").write_text(
         _about_page(records, counts, status_counts, legal_counts, as_of, context),
+        encoding="utf-8",
+        newline="\n",
+    )
+    (output / "tools").mkdir()
+    (output / "tools" / "index.html").write_text(
+        _tools_page(records, context),
         encoding="utf-8",
         newline="\n",
     )

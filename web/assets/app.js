@@ -594,8 +594,291 @@
       });
   }
 
+  function initDecisionTreeWizards() {
+    const tabs = Array.from(document.querySelectorAll(".tool-tab"));
+    const panels = Array.from(document.querySelectorAll(".wizard-panel"));
+    if (!tabs.length || !panels.length) return;
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        tabs.forEach((t) => {
+          t.classList.remove("active");
+          t.setAttribute("aria-selected", "false");
+        });
+        panels.forEach((p) => (p.style.display = "none"));
+
+        tab.classList.add("active");
+        tab.setAttribute("aria-selected", "true");
+        const targetId = tab.getAttribute("aria-controls");
+        const targetPanel = document.getElementById(targetId);
+        if (targetPanel) targetPanel.style.display = "block";
+      });
+    });
+
+    const RESULT_TEMPLATES = {
+      "pos-ordinary-wage": {
+        badge: "badge--success",
+        badgeText: "✅ 통상임금 성립",
+        title: "통상임금 3대 요건 (정기성·일률성·사전확정성) 충족",
+        desc: "해당 수당은 근로기준법 시행령 제6조 및 2024년 대법원 전원합의체 판례(2020다247190)에 의거 통상임금에 해당합니다. 연장·야간·휴일근로 가산수당 및 해고예고수당, 연차휴가 미사용수당 산정의 기초임금에 합산되어야 합니다.",
+        linkText: "관련 대법원 전원합의체 판례 보기",
+        linkUrl: "../entities/case-2020da247190-7521e102/"
+      },
+      "neg-regularity": {
+        badge: "badge--warning",
+        badgeText: "❌ 통상임금 제외 (정기성 부재)",
+        title: "정기성 요건 미충족",
+        desc: "지급 주기가 불규칙하거나 임시·우발적으로 지급되는 금품은 정기성이 인정되지 않아 통상임금에서 제외됩니다.",
+        linkText: "관련 통상임금 판단 규칙 보기",
+        linkUrl: "../entities/rule-ru34-fixedness-excluded-2024-5d554a93/"
+      },
+      "neg-uniformity": {
+        badge: "badge--warning",
+        badgeText: "❌ 통상임금 제외 (일률성 부재)",
+        title: "일률성 요건 미충족",
+        desc: "일정한 조건이나 자격을 갖춘 모든 근로자가 아닌, 특정 개별 근로자에게만 임의로 지급되는 금품은 일률성이 부정됩니다.",
+        linkText: "관련 통상임금 판단 규칙 보기",
+        linkUrl: "../entities/rule-ru34-fixedness-excluded-2024-5d554a93/"
+      },
+      "neg-fixedness": {
+        badge: "badge--warning",
+        badgeText: "❌ 통상임금 제외 (사전확정성 결여)",
+        title: "사전확정성/대가성 요건 미충족",
+        desc: "실제 개인 영업 성과 달성이나 조건에 따라 변동 지급되는 불확정 성과급은 소정근로 대가성이 부정되어 통상임금에서 제외됩니다.",
+        linkText: "관련 판단 규칙 보기",
+        linkUrl: "../entities/rule-ru34-fixedness-excluded-2024-5d554a93/"
+      },
+      "comp-invalid": {
+        badge: "badge--danger",
+        badgeText: "🚨 포괄임금약정 절대 무효 (가산수당 차액 청구 대상)",
+        title: "포괄임금약정 무효 및 실근로시간 기반 수당 재산정 대상",
+        desc: "PC Off 시스템 등 근로시간 집계가 가능한 상황에서 일반 사무직·IT근로자에게 체결된 포괄임금약정은 근로기준법 제43조 및 제56조 위반으로 무효입니다. 기존 포괄수당 외에 실근로시간에 상응하는 150% 가산수당 차액을 지체 없이 청구할 수 있습니다.",
+        linkText: "관련 포괄임금 무효 판단 규칙 보기",
+        linkUrl: "../entities/rule-invalid-comprehensive-wage-recalculation-5e580e60/"
+      },
+      "comp-valid-possible": {
+        badge: "badge--info",
+        badgeText: "⚠️ 포괄임금 수용 가능성 예외 검토",
+        title: "근로시간 산정 곤란성 검토 필요",
+        desc: "근로시간을 객관적으로 집계하기 극히 어려운 엄격한 사정이 증명되는 경우 예외적으로 포괄임금약정이 유효할 수 있습니다.",
+        linkText: "관련 임금지급법령 보기",
+        linkUrl: "../entities/law-lsa-article-43-wage-payment-principles-85e6833b/"
+      },
+      "comp-valid-exception": {
+        badge: "badge--info",
+        badgeText: "⚠️ 사업장 밖 근로 등 특수직종 예외",
+        title: "사업장 밖 근로시간 간주제 적용 가능성",
+        desc: "외근 업무, 사업장 밖 근로 등 근로시간 관리가 어려운 경우 포괄임금 또는 간주근로시간제가 인정될 수 있습니다.",
+        linkText: "관련 판단 규칙 보기",
+        linkUrl: "../entities/rule-invalid-comprehensive-wage-recalculation-5e580e60/"
+      },
+      "u5-full-apply": {
+        badge: "badge--success",
+        badgeText: "✅ 근로기준법 전면 적용 사업장",
+        title: "상시 5인 이상 사업장",
+        desc: "가산수당(150%), 연차유급휴가, 부당해고 제한(제23조) 등 근로기준법 모든 조항이 전면 적용됩니다.",
+        linkText: "관련 근로기준법 제11조 보기",
+        linkUrl: "../entities/law-lsa-article-11-scope-e67d4e30/"
+      },
+      "u5-excluded-items": {
+        badge: "badge--warning",
+        badgeText: "⚠️ 5인 미만 사업장 적용 배제 조항",
+        title: "가산수당·연차휴가·부당해고 구제 적용 제외",
+        desc: "상시 5인 미만 사업장은 근로기준법 제11조 제2항에 따라 제56조 가산수당(50% 가산), 제60조 연차휴가, 제23조 부당해고 노동위원회 구제신청이 적용 제외됩니다. (단, 근무한 시급 100% 자체는 지급받아야 함)",
+        linkText: "관련 5인 미만 적용 규칙 보기",
+        linkUrl: "../entities/rule-under-5-employees-lsa-exclusion-cd044cf4/"
+      },
+      "u5-mandatory-items": {
+        badge: "badge--success",
+        badgeText: "✅ 5인 미만 사업장 필수 적용 조항",
+        title: "주휴수당·최저임금·퇴직금·해고예고 필수 적용",
+        desc: "상시 5인 미만 사업장이라도 주휴수당(제55조), 최저임금법, 법정 퇴직금, 30일 전 해고예고수당(제26조)은 100% 강행 적용되므로 미지급 시 임금체불에 해당합니다.",
+        linkText: "관련 주휴수당 규칙 보기",
+        linkUrl: "../entities/rule-weekly-holiday-allowance-short-term-09e4f58c/"
+      }
+    };
+
+    document.querySelectorAll(".wizard-card").forEach((card) => {
+      const stepBadgeNum = card.querySelector(".current-step-num");
+      const steps = Array.from(card.querySelectorAll(".wizard-step"));
+      const resultContainer = card.querySelector(".wizard-result");
+      const resultBox = card.querySelector(".result-box");
+
+      function showStep(num) {
+        steps.forEach((s) => {
+          if (parseInt(s.dataset.step, 10) === num) {
+            s.style.display = "block";
+            s.classList.add("active");
+          } else {
+            s.style.display = "none";
+            s.classList.remove("active");
+          }
+        });
+        if (resultContainer) resultContainer.style.display = "none";
+        if (stepBadgeNum) stepBadgeNum.textContent = num;
+      }
+
+      function showResult(key) {
+        steps.forEach((s) => (s.style.display = "none"));
+        const data = RESULT_TEMPLATES[key];
+        if (data && resultBox && resultContainer) {
+          resultBox.innerHTML = `
+            <div class="result-badge-wrap"><span class="badge ${data.badge}">${data.badgeText}</span></div>
+            <h4 class="result-title">${data.title}</h4>
+            <p class="result-desc">${data.desc}</p>
+            ${data.linkUrl ? `<a href="${data.linkUrl}" class="text-link">${data.linkText} →</a>` : ""}
+          `;
+          resultContainer.style.display = "block";
+        }
+      }
+
+      card.addEventListener("click", (e) => {
+        const btn = e.target.closest("button");
+        if (!btn) return;
+
+        if (btn.dataset.next) {
+          showStep(parseInt(btn.dataset.next, 10));
+        } else if (btn.dataset.prev) {
+          showStep(parseInt(btn.dataset.prev, 10));
+        } else if (btn.dataset.result) {
+          showResult(btn.dataset.result);
+        } else if (btn.classList.contains("btn-reset")) {
+          showStep(1);
+        }
+      });
+    });
+  }
+
+  function initWageCalculators() {
+    function fmt(val) {
+      return Math.round(val).toLocaleString("ko-KR") + " 원";
+    }
+
+    const baseSalInput = document.getElementById("input-base-salary");
+    const fixedAllowInput = document.getElementById("input-fixed-allowance");
+    const monthlyHoursInput = document.getElementById("input-monthly-hours");
+
+    function calcOrdinary() {
+      if (!baseSalInput || !fixedAllowInput || !monthlyHoursInput) return;
+      const base = parseFloat(baseSalInput.value) || 0;
+      const fixed = parseFloat(fixedAllowInput.value) || 0;
+      const hours = parseFloat(monthlyHoursInput.value) || 209;
+
+      const monthlyWage = base + fixed;
+      const hourlyRate = hours > 0 ? monthlyWage / hours : 0;
+      const dailyRate = hourlyRate * 8;
+
+      const resMonthly = document.getElementById("res-monthly-wage");
+      const resHourly = document.getElementById("res-ordinary-hourly");
+      const resDaily = document.getElementById("res-daily-ordinary");
+      if (resMonthly) resMonthly.textContent = fmt(monthlyWage);
+      if (resHourly) resHourly.textContent = fmt(hourlyRate);
+      if (resDaily) resDaily.textContent = fmt(dailyRate);
+
+      const overtimeRateInput = document.getElementById("input-hourly-rate");
+      if (overtimeRateInput && document.activeElement !== overtimeRateInput) {
+        overtimeRateInput.value = Math.round(hourlyRate);
+        calcOvertime();
+      }
+    }
+
+    const hourlyInput = document.getElementById("input-hourly-rate");
+    const overtimeHoursInput = document.getElementById("input-overtime-hours");
+    const nightHoursInput = document.getElementById("input-night-hours");
+    const holidayHoursInput = document.getElementById("input-holiday-hours");
+
+    function calcOvertime() {
+      if (!hourlyInput || !overtimeHoursInput || !nightHoursInput || !holidayHoursInput) return;
+      const h = parseFloat(hourlyInput.value) || 0;
+      const ot = parseFloat(overtimeHoursInput.value) || 0;
+      const nt = parseFloat(nightHoursInput.value) || 0;
+      const ht = parseFloat(holidayHoursInput.value) || 0;
+
+      const otPay = ot * h * 1.5;
+      const ntPay = nt * h * 0.5;
+      const htPay = ht * h * 1.5;
+      const totalPay = otPay + ntPay + htPay;
+
+      const resOt = document.getElementById("res-overtime-pay");
+      const resNt = document.getElementById("res-night-pay");
+      const resHt = document.getElementById("res-holiday-pay");
+      const resTotal = document.getElementById("res-total-allowance");
+      if (resOt) resOt.textContent = fmt(otPay);
+      if (resNt) resNt.textContent = fmt(ntPay);
+      if (resHt) resHt.textContent = fmt(htPay);
+      if (resTotal) resTotal.textContent = fmt(totalPay);
+    }
+
+    const minBaseInput = document.getElementById("input-min-base");
+    const minMealInput = document.getElementById("input-min-meal");
+    const minBonusInput = document.getElementById("input-min-bonus");
+
+    function calcMinWage() {
+      if (!minBaseInput || !minMealInput || !minBonusInput) return;
+      const base = parseFloat(minBaseInput.value) || 0;
+      const meal = parseFloat(minMealInput.value) || 0;
+      const bonus = parseFloat(minBonusInput.value) || 0;
+
+      const totalComp = base + meal + bonus;
+      const hourlyEq = totalComp / 209;
+      const MIN_WAGE_2026_MONTHLY = 2096270;
+
+      const resMinTot = document.getElementById("res-min-total");
+      const resMinHr = document.getElementById("res-min-hourly");
+      if (resMinTot) resMinTot.textContent = fmt(totalComp);
+      if (resMinHr) resMinHr.textContent = fmt(hourlyEq);
+
+      const statusBox = document.getElementById("res-min-status");
+      if (statusBox) {
+        const diff = totalComp - MIN_WAGE_2026_MONTHLY;
+        if (diff >= 0) {
+          statusBox.innerHTML = `
+            <span class="badge badge--success">✅ 최저임금 준수</span>
+            <p style="margin:4px 0 0 0;font-size:0.9em;color:var(--color-fg-muted);">기준액(월 2,096,270원) 대비 <strong>+${fmt(diff)}</strong> 초과 지급 중입니다.</p>
+          `;
+        } else {
+          statusBox.innerHTML = `
+            <span class="badge badge--danger">🚨 최저임금 미달 (임금체불)</span>
+            <p style="margin:4px 0 0 0;font-size:0.9em;color:var(--color-fg-muted);">기준액(월 2,096,270원) 대비 <strong style="color:var(--color-danger);">${fmt(Math.abs(diff))} 미달</strong>되어 최저임금법 제6조 위반입니다.</p>
+          `;
+        }
+      }
+    }
+
+    const wage3mInput = document.getElementById("input-3month-wage");
+    const bonusAnnInput = document.getElementById("input-annual-bonus");
+    const tenureInput = document.getElementById("input-tenure-days");
+    const childcareCheck = document.getElementById("check-childcare-leave");
+
+    function calcSeverance() {
+      if (!wage3mInput || !bonusAnnInput || !tenureInput) return;
+      const wage3m = parseFloat(wage3mInput.value) || 0;
+      const bonusAnn = parseFloat(bonusAnnInput.value) || 0;
+      const tenureDays = parseFloat(tenureInput.value) || 0;
+
+      const dailyAvg = (wage3m + (bonusAnn * 0.25)) / 92;
+      const totalSeverance = dailyAvg * 30 * (tenureDays / 365);
+
+      const resDailyAvg = document.getElementById("res-daily-average");
+      const resTotSev = document.getElementById("res-total-severance");
+      if (resDailyAvg) resDailyAvg.textContent = fmt(dailyAvg);
+      if (resTotSev) resTotSev.textContent = fmt(totalSeverance);
+    }
+
+    [baseSalInput, fixedAllowInput, monthlyHoursInput].forEach((el) => el && el.addEventListener("input", calcOrdinary));
+    [hourlyInput, overtimeHoursInput, nightHoursInput, holidayHoursInput].forEach((el) => el && el.addEventListener("input", calcOvertime));
+    [minBaseInput, minMealInput, minBonusInput].forEach((el) => el && el.addEventListener("input", calcMinWage));
+    [wage3mInput, bonusAnnInput, tenureInput, childcareCheck].forEach((el) => el && el.addEventListener("input", calcSeverance));
+
+    calcOrdinary();
+    calcMinWage();
+    calcSeverance();
+  }
+
   initDocumentMeta();
   initDocumentIndex();
   initTypeArchive();
   initExplorer();
+  initDecisionTreeWizards();
+  initWageCalculators();
 })();
